@@ -36,7 +36,11 @@ import {
   ShieldCheck,
   Percent,
   DollarSign,
-  RotateCcw
+  RotateCcw,
+  Cloud,
+  Server,
+  Laptop,
+  CheckCheck
 } from 'lucide-react';
 
 export interface DetectedPromotion {
@@ -924,30 +928,206 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
   const [editCategory, setEditCategory] = useState<'implant' | 'ortho' | 'cosmetic' | 'general' | 'all'>('implant');
   const [editSavedToast, setEditSavedToast] = useState<string | null>(null);
 
+  // Cloud Sync State for cross-device synchronization
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<'synced' | 'syncing' | 'error'>('synced');
+  const [lastCloudSyncedAt, setLastCloudSyncedAt] = useState<string>('');
+
   // Keep a ref to always have the latest monitoredLinks array for async calls
   const monitoredLinksRef = useRef<MonitoredLink[]>(monitoredLinks);
   useEffect(() => {
     monitoredLinksRef.current = monitoredLinks;
   }, [monitoredLinks]);
 
+  // Helper to post settings to backend cloud store
+  const syncSettingsToCloud = async (newSettings: {
+    autoScanInterval?: number;
+    autoScanEnabled?: boolean;
+    nextScanTargetTimestamp?: number;
+    lastAutoScannedAt?: string;
+  }) => {
+    try {
+      setCloudSyncStatus('syncing');
+      const res = await fetch('/api/monitor/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings)
+      });
+      if (res.ok) {
+        setCloudSyncStatus('synced');
+        setLastCloudSyncedAt(new Date().toLocaleTimeString('vi-VN'));
+      }
+    } catch (e) {
+      console.warn('[CloudSync] Failed to post settings to server:', e);
+      setCloudSyncStatus('error');
+    }
+  };
+
+  // Helper to trigger manual sync from cloud
+  const handleManualCloudSync = async () => {
+    try {
+      setCloudSyncStatus('syncing');
+      const res = await fetch('/api/monitor/settings');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success) {
+          if (data.settings) {
+            const { autoScanInterval: srvInterval, autoScanEnabled: srvEnabled, nextScanTargetTimestamp: srvTarget } = data.settings;
+            if (typeof srvInterval === 'number' && srvInterval > 0) {
+              setAutoScanInterval(srvInterval);
+              localStorage.setItem('tamduc_auto_scan_interval_sec', srvInterval.toString());
+            }
+            if (typeof srvEnabled === 'boolean') {
+              setAutoScanEnabled(srvEnabled);
+              localStorage.setItem('tamduc_auto_scan_enabled', srvEnabled.toString());
+            }
+            if (typeof srvTarget === 'number' && srvTarget > 0) {
+              localStorage.setItem('tamduc_next_scan_target_timestamp', srvTarget.toString());
+              const diff = Math.floor((srvTarget - Date.now()) / 1000);
+              if (diff > 0) {
+                setCountdown(diff);
+              }
+            }
+          }
+          if (Array.isArray(data.links) && data.links.length > 0) {
+            setMonitoredLinks(data.links);
+            monitoredLinksRef.current = data.links;
+            localStorage.setItem('tamduc_monitored_links', JSON.stringify(data.links));
+          }
+          if (Array.isArray(data.notifications) && data.notifications.length > 0) {
+            setNotifications(data.notifications);
+            localStorage.setItem('tamduc_scan_notifications', JSON.stringify(data.notifications));
+          }
+          setCloudSyncStatus('synced');
+          setLastCloudSyncedAt(new Date().toLocaleTimeString('vi-VN'));
+          setEditSavedToast('☁️ Đã đồng bộ thành công toàn bộ cài đặt & liên kết từ máy chủ!');
+          setTimeout(() => setEditSavedToast(null), 4000);
+        }
+      }
+    } catch (e) {
+      console.warn('[CloudSync] Manual sync error:', e);
+      setCloudSyncStatus('error');
+    }
+  };
+
+  // Initial and periodic cloud sync with server
+  useEffect(() => {
+    const fetchCloudSettings = async () => {
+      try {
+        const res = await fetch('/api/monitor/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success) {
+            // Sync timer & schedule interval
+            if (data.settings) {
+              const { autoScanInterval: srvInterval, autoScanEnabled: srvEnabled, nextScanTargetTimestamp: srvTarget } = data.settings;
+              if (typeof srvInterval === 'number' && srvInterval > 0) {
+                setAutoScanInterval(srvInterval);
+                localStorage.setItem('tamduc_auto_scan_interval_sec', srvInterval.toString());
+              }
+              if (typeof srvEnabled === 'boolean') {
+                setAutoScanEnabled(srvEnabled);
+                localStorage.setItem('tamduc_auto_scan_enabled', srvEnabled.toString());
+              }
+              if (typeof srvTarget === 'number' && srvTarget > 0) {
+                localStorage.setItem('tamduc_next_scan_target_timestamp', srvTarget.toString());
+                const diff = Math.floor((srvTarget - Date.now()) / 1000);
+                if (diff > 0) {
+                  setCountdown(diff);
+                }
+              }
+            }
+
+            // Sync links if server has links stored
+            if (Array.isArray(data.links) && data.links.length > 0) {
+              setMonitoredLinks(data.links);
+              monitoredLinksRef.current = data.links;
+              localStorage.setItem('tamduc_monitored_links', JSON.stringify(data.links));
+            } else if (monitoredLinksRef.current && monitoredLinksRef.current.length > 0) {
+              // Push current links to server so server store is seeded
+              fetch('/api/monitor/links', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ links: monitoredLinksRef.current })
+              }).catch(() => {});
+            }
+
+            // Sync notifications if server has any
+            if (Array.isArray(data.notifications) && data.notifications.length > 0) {
+              setNotifications(data.notifications);
+              localStorage.setItem('tamduc_scan_notifications', JSON.stringify(data.notifications));
+            }
+
+            setCloudSyncStatus('synced');
+            setLastCloudSyncedAt(new Date().toLocaleTimeString('vi-VN'));
+          }
+        }
+      } catch (err) {
+        console.warn('[CloudSync] Could not fetch monitor settings from server:', err);
+      }
+    };
+
+    fetchCloudSettings();
+
+    // Periodic sync every 20s to ensure cross-device consistency
+    const syncInterval = setInterval(fetchCloudSettings, 20000);
+    return () => clearInterval(syncInterval);
+  }, []);
+
   // Load the full 21 dental competitors preset
   const handleLoad20PresetLinks = () => {
     setMonitoredLinks(TOP_20_DENTAL_PRESET_LINKS);
     monitoredLinksRef.current = TOP_20_DENTAL_PRESET_LINKS;
     localStorage.setItem('tamduc_monitored_links', JSON.stringify(TOP_20_DENTAL_PRESET_LINKS));
+    
+    // Sync immediately to cloud server
+    fetch('/api/monitor/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ links: TOP_20_DENTAL_PRESET_LINKS })
+    }).catch(() => {});
+
     setShowSavedLinksManager(true);
     setShowAddModal(false);
-    setEditSavedToast(`🎉 Đã nạp thành công toàn bộ 21 Link Đối Thủ Nha Khoa Hàng Đầu vào Kho Link Đã Lưu!`);
+    setEditSavedToast(`🎉 Đã nạp thành công toàn bộ 21 Link Đối Thủ Nha Khoa Hàng Đầu và đồng bộ lên Máy Chủ Cloud!`);
     setTimeout(() => setEditSavedToast(null), 5000);
   };
 
-  // Save to localStorage
+  // Debounced sync links to cloud and localStorage
+  const syncLinksTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     localStorage.setItem('tamduc_monitored_links', JSON.stringify(monitoredLinks));
+    
+    if (syncLinksTimeoutRef.current) clearTimeout(syncLinksTimeoutRef.current);
+    syncLinksTimeoutRef.current = setTimeout(() => {
+      fetch('/api/monitor/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ links: monitoredLinks })
+      }).catch(() => {});
+    }, 1000);
+
+    return () => {
+      if (syncLinksTimeoutRef.current) clearTimeout(syncLinksTimeoutRef.current);
+    };
   }, [monitoredLinks]);
 
+  // Debounced sync notifications to cloud and localStorage
+  const syncNotifsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     localStorage.setItem('tamduc_scan_notifications', JSON.stringify(notifications));
+
+    if (syncNotifsTimeoutRef.current) clearTimeout(syncNotifsTimeoutRef.current);
+    syncNotifsTimeoutRef.current = setTimeout(() => {
+      fetch('/api/monitor/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notifications })
+      }).catch(() => {});
+    }, 1000);
+
+    return () => {
+      if (syncNotifsTimeoutRef.current) clearTimeout(syncNotifsTimeoutRef.current);
+    };
   }, [notifications]);
 
   // Request Web Notification permissions if available
@@ -957,7 +1137,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
     }
   }, []);
 
-  // Periodic Timer for 24h Real-Time Auto-Scan (Preserves exact real-world clock time across page reloads/F5)
+  // Periodic Timer for 24h Real-Time Auto-Scan (Preserves exact real-world clock time across page reloads/F5 and across computers)
   useEffect(() => {
     try {
       localStorage.setItem('tamduc_auto_scan_enabled', autoScanEnabled.toString());
@@ -993,6 +1173,14 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
           localStorage.setItem('tamduc_last_auto_scanned_at', new Date().toISOString());
         } catch {}
         setCountdown(autoScanInterval);
+        
+        // Sync new schedule milestone to cloud
+        syncSettingsToCloud({
+          autoScanInterval,
+          nextScanTargetTimestamp: nextTarget,
+          lastAutoScannedAt: new Date().toISOString(),
+          autoScanEnabled: true
+        });
       } else {
         // Continue counting down from the exact remaining real-world seconds
         setCountdown(remainingSec);
@@ -1006,21 +1194,29 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [autoScanEnabled, autoScanInterval]);
 
-  // Helper to change scan interval explicitly (updates persistent target timestamp)
+  // Helper to change scan interval explicitly (updates persistent target timestamp & syncs with cloud server)
   const handleChangeInterval = (newIntervalSec: number) => {
     setAutoScanInterval(newIntervalSec);
+    const nextTarget = Date.now() + newIntervalSec * 1000;
     try {
       localStorage.setItem('tamduc_auto_scan_interval_sec', newIntervalSec.toString());
-      const nextTarget = Date.now() + newIntervalSec * 1000;
       localStorage.setItem('tamduc_next_scan_target_timestamp', nextTarget.toString());
     } catch {}
     setCountdown(newIntervalSec);
     setShowIntervalSelectModal(false);
-    setEditSavedToast(`⏱️ Đã chuyển chu kỳ báo thức quét tự động thành: ${getIntervalLabel(newIntervalSec)}!`);
-    setTimeout(() => setEditSavedToast(null), 4000);
+
+    // Sync to Cloud Server immediately for cross-device synchronization
+    syncSettingsToCloud({
+      autoScanInterval: newIntervalSec,
+      nextScanTargetTimestamp: nextTarget,
+      autoScanEnabled: true
+    });
+
+    setEditSavedToast(`⏱️ Đã lưu & đồng bộ chu kỳ báo thức lên máy chủ: ${getIntervalLabel(newIntervalSec)} (mở máy khác vẫn giữ nguyên)!`);
+    setTimeout(() => setEditSavedToast(null), 5000);
   };
 
-  // Helper to restart 24h countdown cycle from now
+  // Helper to restart 24h countdown cycle from now and sync to cloud
   const handleResetCurrentCycle = () => {
     const nextTarget = Date.now() + autoScanInterval * 1000;
     try {
@@ -1028,8 +1224,16 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
     } catch {}
     setCountdown(autoScanInterval);
     setShowIntervalSelectModal(false);
-    setEditSavedToast(`🔄 Đã khởi động lại mốc đếm ngược báo thức ${getIntervalLabel(autoScanInterval)} từ bây giờ!`);
-    setTimeout(() => setEditSavedToast(null), 4000);
+
+    // Sync to Cloud Server immediately
+    syncSettingsToCloud({
+      autoScanInterval,
+      nextScanTargetTimestamp: nextTarget,
+      autoScanEnabled: true
+    });
+
+    setEditSavedToast(`🔄 Đã khởi động lại mốc đếm ngược báo thức ${getIntervalLabel(autoScanInterval)} & đồng bộ đa máy tính!`);
+    setTimeout(() => setEditSavedToast(null), 5000);
   };
 
   // Helper to format countdown timer as HH:MM:SS
@@ -3067,8 +3271,45 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                 <span className="font-bold text-emerald-400 font-mono">{getNextScanTargetDateString()}</span>
               </div>
               <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
-                💡 <strong className="text-slate-200">Đã khóa lưu mốc thời gian thực tế:</strong> Bạn có thể tắt máy, đóng tab hoặc làm mới trang (F5) bất kỳ lúc nào, đồng hồ sẽ <strong className="text-emerald-300">không bị nhảy ngược lại 24:00:00</strong> mà tiếp tục chạy theo giờ thực tế. Nếu qua 24h lúc bạn đang tắt máy, hệ thống sẽ tự động quét ngay khi bạn mở lại!
+                💡 <strong className="text-slate-200">Đồng bộ Cloud Server đa máy tính:</strong> Bạn có thể tắt máy, đổi sang máy tính khác, đóng tab hoặc làm mới trang (F5), đồng hồ sẽ <strong className="text-emerald-300">không bị nhảy ngược lại 24:00:00</strong> mà tiếp tục chạy theo đúng mốc thời gian thực tế và chu kỳ bạn đã chọn!
               </div>
+            </div>
+
+            {/* CROSS-DEVICE CLOUD SYNC CARD */}
+            <div className="p-3 rounded-2xl bg-slate-950/70 border border-indigo-500/30 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-900/50 text-indigo-300 flex items-center justify-center border border-indigo-500/40">
+                  <Cloud className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-white">Đồng Bộ Đa Thiết Bị (Cross-Device)</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold border flex items-center gap-1 ${
+                      cloudSyncStatus === 'synced'
+                        ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                        : cloudSyncStatus === 'syncing'
+                        ? 'bg-amber-950/80 text-amber-300 border-amber-500/40'
+                        : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${cloudSyncStatus === 'synced' ? 'bg-emerald-400' : 'bg-amber-400 animate-spin'}`} />
+                      <span>{cloudSyncStatus === 'synced' ? 'Đã đồng bộ' : cloudSyncStatus === 'syncing' ? 'Đang đồng bộ...' : 'Chưa kết nối'}</span>
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-slate-400">
+                    Mở máy khác tự động nhận đúng mốc cài đặt {lastCloudSyncedAt && `• Cập nhật: ${lastCloudSyncedAt}`}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleManualCloudSync}
+                disabled={cloudSyncStatus === 'syncing'}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/40 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors shadow"
+                title="Tải lại cài đặt mới nhất từ máy chủ"
+              >
+                <RefreshCw className={`w-3 h-3 ${cloudSyncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                <span>Đồng Bộ Ngay</span>
+              </button>
             </div>
 
             {/* FREQUENCY PRESET SELECTION */}

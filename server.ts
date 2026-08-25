@@ -79,6 +79,65 @@ app.get('/api/permissions', (req, res) => {
   res.json(staffPermissionsStore);
 });
 
+// Competitor Monitor Settings & Links Store for Cross-Device Synchronization
+let monitorSettingsStore = {
+  autoScanInterval: 86400, // 24 hours default in seconds
+  autoScanEnabled: true,
+  nextScanTargetTimestamp: Date.now() + 86400 * 1000,
+  lastAutoScannedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
+let monitoredLinksStore: any[] = [];
+let monitorNotificationsStore: any[] = [];
+
+app.get('/api/monitor/settings', (req, res) => {
+  res.json({
+    success: true,
+    settings: monitorSettingsStore,
+    links: monitoredLinksStore,
+    notifications: monitorNotificationsStore,
+    serverTime: Date.now(),
+    updatedAt: monitorSettingsStore.updatedAt,
+  });
+});
+
+app.post('/api/monitor/settings', (req, res) => {
+  const { autoScanInterval, autoScanEnabled, nextScanTargetTimestamp, lastAutoScannedAt } = req.body;
+  if (typeof autoScanInterval === 'number' && autoScanInterval > 0) {
+    monitorSettingsStore.autoScanInterval = autoScanInterval;
+  }
+  if (typeof autoScanEnabled === 'boolean') {
+    monitorSettingsStore.autoScanEnabled = autoScanEnabled;
+  }
+  if (typeof nextScanTargetTimestamp === 'number' && nextScanTargetTimestamp > 0) {
+    monitorSettingsStore.nextScanTargetTimestamp = nextScanTargetTimestamp;
+  }
+  if (lastAutoScannedAt) {
+    monitorSettingsStore.lastAutoScannedAt = lastAutoScannedAt;
+  }
+  monitorSettingsStore.updatedAt = new Date().toISOString();
+  res.json({ success: true, settings: monitorSettingsStore });
+});
+
+app.post('/api/monitor/links', (req, res) => {
+  const { links } = req.body;
+  if (Array.isArray(links)) {
+    monitoredLinksStore = links;
+    return res.json({ success: true, count: monitoredLinksStore.length, updatedAt: new Date().toISOString() });
+  }
+  return res.status(400).json({ error: 'Invalid links array' });
+});
+
+app.post('/api/monitor/notifications', (req, res) => {
+  const { notifications } = req.body;
+  if (Array.isArray(notifications)) {
+    monitorNotificationsStore = notifications;
+    return res.json({ success: true, count: monitorNotificationsStore.length, updatedAt: new Date().toISOString() });
+  }
+  return res.status(400).json({ error: 'Invalid notifications array' });
+});
+
 // Image Proxy endpoint to bypass hotlink protection and CORS for competitor banners
 app.get('/api/proxy-image', async (req, res) => {
   const imageUrl = req.query.url as string;
