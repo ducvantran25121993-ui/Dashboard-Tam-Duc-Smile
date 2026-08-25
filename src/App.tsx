@@ -493,6 +493,8 @@ export default function App() {
                 setSheetUrl(newUrl);
                 loadSheetData(newUrl);
               }}
+              monthlyDatasets={monthlyDatasets}
+              activeMonth={activeMonth}
             />
           )}
 

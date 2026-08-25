@@ -54,6 +54,7 @@ import {
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { ALL_WORKSPACE_TABS, TabConfig } from './TabPermissionsModal';
+import { MonthDataset } from '../data/revenueData';
 import {
   DEFAULT_BUDGET_PLAN_SHEET_URL,
   BudgetPlanSummary,
@@ -150,6 +151,8 @@ interface AdminHubViewProps {
   onNavigateToTab?: (tab: SidebarTab) => void;
   currentSheetUrl?: string;
   onUpdateSheetUrl?: (url: string) => void;
+  monthlyDatasets?: MonthDataset[];
+  activeMonth?: number;
 }
 
 export const AdminHubView: React.FC<AdminHubViewProps> = ({
@@ -158,6 +161,8 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   onNavigateToTab,
   currentSheetUrl = 'https://docs.google.com/spreadsheets/d/1_T0uOvd4q2e.../edit',
   onUpdateSheetUrl,
+  monthlyDatasets,
+  activeMonth = 8,
 }) => {
   const [activeAdminSubTab, setActiveAdminSubTab] = useState<
     'users' | 'emergency' | 'budget' | 'ai_governance' | 'backup' | 'connections' | 'thresholds' | 'crawler' | 'audit'
@@ -281,9 +286,92 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   const [isLoadingBudgetPlan, setIsLoadingBudgetPlan] = useState<boolean>(false);
   const [budgetScenario, setBudgetScenario] = useState<'standard' | 'vat' | 'reduced30' | 'reducedExtra30'>('standard');
   const [budgetViewMode, setBudgetViewMode] = useState<'cards' | 'table'>('cards');
+  const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<number>(() => activeMonth || 8);
   const [budgetPlanSheetInput, setBudgetPlanSheetInput] = useState<string>(() => {
     return localStorage.getItem('tamduc_budget_plan_url') || DEFAULT_BUDGET_PLAN_SHEET_URL;
   });
+
+  // Helper function to map a branch in the Budget Plan to the CHI PHÍ (VAT) in the Revenue Sheet
+  const getBranchSpentFromRevenueSheet = (
+    item: BranchPlanItem,
+    monthDataset?: MonthDataset
+  ): number => {
+    if (!monthDataset || !monthDataset.regions || monthDataset.regions.length === 0) {
+      return item.spentThisMonth || 0;
+    }
+
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/g, '');
+
+    const itemNorm = norm(item.name);
+
+    const matched = monthDataset.regions.find((r) => {
+      const regNorm = norm(r.name);
+      if (itemNorm.includes('hochiminh') || itemNorm.includes('hcm')) {
+        return regNorm === 'hcm' || regNorm.includes('hochiminh');
+      }
+      if (itemNorm.includes('vietkieu') || itemNorm.includes('toancau')) {
+        return regNorm.includes('vietkieu') || regNorm === 'vk';
+      }
+      if (itemNorm.includes('cantho')) {
+        return regNorm.includes('cantho');
+      }
+      if (itemNorm.includes('camau')) {
+        return regNorm.includes('camau');
+      }
+      if (itemNorm.includes('dongthap') || itemNorm.includes('caolanh')) {
+        return regNorm.includes('dongthap');
+      }
+      if (itemNorm.includes('baclieu')) {
+        return regNorm.includes('baclieu');
+      }
+      if (itemNorm.includes('soctrang')) {
+        return regNorm.includes('soctrang');
+      }
+      if (itemNorm.includes('binhduong') || itemNorm.includes('thuanan')) {
+        return regNorm.includes('binhduong');
+      }
+      if (itemNorm.includes('vungtau') || itemNorm.includes('phuoctinh') || itemNorm.includes('baria') || itemNorm.includes('xuyenmoc')) {
+        return regNorm.includes('vungtau') || regNorm.includes('baria');
+      }
+      if (itemNorm.includes('bienhoa') || itemNorm.includes('dongnai') || itemNorm.includes('daiphuoc')) {
+        return regNorm.includes('bienhoa') || regNorm.includes('dongnai');
+      }
+      if (itemNorm.includes('quynhon') || itemNorm.includes('binhdinh')) {
+        return regNorm.includes('quynhon') || regNorm.includes('binhdinh');
+      }
+      if (itemNorm.includes('tayninh')) {
+        return regNorm.includes('tayninh');
+      }
+      if (itemNorm.includes('danang')) {
+        return regNorm.includes('danang');
+      }
+      if (itemNorm.includes('dalat') || itemNorm.includes('lamdong')) {
+        return regNorm.includes('dalat');
+      }
+      if (itemNorm.includes('dian')) {
+        return regNorm.includes('dian');
+      }
+      if (itemNorm.includes('giakiem')) {
+        return regNorm.includes('giakiem');
+      }
+      if (itemNorm.includes('binhphuoc') || itemNorm.includes('dongxoai')) {
+        return regNorm.includes('binhphuoc');
+      }
+      return regNorm.includes(itemNorm) || itemNorm.includes(regNorm);
+    });
+
+    if (matched) {
+      // Direct pull from CHI PHÍ (VAT) column in the Revenue Sheet
+      return matched.costVAT || matched.cpDichVu || matched.cpTong || 0;
+    }
+
+    return 0;
+  };
 
   // Google Ads API Live Credentials State
   const [googleAdsConfig, setGoogleAdsConfig] = useState(() => {
@@ -1773,7 +1861,11 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
           {/* KPI Summary Cards for Active Budget Scenario */}
           {(() => {
             const planItems = budgetPlanSummary?.items || FALLBACK_BUDGET_PLAN_ITEMS;
-            
+            const targetMonthDataset =
+              monthlyDatasets?.find((m) => m.month === selectedBudgetMonth) ||
+              monthlyDatasets?.find((m) => m.month === activeMonth) ||
+              monthlyDatasets?.[monthlyDatasets.length - 1];
+
             const getActiveBudgetVal = (item: BranchPlanItem) => {
               if (budgetScenario === 'vat') return item.monthlyBudgetVat;
               if (budgetScenario === 'reduced30') return item.reduced30Budget;
@@ -1781,14 +1873,54 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
               return item.monthlyBudget;
             };
 
+            const getItemSpent = (item: BranchPlanItem) => {
+              return getBranchSpentFromRevenueSheet(item, targetMonthDataset);
+            };
+
             const totalActiveBudget = planItems.reduce((sum, item) => sum + getActiveBudgetVal(item), 0);
             const totalDailyBudget = planItems.reduce((sum, item) => sum + item.dailyBudget, 0);
-            const totalSpent = planItems.reduce((sum, item) => sum + (item.spentThisMonth || 0), 0);
+            const totalSpent = planItems.reduce((sum, item) => sum + getItemSpent(item), 0);
             const totalPercent = totalActiveBudget > 0 ? Math.min(100, Math.round((totalSpent / totalActiveBudget) * 100)) : 0;
             const remainingBudget = totalActiveBudget - totalSpent;
 
             return (
               <>
+                {/* Month Selection Bar for Actual Spend Comparison */}
+                <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                      Đối Soát Chi Tiêu Thực Tế Theo:
+                    </span>
+                    <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((m) => {
+                        const isSel = selectedBudgetMonth === m;
+                        return (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setSelectedBudgetMonth(m)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                              isSel
+                                ? 'bg-cyan-600 text-white shadow-sm'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                            }`}
+                          >
+                            Tháng {m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-slate-400">
+                      Nguồn số tiền đã tiêu: <strong className="text-emerald-300">Cột [CHI PHÍ (VAT)]</strong> từ Báo Cáo Doanh Thu (Tháng {selectedBudgetMonth})
+                    </span>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
                     <div className="text-xs text-slate-400 flex items-center justify-between">
@@ -1821,7 +1953,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
                   <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
                     <div className="text-xs text-slate-400 flex items-center justify-between">
-                      <span>Tổng Chi Tiêu Tháng Này</span>
+                      <span>Chi Phí (VAT) Tháng {selectedBudgetMonth}</span>
                       <span className={`text-xs font-bold ${totalSpent > totalActiveBudget ? 'text-rose-400' : 'text-emerald-400'}`}>
                         {totalPercent}% Hạn Mức
                       </span>
@@ -1860,7 +1992,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                     <div className="p-4 border-b border-slate-800 flex items-center justify-between">
                       <h4 className="font-bold text-white text-sm flex items-center gap-2">
                         <Table className="w-4 h-4 text-cyan-400" />
-                        Bảng Chi Tiết Phân Bổ Ngân Sách Dự Kiến (Đồng Bộ Google Sheets)
+                        Bảng Chi Tiết Phân Bổ Ngân Sách Dự Kiến & Đối Soát Chi Phí (VAT) Tháng {selectedBudgetMonth}
                       </h4>
                       <span className="text-xs text-slate-400">
                         Hiển thị <strong>{planItems.length}</strong> cơ sở & thị trường
@@ -1878,14 +2010,14 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                             <th className="py-3 px-4 text-right">Giảm 30%</th>
                             <th className="py-3 px-4 text-right">Giảm Thêm 30%</th>
                             <th className="py-3 px-4 text-right">Hạn Mức Áp Dụng</th>
-                            <th className="py-3 px-4 text-right">Đã Tiêu Thực Tế</th>
+                            <th className="py-3 px-4 text-right text-emerald-300">Chi Phí (VAT) T{selectedBudgetMonth}</th>
                             <th className="py-3 px-4 text-center">Tiến Độ</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/60 font-mono">
                           {planItems.map((item, idx) => {
                             const activeVal = getActiveBudgetVal(item);
-                            const spent = item.spentThisMonth || 0;
+                            const spent = getItemSpent(item);
                             const pct = activeVal > 0 ? Math.round((spent / activeVal) * 100) : 0;
                             const isOver = spent > activeVal && activeVal > 0;
 
@@ -1913,7 +2045,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                                 <td className="py-3 px-4 text-right font-bold text-amber-400 bg-amber-500/5">
                                   {activeVal > 0 ? `${activeVal.toLocaleString('vi-VN')} đ` : '0 đ'}
                                 </td>
-                                <td className="py-3 px-4 text-right text-white">
+                                <td className="py-3 px-4 text-right font-bold text-emerald-300 bg-emerald-500/5">
                                   {spent.toLocaleString('vi-VN')} đ
                                 </td>
                                 <td className="py-3 px-4 text-center font-sans">
@@ -1940,7 +2072,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                             <td className="py-3.5 px-4 text-right font-mono text-cyan-400">{(budgetPlanSummary?.totalReduced30 || 827910720).toLocaleString('vi-VN')} đ</td>
                             <td className="py-3.5 px-4 text-right font-mono text-purple-400">{(budgetPlanSummary?.totalReducedExtra30 || 599742000).toLocaleString('vi-VN')} đ</td>
                             <td className="py-3.5 px-4 text-right font-mono text-amber-300 bg-amber-500/10">{totalActiveBudget.toLocaleString('vi-VN')} đ</td>
-                            <td className="py-3.5 px-4 text-right font-mono text-white">{totalSpent.toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-emerald-300 bg-emerald-500/10">{totalSpent.toLocaleString('vi-VN')} đ</td>
                             <td className="py-3.5 px-4 text-center font-sans">{totalPercent}%</td>
                           </tr>
                         </tfoot>
@@ -1954,7 +2086,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {planItems.map((item, idx) => {
                       const activeVal = getActiveBudgetVal(item);
-                      const spent = item.spentThisMonth || 0;
+                      const spent = getItemSpent(item);
                       const percent = activeVal > 0 ? Math.min(100, Math.round((spent / activeVal) * 100)) : 0;
                       const isOver = spent > activeVal && activeVal > 0;
 
@@ -1986,8 +2118,10 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                                 style={{ width: `${percent}%` }}
                               />
                             </div>
-                            <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                              <span>Đã tiêu: <strong>{spent.toLocaleString('vi-VN')} đ</strong></span>
+                            <div className="flex items-center justify-between text-[11px] font-mono">
+                              <span className="text-slate-400">
+                                Chi Phí (VAT) T{selectedBudgetMonth}: <strong className="text-emerald-300">{spent.toLocaleString('vi-VN')} đ</strong>
+                              </span>
                               <span className="text-amber-400">Hạn mức: <strong>{activeVal.toLocaleString('vi-VN')} đ</strong></span>
                             </div>
                           </div>
