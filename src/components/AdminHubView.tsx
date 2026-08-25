@@ -962,7 +962,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                     </div>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-cyan-500/10 text-cyan-300 border-cyan-500/30">
-                    {users.length} TK
+                    {users.length} Tài Khoản
                   </span>
                 </button>
 
