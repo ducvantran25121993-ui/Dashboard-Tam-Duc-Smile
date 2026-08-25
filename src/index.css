@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Hide scrollbars for containers with .no-scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Light sweep / shimmer animation */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-25deg);
+  }
+  60%, 100% {
+    transform: translateX(250%) skewX(-25deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-sweep 2.8s infinite ease-in-out;
+}
