@@ -10,7 +10,7 @@ import { AdminHubView } from './components/AdminHubView';
 import { LeadsFunnelView } from './components/LeadsFunnelView';
 import { CampaignsView } from './components/CampaignsView';
 import { CompetitorTrackingView } from './components/CompetitorTrackingView';
-import { SalesCopilotView, ConsultationView, DecisionBoardView } from './components/ExtraViews';
+import { SalesCopilotView, ConsultationView } from './components/ExtraViews';
 import { KPISummary } from './components/KPISummary';
 import { CostChart } from './components/CostChart';
 import { RevenueChart } from './components/RevenueChart';
@@ -325,7 +325,6 @@ export default function App() {
                     {activeSidebarTab === 'competitor' && 'Theo Dõi Đối Thủ & Auction Insights'}
                     {activeSidebarTab === 'sales_copilot' && 'Sales Copilot AI'}
                     {activeSidebarTab === 'consultation' && 'Hội Thoại Tư Vấn'}
-                    {activeSidebarTab === 'decision_board' && 'Decision Board'}
                     {activeSidebarTab === 'innovation' && 'Sáng Tạo & Đổi Mới'}
                     {activeSidebarTab === 'ai_agent' && 'AI — Trợ Lý Tăng Trưởng'}
                   </h1>
@@ -474,8 +473,6 @@ export default function App() {
           {activeSidebarTab === 'sales_copilot' && <SalesCopilotView />}
 
           {activeSidebarTab === 'consultation' && <ConsultationView />}
-
-          {activeSidebarTab === 'decision_board' && <DecisionBoardView />}
 
           {activeSidebarTab === 'innovation' && <InnovationView />}
 

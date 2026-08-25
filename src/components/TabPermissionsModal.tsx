@@ -15,7 +15,6 @@ import {
   Swords,
   Bot,
   MessageSquare,
-  CheckSquare,
   Lightbulb,
   Zap,
   Info,
@@ -93,14 +92,6 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     description: 'Phân tích hội thoại, ghi âm và chỉ số đánh giá kỹ năng tư vấn nha khoa.',
     icon: MessageSquare,
     badge: '98% Điểm',
-  },
-  {
-    id: 'decision_board',
-    label: 'Decision Board',
-    category: 'Chiến Lược & Ra Quyết Định',
-    description: 'Bảng điều hành đề xuất quyết định phân bổ ngân sách, tối ưu chi phí đa kênh.',
-    icon: CheckSquare,
-    badge: 'Executive',
   },
   {
     id: 'innovation',

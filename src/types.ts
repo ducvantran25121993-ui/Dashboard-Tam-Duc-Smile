@@ -10,7 +10,6 @@ export type SidebarTab =
   | 'competitor'
   | 'sales_copilot'
   | 'consultation'
-  | 'decision_board'
   | 'innovation'
   | 'ai_agent'
   | 'admin_hub';

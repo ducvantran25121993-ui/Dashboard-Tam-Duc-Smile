@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, MessageSquare, CheckSquare, Sparkles, Send, PhoneCall, CheckCircle2, Clock, ThumbsUp, AlertTriangle } from 'lucide-react';
+import { Bot, MessageSquare, Sparkles, Send, PhoneCall, CheckCircle2, Clock, ThumbsUp, AlertTriangle } from 'lucide-react';
 
 export const SalesCopilotView: React.FC = () => {
   return (
@@ -95,58 +95,6 @@ export const ConsultationView: React.FC = () => {
               <span className="text-[11px] text-slate-500 font-medium self-end sm:self-auto">{item.time}</span>
             </div>
           ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export const DecisionBoardView: React.FC = () => {
-  return (
-    <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-slate-800 p-6 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
-              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> Bảng Quyết Định
-            </span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-white">Decision Board — Quyết Định Chiến Lược</h2>
-          <p className="text-slate-400 text-sm mt-1">Các quyết định điều chỉnh ngân sách, mở rộng chi nhánh và phân bổ kênh Marketing.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
-          <h3 className="text-base font-bold text-emerald-400 flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5" /> Đã Phê Duyệt Triển Khai
-          </h3>
-          <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/80 space-y-1">
-              <span className="font-bold text-white">Tăng 25% ngân sách Google Ads cho chiến dịch Implant TP.HCM</span>
-              <p className="text-slate-400">Hiệu quả ROAS đạt 8.4x, đang dư địa tăng trưởng thêm 120 khách.</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/80 space-y-1">
-              <span className="font-bold text-white">Đẩy mạnh gói chăm sóc răng Việt Kiều mùa cao điểm tháng 9 - 12</span>
-              <p className="text-slate-400">Tặng kèm dịch vụ đưa đón sân bay và gói chụp phim CT Cone Beam miễn phí.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-6 shadow-xl space-y-4">
-          <h3 className="text-base font-bold text-amber-400 flex items-center gap-2">
-            <Clock className="w-5 h-5" /> Đang Thảo Luận & Xem Xét
-          </h3>
-          <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/80 space-y-1">
-              <span className="font-bold text-white">Mở rộng chi nhánh mới tại Cần Thơ & Rạch Giá</span>
-              <p className="text-slate-400">Lượng data khách hàng khu vực miền Tây vượt 35% kỳ vọng ban đầu.</p>
-            </div>
-            <div className="p-3.5 rounded-xl bg-slate-800/70 border border-slate-700/80 space-y-1">
-              <span className="font-bold text-white">Triển khai thêm kênh Tiktok Ads dịch vụ Niềng Răng Học Sinh</span>
-              <p className="text-slate-400">Thử nghiệm ngân sách 15tr/tháng để đánh giá chất lượng lead trẻ tuổi.</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,6 @@ import {
   Megaphone,
   Bot,
   MessageSquare,
-  CheckSquare,
   Lightbulb,
   ChevronLeft,
   ChevronRight,
@@ -123,11 +122,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: MessageSquare,
       badge: '98%',
       badgeColor: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
-    },
-    {
-      id: 'decision_board',
-      label: 'Decision Board',
-      icon: CheckSquare,
     },
     {
       id: 'innovation',
