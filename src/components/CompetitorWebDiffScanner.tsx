@@ -1068,7 +1068,7 @@ export const CompetitorWebDiffScanner: React.FC = () => {
   // 1. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
   // 2. 'auto_radar': AI Săn Tìm & Tự Động Phân Tích Quảng Cáo
   // 3. 'url_scanner': Dán Link Web Đối Chiếu CŨ vs MỚI
-  const [activeMode, setActiveMode] = useState<'google_transparency' | 'auto_radar' | 'url_scanner'>('google_transparency');
+  const [activeMode, setActiveMode] = useState<'google_transparency' | 'auto_radar' | 'url_scanner'>('url_scanner');
 
   // Google Transparency Center State
   const [customDomainInput, setCustomDomainInput] = useState<string>('');
