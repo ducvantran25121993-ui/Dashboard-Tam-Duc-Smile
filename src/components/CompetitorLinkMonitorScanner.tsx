@@ -600,19 +600,20 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   {
     id: 'link-15',
     name: 'Nha Khoa Shark - Bọc Răng Sứ & Niềng Răng Chuẩn Đức',
-    url: 'https://nhakhoashark.vn/boc-rang-su',
+    url: 'https://nhakhoashark.vn/dich-vu/tham-my-boc-rang-su/',
     category: 'cosmetic',
     scanFrequency: 'weekly',
     status: 'Changed',
-    lastScanTime: 'Hôm qua, 10:00',
-    changeMessage: '🛡️ Cam kết thẻ bảo hành điện tử chính hãng 15 năm • Đền 100 triệu nếu sứ pha tạp',
-    newImagesCount: 2,
+    lastScanTime: 'Vừa quét (Live Scraped)',
+    changeMessage: '🛡️ Đã bóc tách banner bọc răng sứ tháng 8/2026 & bảng so sánh sứ titan từ bài viết thật',
+    newImagesCount: 3,
     textChanged: true,
     lastData: {
       text: 'Nha Khoa Shark Chuẩn Đức - Bọc răng sứ thẩm mỹ trả góp 0%, thấy trước nụ cười tương lai với công nghệ Digital Smile Design.',
       images: [
-        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png',
-        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2026/08/iSXvYFQk-boc-rang-su.webp',
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2024/04/boc-rang-su-gia-bao-nhieu-tien.jpg',
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/so-sanh-rang-su-kim-loai-va-rang-su-titan.jpg'
       ],
       promotions: [
         {
@@ -626,6 +627,14 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
         }
       ],
       scannedAt: new Date().toISOString()
+    },
+    previousData: {
+      text: 'Nha Khoa Shark - Dịch vụ bọc răng sứ cơ bản, bảo hành tiêu chuẩn 5 năm theo bảng giá cũ.',
+      images: [
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/Boc-rang-su-1.jpg',
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png'
+      ],
+      scannedAt: new Date(Date.now() - 7 * 86400000).toISOString()
     }
   },
   {
@@ -756,24 +765,49 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length >= 20) {
-          // Clean up any stale or 404 image URLs from older sessions
+          // Clean up any stale, unsplash placeholders or 404 image URLs from older sessions
           return parsed.map((item: MonitoredLink) => {
             if (item.url?.includes('nhakhoashark.vn') || item.id === 'link-15') {
               return {
                 ...item,
-                newImagesCount: item.lastData?.images?.length || 2,
+                url: 'https://nhakhoashark.vn/dich-vu/tham-my-boc-rang-su/',
+                newImagesCount: 3,
                 lastData: {
                   ...item.lastData,
                   text: item.lastData?.text || 'Nha Khoa Shark Chuẩn Đức - Bọc răng sứ thẩm mỹ trả góp 0%, thấy trước nụ cười tương lai với công nghệ Digital Smile Design.',
                   images: [
-                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png',
-                    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2026/08/iSXvYFQk-boc-rang-su.webp',
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2024/04/boc-rang-su-gia-bao-nhieu-tien.jpg',
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/so-sanh-rang-su-kim-loai-va-rang-su-titan.jpg'
                   ],
                   scannedAt: item.lastData?.scannedAt || new Date().toISOString()
+                },
+                previousData: {
+                  text: 'Nha Khoa Shark - Dịch vụ bọc răng sứ cơ bản, bảo hành tiêu chuẩn 5 năm theo bảng giá cũ.',
+                  images: [
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/Boc-rang-su-1.jpg',
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png'
+                  ],
+                  scannedAt: new Date(Date.now() - 7 * 86400000).toISOString()
                 }
               };
             }
-            return item;
+
+            // Filter out any unsplash links if user had them cached
+            const cleanLastImages = (item.lastData?.images || []).filter(img => !img.includes('unsplash.com'));
+            const cleanPrevImages = (item.previousData?.images || []).filter(img => !img.includes('unsplash.com'));
+
+            return {
+              ...item,
+              lastData: {
+                ...item.lastData,
+                images: cleanLastImages.length > 0 ? cleanLastImages : (TOP_20_DENTAL_PRESET_LINKS.find(p => p.id === item.id)?.lastData?.images || cleanLastImages)
+              },
+              previousData: item.previousData ? {
+                ...item.previousData,
+                images: cleanPrevImages.length > 0 ? cleanPrevImages : (TOP_20_DENTAL_PRESET_LINKS.find(p => p.id === item.id)?.previousData?.images || cleanPrevImages)
+              } : undefined
+            };
           });
         }
       } catch (e) {
@@ -2322,16 +2356,13 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
 
                   const beforeImages = (item.previousData?.images && item.previousData.images.length > 0)
                     ? item.previousData.images
-                    : (item.lastData?.images?.slice(1) || [
-                        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80'
-                      ]);
+                    : (item.lastData?.images && item.lastData.images.length > 1)
+                      ? [item.lastData.images[item.lastData.images.length - 1]]
+                      : (item.lastData?.images || []);
 
                   const afterImages = (item.lastData?.images && item.lastData.images.length > 0)
                     ? item.lastData.images
-                    : [
-                        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
-                        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80'
-                      ];
+                    : (item.previousData?.images || []);
 
                   return (
                     <div className="mt-4 pt-4 border-t border-slate-800/80 space-y-4 animate-fadeIn">
@@ -2579,10 +2610,16 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                               <ImageIcon className="w-4 h-4 text-cyan-400" />
                               <span>SO SÁNH BANNER & HÌNH ẢNH THỰC TẾ TRÊN WEBSITE (VISUAL IMAGE DIFF):</span>
                             </span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-slate-400">
-                                Click vào ảnh để phóng to kiểm tra chi tiết
-                              </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <button
+                                type="button"
+                                onClick={() => handleScanSingleLink(item.id)}
+                                disabled={scanningLinkId === item.id || isScanningAll}
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-all shadow disabled:opacity-50"
+                              >
+                                <RefreshCw className={`w-3 h-3 ${scanningLinkId === item.id ? 'animate-spin' : ''}`} />
+                                <span>{scanningLinkId === item.id ? 'Đang bóc tách ảnh...' : '🔍 Quét Lại Ảnh Từ URL'}</span>
+                              </button>
                               <a
                                 href={item.url}
                                 target="_blank"

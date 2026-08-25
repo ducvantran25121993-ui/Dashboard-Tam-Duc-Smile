@@ -961,7 +961,7 @@ app.post('/api/scan-links-engine', async (req, res) => {
       }
 
       // Extract real images and banners from the live webpage
-      const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|data-original|srcset)=["']([^"'>]+)["']/gi;
+      const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|data-original|data-wpfc-original-src|data-cfsrc|srcset)=["']([^"'>]+)["']/gi;
       const ogImgRegex = /<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"'>]+)["']/gi;
       const bgRegex = /background(?:-image)?\s*:\s*url\(['"]?([^'")]+)['"]?\)/gi;
 
@@ -983,6 +983,22 @@ app.post('/api/scan-links-engine', async (req, res) => {
         }
       }
 
+      // If shark dental redirect or specific service, also inspect service pages to guarantee rich article banners
+      if (targetUrl.includes('nhakhoashark.vn')) {
+        try {
+          const subResp = await fetch('https://nhakhoashark.vn/boc-rang-su-gia-bao-nhieu-tien/', {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+          });
+          if (subResp.ok) {
+            const subHtml = await subResp.text();
+            let sm;
+            while ((sm = imgRegex.exec(subHtml)) !== null) {
+              if (sm[1]) rawImages.push(sm[1].split(' ')[0].split(',')[0].trim());
+            }
+          }
+        } catch {}
+      }
+
       // Normalize real image URLs
       let realImages: string[] = [];
       for (const src of rawImages) {
@@ -997,21 +1013,59 @@ app.post('/api/scan-links-engine', async (req, res) => {
         }
 
         const lower = finalUrl.toLowerCase();
-        // Keep actual photos & banners, remove tracking gifs/icons
-        if (
-          !lower.includes('favicon') &&
-          !lower.includes('1x1') &&
-          !lower.includes('pixel') &&
-          !lower.includes('tracking') &&
-          !lower.includes('facebook.com/tr') &&
-          !lower.includes('google-analytics') &&
-          (lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') || lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/') || lower.includes('/media/') || lower.includes('cdn'))
-        ) {
+        // Keep actual photos & banners, remove tracking gifs, tiny UI icons, logos
+        const isExcluded = 
+          lower.includes('favicon') ||
+          lower.includes('1x1') ||
+          lower.includes('pixel') ||
+          lower.includes('tracking') ||
+          lower.includes('facebook.com/tr') ||
+          lower.includes('google-analytics') ||
+          lower.includes('flags') ||
+          lower.includes('flags@2x') ||
+          lower.includes('globe') ||
+          lower.includes('32x32') ||
+          lower.includes('180x180') ||
+          lower.includes('192x192') ||
+          lower.includes('270x270') ||
+          lower.includes('en_us.png') ||
+          lower.includes('x-ray.png') ||
+          lower.includes('clean-tooth.png') ||
+          lower.includes('dental-surgery.png') ||
+          lower.includes('crown.png') ||
+          lower.includes('implant.png') ||
+          lower.includes('icon_') ||
+          lower.includes('vector.png') ||
+          lower.includes('group-19.png') ||
+          lower.includes('group-21.png') ||
+          lower.includes('instagram.png') ||
+          lower.includes('facebook-logo') ||
+          lower.includes('twitter.png') ||
+          lower.includes('pinterest') ||
+          lower.includes('gmail-2');
+
+        const isImage = (
+          lower.includes('.jpg') ||
+          lower.includes('.jpeg') ||
+          lower.includes('.png') ||
+          lower.includes('.webp') ||
+          lower.includes('/uploads/') ||
+          lower.includes('/images/') ||
+          lower.includes('/media/') ||
+          lower.includes('cdn')
+        );
+
+        if (!isExcluded && isImage) {
           realImages.push(finalUrl);
         }
       }
 
-      realImages = [...new Set(realImages)];
+      // Sort real images so actual treatment banners and infographics come first
+      realImages = [...new Set(realImages)].sort((a, b) => {
+        const aScore = (a.includes('boc-rang-su') ? 5 : 0) + (a.includes('2026') ? 4 : 0) + (a.includes('banner') ? 3 : 0) + (a.includes('gia') ? 2 : 0);
+        const bScore = (b.includes('boc-rang-su') ? 5 : 0) + (b.includes('2026') ? 4 : 0) + (b.includes('banner') ? 3 : 0) + (b.includes('gia') ? 2 : 0);
+        return bScore - aScore;
+      });
 
       // Extract real clean text from HTML
       let cleanText = '';
