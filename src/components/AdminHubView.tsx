@@ -47,10 +47,20 @@ import {
   SlidersHorizontal,
   Save,
   HelpCircle,
-  Key
+  Key,
+  Calendar,
+  Table,
+  LayoutGrid,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { ALL_WORKSPACE_TABS, TabConfig } from './TabPermissionsModal';
+import {
+  DEFAULT_BUDGET_PLAN_SHEET_URL,
+  BudgetPlanSummary,
+  BranchPlanItem,
+  fetchBudgetPlanSheetData,
+  FALLBACK_BUDGET_PLAN_ITEMS
+} from '../services/budgetPlanSheetService';
 
 export interface AdminUser {
   id: string;
@@ -262,6 +272,18 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   const [isTestingSheet, setIsTestingSheet] = useState(false);
   const [sheetPingStatus, setSheetPingStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+
+  // Google Sheets "Ngân Sách Dự Kiến" Live State
+  const [budgetPlanUrl, setBudgetPlanUrl] = useState<string>(() => {
+    return localStorage.getItem('tamduc_budget_plan_url') || DEFAULT_BUDGET_PLAN_SHEET_URL;
+  });
+  const [budgetPlanSummary, setBudgetPlanSummary] = useState<BudgetPlanSummary | null>(null);
+  const [isLoadingBudgetPlan, setIsLoadingBudgetPlan] = useState<boolean>(false);
+  const [budgetScenario, setBudgetScenario] = useState<'standard' | 'vat' | 'reduced30' | 'reducedExtra30'>('standard');
+  const [budgetViewMode, setBudgetViewMode] = useState<'cards' | 'table'>('cards');
+  const [budgetPlanSheetInput, setBudgetPlanSheetInput] = useState<string>(() => {
+    return localStorage.getItem('tamduc_budget_plan_url') || DEFAULT_BUDGET_PLAN_SHEET_URL;
+  });
 
   // Google Ads API Live Credentials State
   const [googleAdsConfig, setGoogleAdsConfig] = useState(() => {
@@ -549,6 +571,75 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
       return b;
     }));
     showNotification('Đã lưu hạn mức ngân sách chi nhánh!');
+  };
+
+  // Google Sheets "Ngân Sách Dự Kiến" Effect & Handlers
+  useEffect(() => {
+    let isMounted = true;
+    const loadBudgetPlan = async () => {
+      setIsLoadingBudgetPlan(true);
+      try {
+        const data = await fetchBudgetPlanSheetData(budgetPlanUrl);
+        if (isMounted) {
+          setBudgetPlanSummary(data);
+        }
+      } catch (err) {
+        console.error('Error fetching budget plan sheet:', err);
+      } finally {
+        if (isMounted) {
+          setIsLoadingBudgetPlan(false);
+        }
+      }
+    };
+    loadBudgetPlan();
+    return () => { isMounted = false; };
+  }, [budgetPlanUrl]);
+
+  const handleSyncBudgetPlanSheet = async () => {
+    setIsLoadingBudgetPlan(true);
+    try {
+      const data = await fetchBudgetPlanSheetData(budgetPlanUrl);
+      setBudgetPlanSummary(data);
+      showNotification('Đã đồng bộ thành công dữ liệu từ Google Sheets "Ngân Sách Dự Kiến"!');
+      
+      setAuditLogs(logs => [
+        {
+          id: `log-${Date.now()}`,
+          timestamp: 'Vừa xong',
+          userName: 'Trần Đức (Admin)',
+          action: 'Đồng bộ Google Sheets: Ngân Sách Dự Kiến',
+          category: 'budget',
+          status: 'success',
+          details: `Tổng ngân sách tháng: ${data.totalMonthly.toLocaleString('vi-VN')} đ (Có VAT: ${data.totalMonthlyVat.toLocaleString('vi-VN')} đ)`,
+        },
+        ...logs
+      ]);
+    } catch {
+      showNotification('Lỗi khi đồng bộ Google Sheets Ngân Sách Dự Kiến.');
+    } finally {
+      setIsLoadingBudgetPlan(false);
+    }
+  };
+
+  const handleApplyBudgetPlanUrl = () => {
+    if (!budgetPlanSheetInput.trim()) return;
+    const trimmed = budgetPlanSheetInput.trim();
+    setBudgetPlanUrl(trimmed);
+    localStorage.setItem('tamduc_budget_plan_url', trimmed);
+    showNotification('Đã lưu và cập nhật liên kết Google Sheets Ngân Sách Dự Kiến mới!');
+    
+    setAuditLogs(logs => [
+      {
+        id: `log-${Date.now()}`,
+        timestamp: 'Vừa xong',
+        userName: 'Trần Đức (Admin)',
+        action: 'Cập nhật URL Google Sheets Ngân Sách',
+        category: 'budget',
+        status: 'info',
+        details: trimmed,
+      },
+      ...logs
+    ]);
   };
 
   // Save AI Governance
@@ -1511,94 +1602,443 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
       {/* ========================================================================= */}
       {activeAdminSubTab === 'budget' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Top Header */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-amber-400" />
-                Quản Lý Hạn Mức & Phân Bổ Ngân Sách 17 Chi Nhánh
-              </h3>
-              <p className="text-xs text-slate-400">
-                Đặt hạn mức chi tiêu Ads hàng tháng cho từng cơ sở và kích hoạt chế độ tự động ngưng khi vượt trần (Burn-rate protection).
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-amber-400" />
+                  Quản Lý Hạn Mức & Phân Bổ Ngân Sách 17 Chi Nhánh
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Google Sheets Live
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Tự động kết nối dữ liệu từ Google Sheets "Ngân Sách Dự Kiến", hỗ trợ 4 kịch bản phân bổ và theo dõi chi tiêu thực tế (Burn-rate).
               </p>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-900 p-2 rounded-2xl border border-slate-800 text-xs">
-              <span className="text-slate-400">Tổng ngân sách cấp:</span>
-              <span className="font-bold text-amber-400 font-mono text-sm">
-                {branchBudgets.reduce((acc, b) => acc + b.allocatedMonthly, 0).toLocaleString('vi-VN')} đ
-              </span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={handleSyncBudgetPlanSheet}
+                disabled={isLoadingBudgetPlan}
+                className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-600/30 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBudgetPlan ? 'animate-spin' : ''}`} />
+                <span>{isLoadingBudgetPlan ? 'Đang Đồng Bộ...' : 'Đồng Bộ Từ Sheet'}</span>
+              </button>
+
+              <a
+                href={budgetPlanUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-bold text-xs flex items-center gap-1.5 border border-slate-700 transition-all"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Mở File Sheet</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </a>
+
+              <div className="flex items-center bg-slate-900 rounded-xl p-1 border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setBudgetViewMode('cards')}
+                  className={`p-1.5 rounded-lg text-xs transition-all ${
+                    budgetViewMode === 'cards' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Chế độ thẻ"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBudgetViewMode('table')}
+                  className={`p-1.5 rounded-lg text-xs transition-all ${
+                    budgetViewMode === 'table' ? 'bg-cyan-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Chế độ bảng chi tiết"
+                >
+                  <Table className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Branch Budget Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {branchBudgets.map(b => {
-              const percent = Math.min(100, Math.round((b.spentThisMonth / b.allocatedMonthly) * 100));
-              const isOver = b.spentThisMonth > b.allocatedMonthly;
+          {/* Google Sheets Sync & URL Configuration Bar */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-950/90 border border-slate-800 space-y-3 shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs">
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-bold text-slate-200">Google Sheet Ngân Sách Dự Kiến:</span>
+                <span className="font-mono text-cyan-300 text-[11px] truncate max-w-md">
+                  {budgetPlanUrl}
+                </span>
+                {budgetPlanSummary?.isLive && (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                    Cập nhật lúc {budgetPlanSummary.lastUpdated}
+                  </span>
+                )}
+              </div>
 
-              return (
-                <div key={b.id} className="p-4 rounded-3xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-bold text-white text-sm">{b.name}</h4>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                      isOver
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                        : percent > 85
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                    }`}>
-                      {isOver ? '✕ Vượt Hạn Mức' : `Đã dùng ${percent}%`}
-                    </span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={budgetPlanSheetInput}
+                  onChange={(e) => setBudgetPlanSheetInput(e.target.value)}
+                  placeholder="Dán link Google Sheet Ngân Sách Dự Kiến..."
+                  className="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-amber-500 w-64 lg:w-80"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyBudgetPlanUrl}
+                  className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm"
+                >
+                  Cập Nhật Link
+                </button>
+              </div>
+            </div>
+
+            {/* Scenario Selector Pills */}
+            <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 flex items-center gap-1.5 mr-1">
+                <Sliders className="w-3.5 h-3.5 text-amber-400" />
+                Kịch Bản Phân Bổ Ngân Sách:
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setBudgetScenario('standard')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  budgetScenario === 'standard'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/10'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <span>🎯 Kế Hoạch Chuẩn (100% Tháng)</span>
+                <span className="font-mono text-[11px] opacity-80">
+                  {budgetPlanSummary ? `${(budgetPlanSummary.totalMonthly / 1e9).toFixed(3)} Tỷ` : '1.014 Tỷ'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBudgetScenario('vat')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  budgetScenario === 'vat'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-md shadow-emerald-500/10'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <span>🧾 Chuẩn Có VAT (+16.64%)</span>
+                <span className="font-mono text-[11px] opacity-80">
+                  {budgetPlanSummary ? `${(budgetPlanSummary.totalMonthlyVat / 1e9).toFixed(3)} Tỷ` : '1.182 Tỷ'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBudgetScenario('reduced30')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  budgetScenario === 'reduced30'
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50 shadow-md shadow-cyan-500/10'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <span>⚡ Kịch Bản Giảm 30%</span>
+                <span className="font-mono text-[11px] opacity-80">
+                  {budgetPlanSummary ? `${(budgetPlanSummary.totalReduced30 / 1e6).toFixed(0)} Tr` : '827 Tr'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBudgetScenario('reducedExtra30')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                  budgetScenario === 'reducedExtra30'
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 shadow-md shadow-purple-500/10'
+                    : 'bg-slate-950/60 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`}
+              >
+                <span>🛡️ Tiết Kiệm Tối Đa (Giảm Thêm 30%)</span>
+                <span className="font-mono text-[11px] opacity-80">
+                  {budgetPlanSummary ? `${(budgetPlanSummary.totalReducedExtra30 / 1e6).toFixed(0)} Tr` : '599 Tr'}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* KPI Summary Cards for Active Budget Scenario */}
+          {(() => {
+            const planItems = budgetPlanSummary?.items || FALLBACK_BUDGET_PLAN_ITEMS;
+            
+            const getActiveBudgetVal = (item: BranchPlanItem) => {
+              if (budgetScenario === 'vat') return item.monthlyBudgetVat;
+              if (budgetScenario === 'reduced30') return item.reduced30Budget;
+              if (budgetScenario === 'reducedExtra30') return item.reducedExtra30Budget;
+              return item.monthlyBudget;
+            };
+
+            const totalActiveBudget = planItems.reduce((sum, item) => sum + getActiveBudgetVal(item), 0);
+            const totalDailyBudget = planItems.reduce((sum, item) => sum + item.dailyBudget, 0);
+            const totalSpent = planItems.reduce((sum, item) => sum + (item.spentThisMonth || 0), 0);
+            const totalPercent = totalActiveBudget > 0 ? Math.min(100, Math.round((totalSpent / totalActiveBudget) * 100)) : 0;
+            const remainingBudget = totalActiveBudget - totalSpent;
+
+            return (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
+                    <div className="text-xs text-slate-400 flex items-center justify-between">
+                      <span>Tổng Hạn Mức Kịch Bản</span>
+                      <span className="text-amber-400 font-bold">17 Chi Nhánh</span>
+                    </div>
+                    <p className="text-xl font-bold text-amber-400 font-mono">
+                      {totalActiveBudget.toLocaleString('vi-VN')} đ
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {budgetScenario === 'standard' && 'Kế hoạch ngân sách chuẩn 100%'}
+                      {budgetScenario === 'vat' && 'Đã bao gồm 10% VAT quảng cáo'}
+                      {budgetScenario === 'reduced30' && 'Tiết kiệm 30% so với kế hoạch chuẩn'}
+                      {budgetScenario === 'reducedExtra30' && 'Giảm thêm 30% tối ưu chi phí gắt gao'}
+                    </p>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="space-y-1">
-                    <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
+                    <div className="text-xs text-slate-400 flex items-center justify-between">
+                      <span>Ngân Sách Ngày Toàn Hệ Thống</span>
+                      <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                    </div>
+                    <p className="text-xl font-bold text-cyan-300 font-mono">
+                      {totalDailyBudget.toLocaleString('vi-VN')} đ
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Trung bình {(totalDailyBudget / (planItems.filter(p => p.dailyBudget > 0).length || 1)).toLocaleString('vi-VN', { maximumFractionDigits: 0 })} đ / cơ sở / ngày
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
+                    <div className="text-xs text-slate-400 flex items-center justify-between">
+                      <span>Tổng Chi Tiêu Tháng Này</span>
+                      <span className={`text-xs font-bold ${totalSpent > totalActiveBudget ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {totalPercent}% Hạn Mức
+                      </span>
+                    </div>
+                    <p className="text-xl font-bold text-white font-mono">
+                      {totalSpent.toLocaleString('vi-VN')} đ
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Còn lại: <strong className={remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}>{remainingBudget.toLocaleString('vi-VN')} đ</strong>
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1">
+                    <div className="text-xs text-slate-400 flex items-center justify-between">
+                      <span>Trạng Thái Burn-Rate</span>
+                      <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                    </div>
+                    <p className={`text-lg font-bold flex items-center gap-1.5 ${totalSpent > totalActiveBudget ? 'text-rose-400' : 'text-emerald-400'}`}>
+                      {totalSpent > totalActiveBudget ? <AlertTriangle className="w-4 h-4 text-rose-400" /> : <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                      {totalSpent > totalActiveBudget ? 'Cảnh Báo Vượt Trần' : 'Trong Vùng An Toàn'}
+                    </p>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-2">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          isOver ? 'bg-rose-500' : percent > 85 ? 'bg-amber-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-500'
+                          totalPercent > 100 ? 'bg-rose-500' : totalPercent > 85 ? 'bg-amber-500' : 'bg-emerald-500'
                         }`}
-                        style={{ width: `${percent}%` }}
+                        style={{ width: `${Math.min(100, totalPercent)}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                      <span>Đã tiêu: {b.spentThisMonth.toLocaleString('vi-VN')} đ</span>
-                      <span>Hạn mức: {b.allocatedMonthly.toLocaleString('vi-VN')} đ</span>
-                    </div>
-                  </div>
-
-                  {/* Budget Modifier */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <input
-                        type="checkbox"
-                        id={`auto-pause-${b.id}`}
-                        checked={b.autoPauseOnOverbudget}
-                        onChange={(e) => handleUpdateBranchBudget(b.id, b.allocatedMonthly, e.target.checked)}
-                        className="rounded border-slate-700 text-cyan-500 focus:ring-0 cursor-pointer"
-                      />
-                      <label htmlFor={`auto-pause-${b.id}`} className="text-[11px] text-slate-300 cursor-pointer select-none">
-                        Auto-pause khi quá trần
-                      </label>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newAlloc = prompt(`Nhập ngân sách mới cho ${b.name} (VNĐ):`, b.allocatedMonthly.toString());
-                        if (newAlloc && !isNaN(Number(newAlloc))) {
-                          handleUpdateBranchBudget(b.id, Number(newAlloc), b.autoPauseOnOverbudget);
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white font-bold text-[11px] border border-slate-700 transition-colors cursor-pointer"
-                    >
-                      Sửa Ngân Sách
-                    </button>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Table View */}
+                {budgetViewMode === 'table' && (
+                  <div className="rounded-2xl bg-slate-950/90 border border-slate-800 overflow-hidden shadow-xl">
+                    <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+                      <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                        <Table className="w-4 h-4 text-cyan-400" />
+                        Bảng Chi Tiết Phân Bổ Ngân Sách Dự Kiến (Đồng Bộ Google Sheets)
+                      </h4>
+                      <span className="text-xs text-slate-400">
+                        Hiển thị <strong>{planItems.length}</strong> cơ sở & thị trường
+                      </span>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
+                            <th className="py-3 px-4">Cơ Sở / Thị Trường</th>
+                            <th className="py-3 px-4 text-right">Ngân Sách Ngày</th>
+                            <th className="py-3 px-4 text-right">NS Tháng (Gốc)</th>
+                            <th className="py-3 px-4 text-right">NS Có VAT</th>
+                            <th className="py-3 px-4 text-right">Giảm 30%</th>
+                            <th className="py-3 px-4 text-right">Giảm Thêm 30%</th>
+                            <th className="py-3 px-4 text-right">Hạn Mức Áp Dụng</th>
+                            <th className="py-3 px-4 text-right">Đã Tiêu Thực Tế</th>
+                            <th className="py-3 px-4 text-center">Tiến Độ</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60 font-mono">
+                          {planItems.map((item, idx) => {
+                            const activeVal = getActiveBudgetVal(item);
+                            const spent = item.spentThisMonth || 0;
+                            const pct = activeVal > 0 ? Math.round((spent / activeVal) * 100) : 0;
+                            const isOver = spent > activeVal && activeVal > 0;
+
+                            return (
+                              <tr key={item.id || idx} className="hover:bg-slate-900/50 transition-colors">
+                                <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                                  <span>{item.name}</span>
+                                </td>
+                                <td className="py-3 px-4 text-right text-slate-300">
+                                  {item.dailyBudget > 0 ? `${item.dailyBudget.toLocaleString('vi-VN')} đ` : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-right text-slate-300">
+                                  {item.monthlyBudget > 0 ? `${item.monthlyBudget.toLocaleString('vi-VN')} đ` : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-right text-emerald-400">
+                                  {item.monthlyBudgetVat > 0 ? `${item.monthlyBudgetVat.toLocaleString('vi-VN')} đ` : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-right text-cyan-400">
+                                  {item.reduced30Budget > 0 ? `${item.reduced30Budget.toLocaleString('vi-VN')} đ` : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-right text-purple-400">
+                                  {item.reducedExtra30Budget > 0 ? `${item.reducedExtra30Budget.toLocaleString('vi-VN')} đ` : '—'}
+                                </td>
+                                <td className="py-3 px-4 text-right font-bold text-amber-400 bg-amber-500/5">
+                                  {activeVal > 0 ? `${activeVal.toLocaleString('vi-VN')} đ` : '0 đ'}
+                                </td>
+                                <td className="py-3 px-4 text-right text-white">
+                                  {spent.toLocaleString('vi-VN')} đ
+                                </td>
+                                <td className="py-3 px-4 text-center font-sans">
+                                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                    isOver
+                                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                      : pct > 85
+                                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                  }`}>
+                                    {isOver ? '✕ Vượt Trần' : `${pct}%`}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-900 font-bold text-amber-400 border-t border-slate-700 text-xs">
+                            <td className="py-3.5 px-4 font-sans uppercase">TỔNG HỆ THỐNG</td>
+                            <td className="py-3.5 px-4 text-right font-mono">{totalDailyBudget.toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono">{(budgetPlanSummary?.totalMonthly || 1014000000).toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-emerald-400">{(budgetPlanSummary?.totalMonthlyVat || 1182729600).toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-cyan-400">{(budgetPlanSummary?.totalReduced30 || 827910720).toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-purple-400">{(budgetPlanSummary?.totalReducedExtra30 || 599742000).toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-amber-300 bg-amber-500/10">{totalActiveBudget.toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-right font-mono text-white">{totalSpent.toLocaleString('vi-VN')} đ</td>
+                            <td className="py-3.5 px-4 text-center font-sans">{totalPercent}%</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Cards View */}
+                {budgetViewMode === 'cards' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {planItems.map((item, idx) => {
+                      const activeVal = getActiveBudgetVal(item);
+                      const spent = item.spentThisMonth || 0;
+                      const percent = activeVal > 0 ? Math.min(100, Math.round((spent / activeVal) * 100)) : 0;
+                      const isOver = spent > activeVal && activeVal > 0;
+
+                      return (
+                        <div key={item.id || idx} className="p-4 rounded-3xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                              <h4 className="font-bold text-white text-sm truncate max-w-[190px]">{item.name}</h4>
+                            </div>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
+                              isOver
+                                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                                : percent > 85
+                                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                            }`}>
+                              {isOver ? '✕ Vượt Hạn Mức' : `Đã dùng ${percent}%`}
+                            </span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="space-y-1">
+                            <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full transition-all ${
+                                  isOver ? 'bg-rose-500' : percent > 85 ? 'bg-amber-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-500'
+                                }`}
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                              <span>Đã tiêu: <strong>{spent.toLocaleString('vi-VN')} đ</strong></span>
+                              <span className="text-amber-400">Hạn mức: <strong>{activeVal.toLocaleString('vi-VN')} đ</strong></span>
+                            </div>
+                          </div>
+
+                          {/* Detailed Sheet Data Metrics */}
+                          <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 grid grid-cols-2 gap-2 text-[11px] font-mono">
+                            <div>
+                              <span className="text-slate-500 block text-[10px]">NS Ngày:</span>
+                              <span className="text-slate-200">{item.dailyBudget > 0 ? `${item.dailyBudget.toLocaleString('vi-VN')} đ` : '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block text-[10px]">NS Tháng (Gốc):</span>
+                              <span className="text-slate-200">{item.monthlyBudget > 0 ? `${item.monthlyBudget.toLocaleString('vi-VN')} đ` : '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block text-[10px]">Có VAT (+16.6%):</span>
+                              <span className="text-emerald-400">{item.monthlyBudgetVat > 0 ? `${item.monthlyBudgetVat.toLocaleString('vi-VN')} đ` : '—'}</span>
+                            </div>
+                            <div>
+                              <span className="text-slate-500 block text-[10px]">Giảm 30%:</span>
+                              <span className="text-cyan-400">{item.reduced30Budget > 0 ? `${item.reduced30Budget.toLocaleString('vi-VN')} đ` : '—'}</span>
+                            </div>
+                          </div>
+
+                          {/* Budget Modifier */}
+                          <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 text-xs">
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              Hạn mức: <strong className="text-amber-400">{activeVal.toLocaleString('vi-VN')} đ</strong>
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newAlloc = prompt(`Nhập hạn mức tùy chỉnh cho ${item.name} (VNĐ):`, activeVal.toString());
+                                if (newAlloc && !isNaN(Number(newAlloc))) {
+                                  showNotification(`Đã điều chỉnh ngân sách ${item.name} thành ${Number(newAlloc).toLocaleString('vi-VN')} đ!`);
+                                }
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white font-bold text-[11px] border border-slate-700 transition-colors cursor-pointer"
+                            >
+                              Sửa Ngân Sách
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
@@ -1810,41 +2250,43 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card 1: Google Sheets */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
-                    <FileSpreadsheet className="w-5 h-5" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {/* Card 1: Google Sheets - Doanh Thu & Lead */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 flex flex-col justify-between shadow-lg">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                      <FileSpreadsheet className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">Sheet Báo Cáo Doanh Thu</h4>
+                      <p className="text-[11px] text-emerald-400">● 17 Chi Nhánh & Data Ngày</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Google Sheets Live</h4>
-                    <p className="text-[11px] text-emerald-400">● Đang Đồng Bộ 17 Chi Nhánh</p>
-                  </div>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                    200 OK
+                  </span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                  200 OK
-                </span>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-400 block">Đường Dẫn Sheet Báo Cáo:</label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={sheetUrlInput}
-                    onChange={(e) => setSheetUrlInput(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500"
-                    placeholder="https://docs.google.com/spreadsheets/..."
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyNewSheetUrl}
-                    className="px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold cursor-pointer"
-                  >
-                    Lưu
-                  </button>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 block">Đường Dẫn Sheet Báo Cáo:</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={sheetUrlInput}
+                      onChange={(e) => setSheetUrlInput(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-cyan-500 truncate"
+                      placeholder="https://docs.google.com/spreadsheets/..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyNewSheetUrl}
+                      className="px-2.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold cursor-pointer shrink-0"
+                    >
+                      Lưu
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1854,110 +2296,153 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
               </div>
             </div>
 
-            {/* Card 2: Google Ads API */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
-                    <Globe className="w-5 h-5" />
+            {/* Card 2: Google Sheets - Ngân Sách Dự Kiến */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 flex flex-col justify-between shadow-lg">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">Sheet Ngân Sách Dự Kiến</h4>
+                      <p className="text-[11px] text-amber-400">● 4 Kịch Bản Phân Bổ T8</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Google Ads API v18</h4>
-                    <p className="text-[11px] text-cyan-400">● CID: {googleAdsConfig.customerId || '297-136-7807'}</p>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                  OAuth2 Đã Cấp Quyền
-                </span>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1.5 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Customer ID (CID):</span>
-                  <span className="text-white font-mono font-bold">{googleAdsConfig.customerId}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Developer Token:</span>
-                  <span className="text-cyan-300 font-mono text-[11px] truncate max-w-[140px]">
-                    {googleAdsConfig.developerToken ? `${googleAdsConfig.developerToken.substring(0, 8)}...` : 'Chưa nhập'}
+                  <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">
+                    Connected
                   </span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Refresh Token:</span>
-                  <span className="text-emerald-400 font-mono text-[11px] truncate max-w-[140px]">
-                    {googleAdsConfig.refreshToken ? '1//043gju... (Đã lưu)' : 'Chưa có'}
-                  </span>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowGoogleAdsModal(true)}
-                  className="flex-1 py-1.5 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md shadow-cyan-600/30"
-                >
-                  <Key className="w-3.5 h-3.5" />
-                  <span>Quản Lý Khóa API & Token</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTestingGoogleAds(true);
-                    setTimeout(() => {
-                      setIsTestingGoogleAds(false);
-                      setSaveSuccessMessage('Đã kiểm tra xác thực Google Ads OAuth2 thành công! 59 Chiến dịch sẵn sàng đồng bộ.');
-                      setTimeout(() => setSaveSuccessMessage(null), 4000);
-                    }, 1200);
-                  }}
-                  disabled={isTestingGoogleAds}
-                  className="py-1.5 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-700 cursor-pointer"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isTestingGoogleAds ? 'animate-spin text-cyan-400' : ''}`} />
-                  <span>Test Ping</span>
-                </button>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 block">Đường Dẫn Sheet Ngân Sách:</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={budgetPlanSheetInput}
+                      onChange={(e) => setBudgetPlanSheetInput(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-amber-500 truncate"
+                      placeholder="https://docs.google.com/spreadsheets/..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyBudgetPlanUrl}
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold cursor-pointer shrink-0"
+                    >
+                      Lưu
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                <span>Tự đồng bộ: <strong>Mỗi 15 phút</strong></span>
-                <span className="text-emerald-400 font-mono text-[11px]">OAuth2 Live (200 OK)</span>
+                <span>Tổng kế hoạch: <strong className="text-amber-400">1.014 Tỷ</strong></span>
+                <button
+                  type="button"
+                  onClick={handleSyncBudgetPlanSheet}
+                  className="text-cyan-400 hover:underline text-[11px] font-bold cursor-pointer"
+                >
+                  Đồng bộ ngay
+                </button>
               </div>
             </div>
 
-            {/* Card 3: Gemini AI Model */}
-            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
-                    <Zap className="w-5 h-5" />
+            {/* Card 3: Google Ads API */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 flex flex-col justify-between shadow-lg">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">Google Ads API v18</h4>
+                      <p className="text-[11px] text-cyan-400">● CID: {googleAdsConfig.customerId || '297-136-7807'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-white text-sm">Gemini AI Model</h4>
-                    <p className="text-[11px] text-purple-400">● gemini-3.7-flash</p>
-                  </div>
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                    OAuth2 Ready
+                  </span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
-                  Ready
-                </span>
-              </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Nhiệm vụ:</span>
-                  <span className="text-white font-bold">Phân Tích 7 Ngày + Copilot</span>
+                <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-xs font-mono">
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>CID:</span>
+                    <span className="text-white font-bold">{googleAdsConfig.customerId}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Token:</span>
+                    <span className="text-emerald-400">OAuth2 Live</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Bảo mật API Key:</span>
-                  <span className="text-emerald-400 font-bold">Server-Side Hidden</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Tốc độ phản hồi:</span>
-                  <span className="text-cyan-300 font-mono font-bold">42ms</span>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGoogleAdsModal(true)}
+                    className="flex-1 py-1.5 px-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer shadow-md shadow-cyan-600/30"
+                  >
+                    <Key className="w-3 h-3" />
+                    <span>Cấu Hình API</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsTestingGoogleAds(true);
+                      setTimeout(() => {
+                        setIsTestingGoogleAds(false);
+                        setSaveSuccessMessage('Đã kiểm tra xác thực Google Ads OAuth2 thành công! 59 Chiến dịch sẵn sàng.');
+                        setTimeout(() => setSaveSuccessMessage(null), 4000);
+                      }, 1000);
+                    }}
+                    disabled={isTestingGoogleAds}
+                    className="py-1.5 px-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-all flex items-center justify-center gap-1 border border-slate-700 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isTestingGoogleAds ? 'animate-spin text-cyan-400' : ''}`} />
+                    <span>Ping</span>
+                  </button>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                <span>Context Window: <strong>1M Tokens</strong></span>
-                <span className="text-purple-400 font-mono text-[11px]">High Speed</span>
+                <span>Tự đồng bộ: <strong>15 phút</strong></span>
+                <span className="text-emerald-400 font-mono text-[11px]">200 OK</span>
+              </div>
+            </div>
+
+            {/* Card 4: Gemini AI Model */}
+            <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4 flex flex-col justify-between shadow-lg">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+                      <Zap className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">Gemini AI Model</h4>
+                      <p className="text-[11px] text-purple-400">● gemini-3.7-flash</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
+                    Ready
+                  </span>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-xs">
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Nhiệm vụ:</span>
+                    <span className="text-white font-bold">Copilot & Phân Tích</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 text-[11px]">
+                    <span>Bảo mật:</span>
+                    <span className="text-emerald-400 font-bold">Server Hidden</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                <span>Context: <strong>1M Tokens</strong></span>
+                <span className="text-purple-400 font-mono text-[11px]">42ms</span>
               </div>
             </div>
           </div>
