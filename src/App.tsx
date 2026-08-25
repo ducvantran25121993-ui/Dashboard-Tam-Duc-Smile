@@ -494,7 +494,7 @@ export default function App() {
                 loadSheetData(newUrl);
               }}
               monthlyDatasets={monthlyDatasets}
-              activeMonth={activeMonth}
+              activeMonth={typeof activeTab === 'number' ? activeTab : 8}
             />
           )}
 
