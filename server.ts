@@ -79,6 +79,77 @@ app.get('/api/permissions', (req, res) => {
   res.json(staffPermissionsStore);
 });
 
+// Image Proxy endpoint to bypass hotlink protection and CORS for competitor banners
+app.get('/api/proxy-image', async (req, res) => {
+  const imageUrl = req.query.url as string;
+  if (!imageUrl) {
+    return res.status(400).send('Missing url parameter');
+  }
+
+  try {
+    let target = decodeURIComponent(imageUrl).trim();
+    if (!target.startsWith('http://') && !target.startsWith('https://')) {
+      target = 'https://' + target;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(target, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        'Referer': new URL(target).origin + '/',
+      },
+      redirect: 'follow',
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.send(buffer);
+    }
+  } catch (err: any) {
+    console.warn('[ProxyImage] Error fetching image:', imageUrl, err.message);
+  }
+
+  // If failed or 404, return a stylish dental fallback SVG
+  const fallbackSvg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0f172a"/>
+          <stop offset="50%" stop-color="#1e293b"/>
+          <stop offset="100%" stop-color="#090d16"/>
+        </linearGradient>
+        <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#06b6d4"/>
+          <stop offset="100%" stop-color="#3b82f6"/>
+        </linearGradient>
+      </defs>
+      <rect width="800" height="450" fill="url(#bg)" rx="16"/>
+      <circle cx="400" cy="180" r="60" fill="#1e293b" stroke="#06b6d4" stroke-width="3" stroke-dasharray="6,6"/>
+      <path d="M375 180 C375 160 425 160 425 180 C425 205 400 220 400 220 C400 220 375 205 375 180 Z" fill="#06b6d4" opacity="0.85"/>
+      <text x="400" y="270" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="22" font-weight="bold">🖼️ Banner Quảng Cáo Đối Thủ</text>
+      <text x="400" y="305" text-anchor="middle" fill="#94a3b8" font-family="system-ui, sans-serif" font-size="15">Nha Khoa Đang Chạy Chiến Dịch Khuyến Mãi</text>
+      <rect x="260" y="335" width="280" height="38" rx="19" fill="url(#accent)" opacity="0.9"/>
+      <text x="400" y="360" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">Bấm &quot;Mở Link Bài Viết&quot; Để Xem Trực Tiếp</text>
+    </svg>
+  `.trim();
+
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  return res.send(fallbackSvg);
+});
+
 app.post('/api/permissions', (req, res) => {
   const { allowedTabs } = req.body;
   if (Array.isArray(allowedTabs)) {

@@ -1713,6 +1713,12 @@ export const CompetitorWebDiffScanner: React.FC = () => {
                                   alt={media.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                   referrerPolicy="no-referrer"
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (!target.src.includes('/api/proxy-image')) {
+                                      target.src = `/api/proxy-image?url=${encodeURIComponent(media.previewUrl)}`;
+                                    }
+                                  }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                                 

@@ -83,6 +83,148 @@ export interface ScanNotification {
   read: boolean;
 }
 
+export const CompetitorBannerImage: React.FC<{
+  src: string;
+  alt: string;
+  className?: string;
+  badge?: string;
+  isNew?: boolean;
+  articleUrl?: string;
+  onExpand?: (src: string) => void;
+}> = ({ src, alt, className = 'w-full h-36 object-cover', badge, isNew, articleUrl, onExpand }) => {
+  const [currentSrc, setCurrentSrc] = useState<string>(src);
+  const [hasTriedProxy, setHasTriedProxy] = useState<boolean>(false);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    setCurrentSrc(src);
+    setHasTriedProxy(false);
+    setHasError(false);
+    setLoading(true);
+  }, [src]);
+
+  const handleError = () => {
+    if (!hasTriedProxy && currentSrc && !currentSrc.startsWith('/api/proxy-image')) {
+      setHasTriedProxy(true);
+      setCurrentSrc(`/api/proxy-image?url=${encodeURIComponent(currentSrc)}`);
+    } else {
+      setHasError(true);
+      setLoading(false);
+    }
+  };
+
+  if (hasError) {
+    return (
+      <div className="w-full h-36 rounded-lg bg-gradient-to-br from-slate-900 via-indigo-950/60 to-slate-950 border border-slate-700/80 p-3 flex flex-col justify-between relative overflow-hidden group/card">
+        <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-cyan-500/10 blur-xl pointer-events-none" />
+        
+        <div className="flex items-center justify-between gap-2 z-10">
+          <span className={`px-2 py-0.5 rounded text-[10px] font-black border shadow ${
+            isNew 
+              ? 'bg-emerald-600/90 text-white border-emerald-400' 
+              : 'bg-rose-950/90 text-rose-300 border-rose-500/40'
+          }`}>
+            {badge || (isNew ? '✨ Banner Mới' : '🔴 Banner Cũ')}
+          </span>
+          <span className="text-[10px] text-cyan-400 font-mono flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-cyan-400" />
+            Live Web Snapshot
+          </span>
+        </div>
+
+        <div className="z-10 my-auto py-1">
+          <p className="text-xs font-bold text-white line-clamp-2 leading-snug">
+            {alt || 'Banner Chiến Dịch Khuyến Mãi Đối Thủ'}
+          </p>
+          <p className="text-[10px] text-slate-400 line-clamp-1 mt-0.5 font-mono">
+            {articleUrl || src}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800/80 z-10 text-[11px]">
+          {onExpand && (
+            <button
+              type="button"
+              onClick={() => onExpand(currentSrc)}
+              className="px-2.5 py-1 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer"
+            >
+              <Maximize2 className="w-3 h-3" />
+              <span>Xem Chi Tiết</span>
+            </button>
+          )}
+          {articleUrl && (
+            <a
+              href={articleUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] text-cyan-300 hover:underline font-bold flex items-center gap-0.5 ml-auto"
+            >
+              <span>Mở bài viết chứa banner</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative rounded-lg overflow-hidden bg-slate-900 group/img">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-900/90 z-10">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <span>Đang tải banner...</span>
+          </div>
+        </div>
+      )}
+      <img
+        src={currentSrc}
+        alt={alt}
+        className={`${className} transition-transform duration-300 group-hover/img:scale-105`}
+        referrerPolicy="no-referrer"
+        onLoad={() => setLoading(false)}
+        onError={handleError}
+      />
+      {badge && (
+        <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black border shadow z-10 ${
+          isNew 
+            ? 'bg-emerald-600 text-white border-emerald-400' 
+            : 'bg-rose-950/90 text-rose-300 border-rose-500/40'
+        }`}>
+          {badge}
+        </span>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity p-2 flex flex-col justify-end z-20">
+        <div className="flex items-center justify-between">
+          {onExpand && (
+            <button
+              type="button"
+              onClick={() => onExpand(currentSrc)}
+              className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer shadow ${
+                isNew ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-slate-900/90 hover:bg-slate-800 text-rose-300 border border-rose-500/50'
+              }`}
+            >
+              <Maximize2 className="w-3 h-3" />
+              <span>Phóng To Xem</span>
+            </button>
+          )}
+          <a
+            href={currentSrc}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[10px] text-cyan-300 hover:underline truncate font-mono flex items-center gap-1 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-700"
+          >
+            <span>Link File Ảnh</span>
+            <ExternalLink className="w-2.5 h-2.5" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   {
     id: 'link-1',
@@ -464,12 +606,13 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
     status: 'Changed',
     lastScanTime: 'Hôm qua, 10:00',
     changeMessage: '🛡️ Cam kết thẻ bảo hành điện tử chính hãng 15 năm • Đền 100 triệu nếu sứ pha tạp',
-    newImagesCount: 1,
+    newImagesCount: 2,
     textChanged: true,
     lastData: {
       text: 'Nha Khoa Shark Chuẩn Đức - Bọc răng sứ thẩm mỹ trả góp 0%, thấy trước nụ cười tương lai với công nghệ Digital Smile Design.',
       images: [
-        'https://nhakhoashark.vn/wp-content/uploads/2023/09/shark-dental-boc-rang-su.jpg'
+        'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png',
+        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
       ],
       promotions: [
         {
@@ -613,8 +756,25 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length >= 20) {
-          // Preserve 100% of user's saved links without discarding
-          return parsed;
+          // Clean up any stale or 404 image URLs from older sessions
+          return parsed.map((item: MonitoredLink) => {
+            if (item.url?.includes('nhakhoashark.vn') || item.id === 'link-15') {
+              return {
+                ...item,
+                newImagesCount: item.lastData?.images?.length || 2,
+                lastData: {
+                  ...item.lastData,
+                  text: item.lastData?.text || 'Nha Khoa Shark Chuẩn Đức - Bọc răng sứ thẩm mỹ trả góp 0%, thấy trước nụ cười tương lai với công nghệ Digital Smile Design.',
+                  images: [
+                    'https://cdn.diemnhangroup.com/nhakhoashark.vn/2023/02/POP-UP-dat-lich-hen.png',
+                    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
+                  ],
+                  scannedAt: item.lastData?.scannedAt || new Date().toISOString()
+                }
+              };
+            }
+            return item;
+          });
         }
       } catch (e) {
         console.error('Error loading saved links from localStorage:', e);
@@ -2453,27 +2613,19 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                                     key={bIdx}
                                     className="relative group rounded-xl overflow-hidden border border-rose-500/30 bg-slate-950 space-y-2 p-2"
                                   >
-                                    <div className="relative rounded-lg overflow-hidden">
-                                      <img
-                                        src={bImg}
-                                        alt={`Banner Cũ ${bIdx + 1}`}
-                                        className="w-full h-36 object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                        referrerPolicy="no-referrer"
-                                      />
-                                      <div className="absolute inset-0 bg-slate-950/40 group-hover:bg-slate-950/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                        <button
-                                          type="button"
-                                          onClick={() => setLightboxImage({ src: bImg, title: `Banner Cũ #${bIdx + 1} - ${item.name}`, subtitle: `Ảnh banner trước khi đối thủ thay đổi trên trang: ${item.url}`, type: 'before' })}
-                                          className="px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-rose-300 font-bold text-xs border border-rose-500/50 flex items-center gap-1 cursor-pointer shadow-lg"
-                                        >
-                                          <Maximize2 className="w-3.5 h-3.5" />
-                                          <span>Phóng To Xem</span>
-                                        </button>
-                                      </div>
-                                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-rose-950/90 text-[10px] font-bold text-rose-300 border border-rose-500/40">
-                                        Ảnh Cũ #{bIdx + 1} (Đã Thay)
-                                      </span>
-                                    </div>
+                                    <CompetitorBannerImage
+                                      src={bImg}
+                                      alt={`Banner Cũ ${bIdx + 1} - ${item.name}`}
+                                      badge={`Ảnh Cũ #${bIdx + 1}`}
+                                      isNew={false}
+                                      articleUrl={item.url}
+                                      onExpand={(srcToExpand) => setLightboxImage({ 
+                                        src: srcToExpand, 
+                                        title: `Banner Cũ #${bIdx + 1} - ${item.name}`, 
+                                        subtitle: `Ảnh banner trước khi đối thủ thay đổi trên trang: ${item.url}`, 
+                                        type: 'before' 
+                                      })}
+                                    />
 
                                     {/* Direct links footer for each old banner */}
                                     <div className="flex items-center justify-between text-[11px] pt-1 text-slate-400">
@@ -2520,38 +2672,19 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                                     key={aIdx}
                                     className="relative group rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-slate-950 shadow-md p-2 space-y-2"
                                   >
-                                    <div className="relative rounded-lg overflow-hidden">
-                                      <img
-                                        src={aImg}
-                                        alt={`Banner Mới ${aIdx + 1}`}
-                                        className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
-                                        referrerPolicy="no-referrer"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-end">
-                                        <div className="flex items-center justify-between">
-                                          <button
-                                            type="button"
-                                            onClick={() => setLightboxImage({ src: aImg, title: `Banner Mới #${aIdx + 1} - ${item.name}`, subtitle: `Banner vừa được đối thủ tung ra trên bài viết: ${item.url}`, type: 'after' })}
-                                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer shadow"
-                                          >
-                                            <Maximize2 className="w-3 h-3" />
-                                            <span>Phóng To Xem</span>
-                                          </button>
-                                          <a
-                                            href={aImg}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-[10px] text-cyan-300 hover:underline truncate font-mono flex items-center gap-1 bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-700"
-                                          >
-                                            <span>Link File Ảnh</span>
-                                            <ExternalLink className="w-2.5 h-2.5" />
-                                          </a>
-                                        </div>
-                                      </div>
-                                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-emerald-600 text-[10px] font-black text-white border border-emerald-400 shadow">
-                                        ✨ Banner Mới #{aIdx + 1}
-                                      </span>
-                                    </div>
+                                    <CompetitorBannerImage
+                                      src={aImg}
+                                      alt={`Banner Mới ${aIdx + 1} - ${item.name}`}
+                                      badge={`✨ Banner Mới #${aIdx + 1}`}
+                                      isNew={true}
+                                      articleUrl={item.url}
+                                      onExpand={(srcToExpand) => setLightboxImage({ 
+                                        src: srcToExpand, 
+                                        title: `Banner Mới #${aIdx + 1} - ${item.name}`, 
+                                        subtitle: `Banner vừa được đối thủ tung ra trên bài viết: ${item.url}`, 
+                                        type: 'after' 
+                                      })}
+                                    />
 
                                     {/* Direct links footer for each new banner */}
                                     <div className="flex items-center justify-between text-[11px] pt-1 text-slate-300">
@@ -3007,12 +3140,18 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
               </div>
             </div>
 
-            <div className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center max-h-[70vh]">
+            <div className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 flex items-center justify-center min-h-[250px] max-h-[70vh] p-2">
               <img
                 src={lightboxImage.src}
                 alt={lightboxImage.title}
                 className="max-h-[68vh] w-auto object-contain rounded-xl"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.includes('/api/proxy-image')) {
+                    target.src = `/api/proxy-image?url=${encodeURIComponent(lightboxImage.src)}`;
+                  }
+                }}
               />
             </div>
 
