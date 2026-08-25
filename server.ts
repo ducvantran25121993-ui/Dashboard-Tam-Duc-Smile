@@ -34,6 +34,46 @@ let staffPermissionsStore = {
   updatedAt: new Date().toISOString(),
 };
 
+// Centralized Admin Users store (defaults strictly to Trần Đức TranDuc474@gmail.com)
+let adminUsersStore = [
+  {
+    id: 'u1',
+    name: 'Trần Đức',
+    email: 'TranDuc474@gmail.com',
+    role: 'admin',
+    roleLabel: 'Super Admin (Ban Giám Đốc)',
+    status: 'active',
+    lastActive: 'Vừa xong',
+    department: 'Ban Điều Hành',
+    allowedTabs: [
+      'overview',
+      'google_ads',
+      'leads_funnel',
+      'campaigns',
+      'competitor',
+      'sales_copilot',
+      'consultation',
+      'innovation',
+      'ai_agent',
+      'admin_hub',
+    ],
+  },
+];
+
+// Admin Users endpoints for cross-device synchronization
+app.get('/api/admin/users', (req, res) => {
+  res.json({ success: true, users: adminUsersStore, updatedAt: new Date().toISOString() });
+});
+
+app.post('/api/admin/users', (req, res) => {
+  const { users } = req.body;
+  if (Array.isArray(users) && users.length > 0) {
+    adminUsersStore = users;
+    return res.json({ success: true, users: adminUsersStore, updatedAt: new Date().toISOString() });
+  }
+  return res.status(400).json({ error: 'Invalid users array or empty users list' });
+});
+
 // Permissions endpoints
 app.get('/api/permissions', (req, res) => {
   res.json(staffPermissionsStore);

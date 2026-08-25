@@ -62,6 +62,11 @@ import {
   fetchBudgetPlanSheetData,
   FALLBACK_BUDGET_PLAN_ITEMS
 } from '../services/budgetPlanSheetService';
+import {
+  fetchUsersFromCloud,
+  saveUsersToCloud,
+  DEFAULT_SUPER_ADMIN_USER,
+} from '../services/cloudUsersService';
 
 export interface AdminUser {
   id: string;
@@ -170,78 +175,37 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'security' | 'campaigns' | 'system_ai'>('all');
 
-  // Users State
+  // Users State (Defaulted strictly to Super Admin Trần Đức TranDuc474@gmail.com)
   const [users, setUsers] = useState<AdminUser[]>(() => {
     try {
       const saved = localStorage.getItem('dashboard_admin_users_list');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((u: any) => ({
-          ...u,
-          allowedTabs: u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer,
-        }));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((u: any) => ({
+            ...u,
+            allowedTabs: u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer,
+          }));
+        }
       }
     } catch {
       // ignore
     }
-    return [
-      {
-        id: 'u1',
-        name: 'Trần Đức',
-        email: 'TranDuc474@gmail.com',
-        role: 'admin',
-        roleLabel: 'Super Admin (Ban Giám Đốc)',
-        status: 'active',
-        lastActive: 'Vừa xong',
-        department: 'Ban Điều Hành',
-        allowedTabs: ROLE_PRESET_TABS.admin,
-      },
-      {
-        id: 'u2',
-        name: 'Nguyễn Văn An',
-        email: 'an.nguyen@tamducsmile.vn',
-        role: 'marketer',
-        roleLabel: 'Google Ads Specialist',
-        status: 'active',
-        lastActive: '15 phút trước',
-        department: 'Phòng Marketing',
-        allowedTabs: ROLE_PRESET_TABS.marketer,
-      },
-      {
-        id: 'u3',
-        name: 'Lê Thị Mai',
-        email: 'mai.le@tamducsmile.vn',
-        role: 'sales',
-        roleLabel: 'Trưởng Nhóm Tư Vấn & CSKH',
-        status: 'active',
-        lastActive: '1 giờ trước',
-        department: 'Tư Vấn & Sales Online',
-        allowedTabs: ROLE_PRESET_TABS.sales,
-      },
-      {
-        id: 'u4',
-        name: 'Hoàng Minh',
-        email: 'minh.hoang@tamducsmile.vn',
-        role: 'manager',
-        roleLabel: 'Marketing Manager',
-        status: 'active',
-        lastActive: 'Hôm qua, 17:30',
-        department: 'Phòng Marketing',
-        allowedTabs: ROLE_PRESET_TABS.manager,
-      },
-      {
-        id: 'u5',
-        name: 'Kế Toán Tổng Hợp',
-        email: 'ketoan@tamducsmile.vn',
-        role: 'accountant',
-        roleLabel: 'Kế Toán Trưởng',
-        status: 'active',
-        lastActive: '3 ngày trước',
-        department: 'Phòng Tài Chính - Kế Toán',
-        allowedTabs: ROLE_PRESET_TABS.accountant,
-      },
-    ];
+    return [DEFAULT_SUPER_ADMIN_USER];
   });
+
+  // Cross-device synchronization for Admin Users
+  useEffect(() => {
+    let isMounted = true;
+    fetchUsersFromCloud().then((cloudUsers) => {
+      if (isMounted && cloudUsers && cloudUsers.length > 0) {
+        setUsers(cloudUsers);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Thresholds State
   const [thresholds, setThresholds] = useState<ThresholdConfig>(() => {
@@ -798,9 +762,9 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target?.result as string);
-        if (parsed.users) {
+        if (parsed.users && Array.isArray(parsed.users) && parsed.users.length > 0) {
           setUsers(parsed.users);
-          localStorage.setItem('dashboard_admin_users_list', JSON.stringify(parsed.users));
+          saveUsersToCloud(parsed.users);
         }
         if (parsed.thresholds) {
           setThresholds(parsed.thresholds);
@@ -843,7 +807,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
   const handleSaveUsers = (updatedUsers: AdminUser[]) => {
     setUsers(updatedUsers);
-    localStorage.setItem('dashboard_admin_users_list', JSON.stringify(updatedUsers));
+    saveUsersToCloud(updatedUsers);
   };
 
   const handleToggleUserStatus = (id: string) => {
