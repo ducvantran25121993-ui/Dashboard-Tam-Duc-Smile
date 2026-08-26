@@ -68,6 +68,12 @@ const PRESET_DENTAL_URLS = [
     badge: 'Chuỗi 30+ CN'
   },
   {
+    name: 'Nha Khoa I-DENT',
+    category: 'Implant Kiều Bào & Chuyên Khoa',
+    url: 'https://nhakhoaident.com/bang-gia/implant/',
+    badge: 'Chuyên khoa sâu'
+  },
+  {
     name: 'Nha Khoa Paris',
     category: 'Implant & Niềng Răng',
     url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html',
@@ -76,14 +82,8 @@ const PRESET_DENTAL_URLS = [
   {
     name: 'Dr. Care Implant',
     category: 'Trồng Răng Chuyên Sâu',
-    url: 'https://drcareimplant.com/bang-gia-trong-rang-implant-tai-nha-khoa-dr-care-13',
+    url: 'https://drcareimplant.com',
     badge: 'Người trung niên'
-  },
-  {
-    name: 'Nha Khoa I-DENT',
-    category: 'Implant Kiều Bào',
-    url: 'https://nhakhoaident.com/bang-gia/implant/',
-    badge: 'Chuyên khoa sâu'
   },
   {
     name: 'Nha Khoa Parkway',
@@ -498,7 +498,7 @@ export const Crawl4AISpyConsole: React.FC<{
       setCrawlProgressStep(3);
       setCrawlLogs(prev => [
         ...prev,
-        `[2.10s] 🧠 Chạy LLMExtractionStrategy qua Gemini 2.5 Flash bóc tách bảng giá JSON...`,
+        `[2.10s] 🧠 Chạy LLMExtractionStrategy qua Gemini 3.6 Flash bóc tách bảng giá JSON...`,
         `[2.60s] 🎯 Tính toán thông điệp phản công Google Ads cho Tâm Đức Smile...`
       ]);
     }, 1800);

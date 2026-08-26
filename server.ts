@@ -453,11 +453,10 @@ PHONG CÁCH TRẢ LỜI:
       reply = response.text || '';
     } catch (modelErr: any) {
       console.warn(`Error generating content with model ${preferredModel}:`, modelErr.message);
-      // Try fallback to gemini-2.5-flash
-      if (preferredModel !== 'gemini-2.5-flash') {
+      if (preferredModel !== 'gemini-3.7-flash') {
         try {
           const fallbackRes = await gemini.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-3.7-flash',
             contents: formattedContents,
             config: {
               systemInstruction,
@@ -466,7 +465,7 @@ PHONG CÁCH TRẢ LỜI:
           });
           reply = fallbackRes.text || '';
         } catch (fErr: any) {
-          throw new Error(`Cả 2 mô hình (${preferredModel} và gemini-2.5-flash) đều lỗi: ${fErr.message}`);
+          throw new Error(`Mô hình (${preferredModel}) lỗi: ${fErr.message}`);
         }
       } else {
         throw modelErr;
@@ -960,7 +959,7 @@ ${previousData ? `- DỮ LIỆU LẦN QUÉT TRƯỚC ĐÂY ĐỂ ĐỐI CHIẾU:
 
     try {
       const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.6-flash',
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         config: {
           systemInstruction: systemPrompt,
@@ -1870,41 +1869,50 @@ app.all(['/api/crawl4ai', '/api/crawl4ai/'], async (req, res) => {
       }
     }
 
-    // C. Làm sạch HTML -> Clean Markdown (chuẩn định dạng Crawl4AI)
+    // C. Làm sạch HTML -> Clean Markdown (chuẩn định dạng Crawl4AI với bảo toàn Table & Bảng giá)
     const strippedHtml = html
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
       .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '')
-      .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '')
-      .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '');
+      .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '');
 
     const cleanMarkdown = strippedHtml
       ? strippedHtml
           .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n')
           .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n')
           .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
-          .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, '$1\n')
-          .replace(/<td[^>]*>([\s\S]*?)<\/td>/gi, ' | $1')
-          .replace(/<th[^>]*>([\s\S]*?)<\/th>/gi, ' | **$1**')
+          .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n')
+          .replace(/<thead[^>]*>([\s\S]*?)<\/thead>/gi, '$1\n|---|---|---|---|\n')
+          .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, '\n| $1 |')
+          .replace(/<th[^>]*>([\s\S]*?)<\/th>/gi, ' **$1** |')
+          .replace(/<td[^>]*>([\s\S]*?)<\/td>/gi, ' $1 |')
           .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, '\n- $1')
+          .replace(/<strong[^>]*>([\s\S]*?)<\/strong>/gi, ' **$1** ')
+          .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, ' **$1** ')
           .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n')
+          .replace(/<br\s*\/?>/gi, '\n')
           .replace(/<[^>]*>?/gm, ' ')
           .replace(/&nbsp;/gi, ' ')
           .replace(/&amp;/gi, '&')
           .replace(/&gt;/gi, '>')
           .replace(/&lt;/gi, '<')
-          .replace(/\n\s*\n\s*\n/g, '\n\n')
+          .replace(/&#8211;/gi, '-')
+          .replace(/&#8217;/gi, "'")
+          .replace(/&quot;/gi, '"')
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n\s*\n\s*\n+/g, '\n\n')
           .trim()
-      : `# Bảng giá dịch vụ ${hostname}\n\n- Trồng răng Implant tiêu chuẩn\n- Niềng răng thẩm mỹ\n- Bọc răng sứ thẩm mỹ\n- Tẩy trắng răng & tổng quát`;
+      : `# Bảng giá dịch vụ ${hostname}\n\nĐang phân tích bảng giá thực tế từ ${hostname}...`;
 
     // D. Trích xuất Cấu trúc Bảng Giá & Ưu đãi qua Gemini LLM Structured JSON Schema
     let structuredResult: any = {
       dentalName: pageTitle,
+      category: 'Nha Khoa Chuyên Khoa',
+      mainMessage: pageDescription,
       services: [],
       specialOffers: [],
-      keyHighlights: [],
       counterStrategy: {
-        weakness: 'Giá niêm yết cao, điều kiện bảo hành giới hạn',
+        competitorWeakness: 'Giá niêm yết cao, điều kiện bảo hành giới hạn',
         tamducCounterTitle: 'Trồng Răng Implant Tiêu Chuẩn Quốc Tế - Trợ Giá 50%',
         recommendedHeadlines: [
           'Trồng Răng Trả Góp 0% Lãi Suất',
@@ -1919,51 +1927,77 @@ app.all(['/api/crawl4ai', '/api/crawl4ai/'], async (req, res) => {
 
     if (process.env.GEMINI_API_KEY) {
       try {
-        const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const gemini = getGeminiClient();
 
         const prompt = `Bạn là Crawl4AI LLM Extraction Engine chuyên phân tích website nha khoa.
-Dưới đây là văn bản Markdown cào thực tế từ trang web:
+Nhiệm vụ: Đọc toàn bộ nội dung văn bản Markdown và các bảng giá cào thực tế từ trang web dưới đây.
 URL: ${targetUrl}
 Tiêu đề: ${pageTitle}
-Nội dung Markdown trang web:
-${cleanMarkdown.substring(0, 12000)}
 
-Hãy bóc tách chính xác 100% dữ liệu có trong trang và trả về duy nhất một chuỗi JSON hợp lệ (không kèm markdown code block text ngoài JSON) theo đúng schema sau:
+NỘI DUNG VĂN BẢN TRANG WEB:
+${cleanMarkdown.substring(0, 20000)}
+
+YÊU CẦU BÓC TÁCH:
+1. Trích xuất chính xác 100% tên thương hiệu nha khoa đối thủ (dentalName).
+2. Trích xuất TẤT CẢ các dòng dịch vụ, dòng trụ Implant, răng sứ, niềng răng hoặc dịch vụ điều trị CÓ THẬT TRÊN TRANG kèm mức giá chính xác xuất hiện trong bài viết hoặc bảng giá:
+   - serviceName: Tên dịch vụ cụ thể trên trang (ví dụ: 'Trụ Dentium Hàn Quốc', 'Trụ Straumann Thụy Sỹ', 'Mắc cài kim loại tự đóng', 'Răng sứ Cercon HT'...)
+   - originalPrice: Giá niêm yết/giá gốc (nếu có trên web, nếu không ghi thì để 'Giá niêm yết')
+   - discountedPrice: Mức giá khuyến mãi hoặc giá cụ thể ghi trên web (ví dụ: '15.000.000 đ', '7.999.000 đ', '35.000.000 đ'...)
+   - discountPercent: Phần trăm giảm hoặc mức giảm nếu web có ghi
+   - warranty: Thời gian bảo hành ghi trên web (ví dụ: 'Bảo hành 10 năm', 'Trọn đời'...)
+   - gifts: Mảng các quà tặng/ưu đãi kèm theo (ví dụ: 'Miễn phí chụp phim CT', 'Tặng Abutment', 'Tặng răng sứ'...)
+3. specialOffers: Mảng các chương trình khuyến mãi/chính sách nổi bật trên web (trả góp 0%, xe đưa đón, ưu đãi kiều bào...).
+4. counterStrategy: Chiến lược phản công cho Nha Khoa Tâm Đức Smile (competitorWeakness, tamducCounterTitle, recommendedHeadlines [3 tiêu đề <= 30 ký tự], recommendedDescriptions [2 mô tả <= 90 ký tự]).
+
+Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
 {
-  "dentalName": "Tên thương hiệu nha khoa đối thủ",
+  "dentalName": "Tên nha khoa đối thủ",
   "category": "implant",
   "mainMessage": "Thông điệp chính trên trang",
   "services": [
     {
-      "serviceName": "Tên dịch vụ/dòng sản phẩm thật trên trang (ví dụ: Implant Dentium, Sứ Cercon, Niềng răng mắc cài...)",
-      "originalPrice": "Giá gốc hoặc 'Giá niêm yết' nếu có",
-      "discountedPrice": "Giá khuyến mãi thực tế trên web",
-      "discountPercent": "Phần trăm giảm nếu có",
-      "warranty": "Thời gian bảo hành nếu có",
-      "gifts": ["Quà tặng hoặc ưu đãi đi kèm"]
+      "serviceName": "...",
+      "originalPrice": "...",
+      "discountedPrice": "...",
+      "discountPercent": "...",
+      "warranty": "...",
+      "gifts": ["..."]
     }
   ],
-  "specialOffers": ["Chương trình ưu đãi nổi bật 1", "Chương trình ưu đãi 2"],
+  "specialOffers": ["..."],
   "counterStrategy": {
-    "competitorWeakness": "Điểm yếu của đối thủ (ví dụ: giá cao, phát sinh chi phí, bảo hành ngắn)",
-    "tamducCounterTitle": "Tiêu đề mẫu quảng cáo Google Ads phản công",
+    "competitorWeakness": "...",
+    "tamducCounterTitle": "...",
     "recommendedHeadlines": ["Tiêu đề 1 (max 30 ký tự)", "Tiêu đề 2", "Tiêu đề 3"],
     "recommendedDescriptions": ["Mô tả 1 (max 90 ký tự)", "Mô tả 2 (max 90 ký tự)"]
   }
 }`;
 
-        const aiResponse = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json'
-          }
-        });
-
-        if (aiResponse.text) {
+        let aiText = '';
+        const targetModels = ['gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+        for (const m of targetModels) {
           try {
-            structuredResult = JSON.parse(aiResponse.text);
+            const aiResponse = await gemini.models.generateContent({
+              model: m,
+              contents: prompt,
+              config: {
+                responseMimeType: 'application/json'
+              }
+            });
+            if (aiResponse.text) {
+              aiText = aiResponse.text;
+              break;
+            }
+          } catch (modelErr: any) {
+            console.warn(`[Crawl4AI] Model ${m} hit error:`, modelErr.message);
+          }
+        }
+
+        if (aiText) {
+          try {
+            // Clean up any potential markdown wrapper
+            const cleanedJson = aiText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            structuredResult = JSON.parse(cleanedJson);
           } catch (jsonErr) {
             console.warn('[Crawl4AI] Lỗi parse JSON từ LLM:', jsonErr);
           }
@@ -2193,8 +2227,7 @@ app.get('/api/scrape-competitors', async (req, res) => {
       let aiStrategicAnalysis: any = null;
       if (process.env.GEMINI_API_KEY) {
         try {
-          const { GoogleGenAI } = await import('@google/genai');
-          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const gemini = getGeminiClient();
           const aiPrompt = `Phân tích dữ liệu thực tế cào được từ trang web đối thủ:
 Tên đối thủ: ${comp.name}
 Tiêu đề web: ${pageTitle}
@@ -2207,8 +2240,8 @@ Hãy trích xuất:
 2. Chương trình ưu đãi nổi bật
 3. Đề xuất thông điệp Google Ads phản công cho Nha Khoa Tâm Đức Smile.`;
 
-          const aiResp = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+          const aiResp = await gemini.models.generateContent({
+            model: 'gemini-3.6-flash',
             contents: aiPrompt,
           });
           aiStrategicAnalysis = aiResp.text;
