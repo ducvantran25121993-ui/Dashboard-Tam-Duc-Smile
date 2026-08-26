@@ -1609,6 +1609,17 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
     setMonitoredLinks(prev => prev.filter(l => l.id !== id));
   };
 
+  // Helper to accurately determine if a link has detected changes
+  const isLinkChanged = (item: MonitoredLink): boolean => {
+    return (
+      item.status === 'Changed' ||
+      (typeof item.newImagesCount === 'number' && item.newImagesCount > 0) ||
+      Boolean(item.imagesChanged) ||
+      Boolean(item.promoChanged) ||
+      Boolean(item.textChanged)
+    );
+  };
+
   // Filtered links
   const filteredLinks = monitoredLinks.filter(item => {
     // Search
@@ -1623,13 +1634,14 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
       return false;
     }
     // Status
-    if (filterStatus === 'changed' && item.status !== 'Changed') return false;
-    if (filterStatus === 'unchanged' && item.status !== 'Unchanged') return false;
+    const isChanged = isLinkChanged(item);
+    if (filterStatus === 'changed' && !isChanged) return false;
+    if (filterStatus === 'unchanged' && isChanged) return false;
 
     return true;
   });
 
-  const changedCount = monitoredLinks.filter(l => l.status === 'Changed').length;
+  const changedCount = monitoredLinks.filter(isLinkChanged).length;
   const unreadNotifsCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -2336,12 +2348,13 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
           filteredLinks.map(item => {
             const isExpanded = expandedLinkId === item.id;
             const isScanningThis = scanningLinkId === item.id;
+            const isChanged = isLinkChanged(item);
 
             return (
               <div
                 key={item.id}
                 className={`p-5 rounded-3xl transition-all border shadow-xl ${
-                  item.status === 'Changed'
+                  isChanged
                     ? 'bg-gradient-to-br from-rose-950/50 via-slate-950 to-slate-950 border-2 border-rose-500 shadow-2xl shadow-rose-950/70 ring-2 ring-rose-500/30 hover:border-rose-400'
                     : 'bg-slate-950/90 border-slate-800 hover:border-indigo-500/40'
                 }`}
@@ -2445,11 +2458,11 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                   <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
                     <div className="flex items-start sm:items-center gap-3">
                       <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0 ${
-                        item.status === 'Changed'
+                        isChanged
                           ? 'bg-gradient-to-tr from-rose-600 to-red-500 shadow-rose-600/50 animate-pulse ring-2 ring-rose-400'
                           : 'bg-gradient-to-tr from-indigo-600 to-cyan-600'
                       }`}>
-                        {item.status === 'Changed' ? (
+                        {isChanged ? (
                           <AlertTriangle className="w-6 h-6 animate-bounce" />
                         ) : (
                           <Globe className="w-5 h-5" />
@@ -2469,14 +2482,14 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                           </button>
 
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
-                            item.status === 'Changed'
+                            isChanged
                               ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-600/50 animate-pulse'
                               : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                           }`}>
-                            {item.status === 'Changed' ? '🚨 CẢNH BÁO: ĐÃ THAY ĐỔI' : '🟢 CHƯA THAY ĐỔI'}
+                            {isChanged ? '🚨 CẢNH BÁO: ĐÃ THAY ĐỔI' : '🟢 CHƯA THAY ĐỔI'}
                           </span>
 
-                          {item.status === 'Changed' && (
+                          {isChanged && (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {((item.newImagesCount && item.newImagesCount > 0) || (item.lastData?.images && item.lastData.images.length > 0)) && (
                                 <span className="px-2 py-0.5 rounded-lg bg-rose-950/90 text-rose-200 border border-rose-500/70 text-[10px] font-black flex items-center gap-1 animate-pulse shadow">
