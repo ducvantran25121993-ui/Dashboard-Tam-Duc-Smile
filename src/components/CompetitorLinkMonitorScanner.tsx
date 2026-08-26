@@ -192,12 +192,13 @@ export const CompetitorBannerImage: React.FC<{
         onError={handleError}
       />
       {badge && (
-        <span className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-black border shadow z-10 ${
+        <span className={`absolute top-2 left-2 px-2.5 py-1 rounded-lg text-[10px] font-black border shadow-lg z-10 flex items-center gap-1 ${
           isNew 
-            ? 'bg-emerald-600 text-white border-emerald-400' 
-            : 'bg-rose-950/90 text-rose-300 border-rose-500/40'
+            ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white border-rose-400 shadow-rose-600/60 ring-2 ring-rose-500/40 animate-pulse' 
+            : 'bg-slate-950/90 text-rose-300 border-rose-500/40'
         }`}>
-          {badge}
+          {isNew && <AlertTriangle className="w-3 h-3 text-yellow-300 animate-bounce" />}
+          <span>{badge}</span>
         </span>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent opacity-0 group-hover/img:opacity-100 transition-opacity p-2 flex flex-col justify-end z-20">
@@ -207,7 +208,9 @@ export const CompetitorBannerImage: React.FC<{
               type="button"
               onClick={() => onExpand(currentSrc)}
               className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer shadow ${
-                isNew ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-slate-900/90 hover:bg-slate-800 text-rose-300 border border-rose-500/50'
+                isNew 
+                  ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/50' 
+                  : 'bg-slate-900/90 hover:bg-slate-800 text-rose-300 border border-rose-500/50'
               }`}
             >
               <Maximize2 className="w-3 h-3" />
@@ -2476,17 +2479,18 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                           {item.status === 'Changed' && (
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {((item.newImagesCount && item.newImagesCount > 0) || (item.lastData?.images && item.lastData.images.length > 0)) && (
-                                <span className="px-2 py-0.5 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold">
-                                  🖼️ Banner / Ảnh Mới
+                                <span className="px-2 py-0.5 rounded-lg bg-rose-950/90 text-rose-200 border border-rose-500/70 text-[10px] font-black flex items-center gap-1 animate-pulse shadow">
+                                  <span>🚨 🖼️ Banner Mới</span>
+                                  <span className="px-1 rounded bg-rose-600 text-white text-[9px]">{item.newImagesCount || item.lastData?.images?.length || 1}</span>
                                 </span>
                               )}
                               {item.lastData?.promotions && item.lastData.promotions.length > 0 && (
-                                <span className="px-2 py-0.5 rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
-                                  💰 Bảng Giá / Ưu Đãi Mới
+                                <span className="px-2 py-0.5 rounded-lg bg-orange-950/90 text-orange-200 border border-orange-500/70 text-[10px] font-black flex items-center gap-1 shadow">
+                                  <span>🚨 💰 Giá & Ưu Đãi Mới</span>
                                 </span>
                               )}
                               {item.textChanged && (
-                                <span className="px-2 py-0.5 rounded-lg bg-purple-950/80 text-purple-300 border border-purple-500/40 text-[10px] font-bold">
+                                <span className="px-2 py-0.5 rounded-lg bg-purple-950/90 text-purple-200 border border-purple-500/60 text-[10px] font-bold">
                                   📝 Văn Bản Cập Nhật
                                 </span>
                               )}
@@ -2575,33 +2579,33 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                 {item.changeMessage && (
                   <div className={`mt-3 p-3 rounded-xl text-xs flex items-center justify-between gap-2 ${
                     item.status === 'Changed'
-                      ? 'bg-rose-950/40 border border-rose-500/30 text-rose-200'
+                      ? 'bg-rose-950/60 border-2 border-rose-500 text-rose-200 shadow-lg shadow-rose-950/60 animate-pulse'
                       : 'bg-slate-900/80 border border-slate-800 text-slate-300'
                   }`}>
                     <div className="flex items-center gap-2">
                       {item.status === 'Changed' ? (
-                        <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                        <AlertTriangle className="w-5 h-5 text-yellow-300 animate-bounce shrink-0" />
                       ) : (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       )}
-                      <span className="font-semibold">{item.changeMessage}</span>
+                      <span className="font-bold">{item.changeMessage}</span>
                     </div>
 
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-cyan-400 hover:underline font-bold shrink-0 flex items-center gap-1"
+                      className="text-rose-300 hover:text-white hover:underline font-black shrink-0 flex items-center gap-1"
                     >
                       <span>Mở link bài viết</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </a>
                   </div>
                 )}
 
                 {/* EXPANDED DETAILED DIFF VIEW (CŨ VS MỚI) */}
                 {isExpanded && (() => {
-                  const currentSubTab = diffSubTabs[item.id] || 'promotions';
+                  const currentSubTab = diffSubTabs[item.id] || 'banners';
                   const currentPromos = item.lastData?.promotions || [
                     {
                       service: item.category === 'implant' ? 'Trồng Răng Implant Toàn Gói' : item.category === 'ortho' ? 'Niềng Răng Mắc Cài / Trong Suốt' : 'Bọc Răng Sứ Thẩm Mỹ',
@@ -2678,87 +2682,132 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* HIGH PRIORITY LIVE CHANGE ALERT WARNING BAR */}
+                      {(item.status === 'Changed' || afterImages.length > 0) && (
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950 via-red-950/90 to-slate-950 border-2 border-rose-500 shadow-2xl shadow-rose-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-pulse ring-2 ring-rose-500/30">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-rose-600/60 ring-2 ring-rose-300">
+                              <AlertTriangle className="w-6 h-6 animate-bounce text-yellow-200" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-black text-white text-sm sm:text-base tracking-wide flex items-center gap-1.5">
+                                  🚨 CẢNH BÁO ĐỎ: ĐÃ BẮT ĐƯỢC {afterImages.length} BANNER & ƯU ĐÃI MỚI VỪA THAY ĐỔI!
+                                </span>
+                                <span className="px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider shadow">
+                                  ĐÃ ĐỔI MÀU CẢNH BÁO
+                                </span>
+                              </div>
+                              <p className="text-rose-200 text-xs mt-1 leading-relaxed">
+                                Phát hiện {afterImages.length} banner mới (ví dụ: Ưu đãi giảm 30% / Đội ngũ bác sĩ) và bảng giá vừa cập nhật trực tiếp trên trang {item.name}.
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'counter' }))}
+                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-black text-xs shadow-xl shadow-rose-600/50 flex items-center gap-1.5 whitespace-nowrap cursor-pointer transition-all"
+                            >
+                              <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
+                              <span>⚡ Kích Hoạt Phản Công Ngay</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* DIFF NAVIGATION SUB-TABS */}
                       <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-2xl bg-slate-900 border border-slate-800">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <button
                             type="button"
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'promotions' }))}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'promotions'
-                                ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-md shadow-emerald-600/30'
-                                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg shadow-rose-600/40 ring-2 ring-rose-400'
+                                : currentPromos.length > 0
+                                  ? 'bg-rose-950/40 text-rose-300 hover:text-white border border-rose-500/40'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                             }`}
                           >
-                            <Gift className="w-3.5 h-3.5 text-emerald-300" />
+                            <Gift className="w-4 h-4 text-yellow-300" />
                             <span>🎁 Ưu Đãi & Bảng Giá Thật (Trước vs Sau)</span>
+                            {currentPromos.length > 0 && (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
+                                🚨 {currentPromos.length} Giá Mới
+                              </span>
+                            )}
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'banners' }))}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'banners'
-                                ? 'bg-gradient-to-r from-indigo-600 to-cyan-600 text-white shadow-md shadow-indigo-600/30'
-                                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                ? 'bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 text-white shadow-xl shadow-rose-600/50 ring-2 ring-rose-400 animate-pulse'
+                                : afterImages.length > 0
+                                  ? 'bg-rose-950/60 text-rose-300 hover:text-white border-2 border-rose-500/60 animate-pulse'
+                                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                             }`}
                           >
-                            <ImageIcon className="w-3.5 h-3.5 text-cyan-300" />
+                            <ImageIcon className="w-4 h-4 text-yellow-200" />
                             <span>🖼️ Banner & Hình Ảnh (Visual Diff 2 Cột)</span>
-                            <span className="px-1.5 py-0.2 rounded-full bg-cyan-400/20 text-cyan-300 text-[10px]">
-                              {afterImages.length} mới
+                            <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black shadow ring-1 ring-white/50">
+                              🚨 {afterImages.length} mới
                             </span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'text' }))}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'text'
                                 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-600/30'
                                 : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                             }`}
                           >
-                            <FileText className="w-3.5 h-3.5 text-purple-300" />
+                            <FileText className="w-4 h-4 text-purple-300" />
                             <span>📝 So Sánh Văn Bản (Word-by-Word Diff)</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'counter' }))}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+                            className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'counter'
-                                ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow-md shadow-amber-600/30'
-                                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                                ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow-lg shadow-amber-600/40 ring-2 ring-amber-400'
+                                : 'bg-slate-950 text-amber-400 hover:text-white border border-slate-800'
                             }`}
                           >
-                            <Zap className="w-3.5 h-3.5 text-amber-300" />
+                            <Zap className="w-4 h-4 text-amber-300 animate-bounce" />
                             <span>⚡ Phản Công Cho Tâm Đức Smile</span>
                           </button>
                         </div>
 
-                        <span className="text-[11px] text-cyan-400 font-mono flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" /> Đã bóc tách dữ liệu website thực tế
+                        <span className="text-[11px] text-rose-300 font-mono flex items-center gap-1.5 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                          <span>Đã bóc tách & đổi màu cảnh báo</span>
                         </span>
                       </div>
 
                       {/* 1. PROMOTIONS & PRICING BEFORE / AFTER TAB */}
                       {currentSubTab === 'promotions' && (
                         <div className="space-y-3 animate-fadeIn">
-                          <div className="p-3 rounded-xl bg-gradient-to-r from-emerald-950/40 via-cyan-950/30 to-slate-900 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                            <span className="font-bold text-emerald-300 flex items-center gap-1.5">
-                              <Gift className="w-4 h-4 text-emerald-400" />
-                              <span>ĐỐI CHIẾU MỨC GIÁ & ƯU ĐÃI KHUYẾN MÃI THỰC TẾ TRÊN WEBSITE:</span>
+                          <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-950/60 via-red-950/40 to-slate-900 border-2 border-rose-500/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-lg">
+                            <span className="font-black text-rose-300 flex items-center gap-1.5">
+                              <AlertTriangle className="w-4 h-4 text-rose-400 animate-bounce" />
+                              <span>🚨 CẢNH BÁO: ĐỐI CHIẾU MỨC GIÁ & ƯU ĐÃI KHUYẾN MÃI THỰC TẾ TRÊN WEBSITE:</span>
                             </span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-slate-400">
-                                Phát hiện <strong className="text-emerald-300">{currentPromos.length} gói dịch vụ</strong> vừa điều chỉnh ưu đãi
+                              <span className="text-[11px] text-rose-200">
+                                Phát hiện <strong className="text-white bg-rose-600 px-1.5 py-0.5 rounded">{currentPromos.length} gói dịch vụ</strong> vừa điều chỉnh ưu đãi
                               </span>
                               <a
                                 href={item.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="px-2.5 py-1 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 font-bold text-[11px] flex items-center gap-1"
+                                className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 border border-rose-400 text-white font-bold text-[11px] flex items-center gap-1 shadow"
                               >
                                 <span>Xem Vị Trí Trên Bài Viết</span>
                                 <ExternalLink className="w-3 h-3" />
@@ -2770,24 +2819,24 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                             {currentPromos.map((promo, pIdx) => (
                               <div
                                 key={pIdx}
-                                className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 transition-all space-y-3 shadow-lg"
+                                className="p-4 rounded-2xl bg-slate-900/90 border-2 border-rose-500/50 hover:border-rose-400 transition-all space-y-3 shadow-xl"
                               >
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
                                   <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 rounded-lg bg-indigo-950 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                                    <span className="px-2 py-0.5 rounded-lg bg-rose-950 text-rose-300 text-[10px] font-black border border-rose-500/50">
                                       Gói #{pIdx + 1}
                                     </span>
-                                    <h5 className="font-bold text-white text-sm">{promo.service}</h5>
+                                    <h5 className="font-black text-white text-sm sm:text-base">{promo.service}</h5>
                                   </div>
 
                                   <div className="flex items-center gap-2 flex-wrap">
                                     {promo.diffPercent && (
-                                      <span className="px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1">
+                                      <span className="px-2.5 py-1 rounded-xl bg-rose-600 text-white border border-rose-400 font-black text-xs flex items-center gap-1 shadow-md shadow-rose-600/40 animate-pulse">
                                         <TrendingDown className="w-3.5 h-3.5" />
                                         <span>Chênh lệch: {promo.diffPercent}</span>
                                       </span>
                                     )}
-                                    <span className="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-black text-xs">
+                                    <span className="px-2.5 py-1 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 text-white font-black text-xs shadow">
                                       {promo.newDiscount || 'Ưu đãi mới'}
                                     </span>
                                     <a
@@ -2825,31 +2874,31 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  {/* AFTER BOX (MỚI) */}
-                                  <div className="p-3.5 rounded-xl bg-emerald-950/30 border-2 border-emerald-500/50 space-y-2 shadow-inner">
-                                    <div className="flex items-center justify-between text-xs pb-1 border-b border-emerald-500/20">
-                                      <span className="font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                                        <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse" /> 🟢 HIỆN TẠI VỪA BẮT ĐƯỢC (MỚI ĐỔI):
+                                  {/* AFTER BOX (MỚI - ĐỔI MÀU CẢNH BÁO ĐỎ RỰC) */}
+                                  <div className="p-3.5 rounded-xl bg-gradient-to-b from-rose-950/60 to-red-950/40 border-2 border-rose-500 space-y-2 shadow-xl ring-1 ring-rose-500/40">
+                                    <div className="flex items-center justify-between text-xs pb-1 border-b border-rose-500/30">
+                                      <span className="font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+                                        <AlertTriangle className="w-4 h-4 text-yellow-300 animate-bounce" /> 🚨 CẢNH BÁO: BẢNG GIÁ MỚI VỪA ĐỔI:
                                       </span>
-                                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                                      <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase shadow">
                                         Mới cập nhật
                                       </span>
                                     </div>
                                     <div className="space-y-1.5">
                                       <div className="flex items-center gap-2">
-                                        <span className="text-xs text-slate-300">Giá sốc mới:</span>
-                                        <span className="text-base font-black text-emerald-300 font-mono bg-emerald-950/80 px-2 py-0.5 rounded-lg border border-emerald-500/40">
+                                        <span className="text-xs text-rose-200 font-bold">Giá sốc mới:</span>
+                                        <span className="text-base font-black text-yellow-300 font-mono bg-rose-900/90 px-2.5 py-0.5 rounded-lg border border-rose-400 shadow-md">
                                           {promo.newPrice}
                                         </span>
                                       </div>
                                       {promo.gifts && promo.gifts.length > 0 && (
-                                        <div className="pt-1 border-t border-emerald-500/20 space-y-1">
-                                          <span className="text-[11px] font-bold text-emerald-400 block">🎁 Gói quà tặng kèm phát hiện trên website:</span>
+                                        <div className="pt-1 border-t border-rose-500/30 space-y-1">
+                                          <span className="text-[11px] font-black text-rose-300 block">🎁 Gói quà tặng kèm phát hiện trên website:</span>
                                           <div className="flex flex-wrap gap-1.5">
                                             {promo.gifts.map((gift, gIdx) => (
                                               <span
                                                 key={gIdx}
-                                                className="px-2 py-0.5 rounded-lg bg-emerald-900/60 border border-emerald-500/30 text-emerald-200 text-[11px] font-semibold"
+                                                className="px-2.5 py-1 rounded-lg bg-rose-900/80 border border-rose-400 text-white text-[11px] font-bold shadow-sm"
                                               >
                                                 {gift}
                                               </span>
@@ -2869,36 +2918,36 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                       {/* 2. BANNERS & IMAGES BEFORE / AFTER TAB (VISUAL DIFF) */}
                       {currentSubTab === 'banners' && (
                         <div className="space-y-4 animate-fadeIn">
-                          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                            <span className="font-bold text-cyan-300 flex items-center gap-1.5">
-                              <ImageIcon className="w-4 h-4 text-cyan-400" />
-                              <span>SO SÁNH BANNER & HÌNH ẢNH THỰC TẾ TRÊN WEBSITE (VISUAL IMAGE DIFF):</span>
+                          <div className="p-3.5 rounded-xl bg-gradient-to-r from-rose-950 via-slate-900 to-slate-900 border-2 border-rose-500/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-lg">
+                            <span className="font-black text-rose-300 flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-rose-400 animate-bounce" />
+                              <span>🚨 CẢNH BÁO: SO SÁNH BANNER & HÌNH ẢNH THỰC TẾ TRÊN WEBSITE (VISUAL IMAGE DIFF):</span>
                             </span>
                             <div className="flex items-center gap-2 flex-wrap">
                               <button
                                 type="button"
                                 onClick={() => handleScanSingleLink(item.id)}
                                 disabled={scanningLinkId === item.id || isScanningAll}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-all shadow disabled:opacity-50"
+                                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-black text-[11px] flex items-center gap-1 cursor-pointer transition-all shadow-md shadow-rose-600/40 disabled:opacity-50"
                               >
-                                <RefreshCw className={`w-3 h-3 ${scanningLinkId === item.id ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`w-3.5 h-3.5 ${scanningLinkId === item.id ? 'animate-spin' : ''}`} />
                                 <span>{scanningLinkId === item.id ? 'Đang bóc tách ảnh...' : '🔍 Quét Lại Ảnh Từ URL'}</span>
                               </button>
                               <a
                                 href={item.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="px-2.5 py-1 rounded-lg bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-cyan-300 font-bold text-[11px] flex items-center gap-1"
+                                className="px-3 py-1.5 rounded-lg bg-indigo-950 hover:bg-indigo-900 border border-indigo-500/40 text-cyan-300 font-bold text-[11px] flex items-center gap-1"
                               >
                                 <span>Mở Trang Chứa Banner</span>
-                                <ExternalLink className="w-3 h-3" />
+                                <ExternalLink className="w-3.5 h-3.5" />
                               </a>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* BEFORE BANNERS COLUMN */}
-                            <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-3">
+                            <div className="p-4 rounded-2xl bg-slate-950 border border-rose-500/30 space-y-3">
                               <div className="flex items-center justify-between pb-2 border-b border-rose-500/20">
                                 <span className="font-bold text-rose-400 text-xs flex items-center gap-1.5">
                                   <span>🔴 BANNER / ẢNH CŨ (TRƯỚC ĐÂY)</span>
@@ -2955,15 +3004,15 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                               </div>
                             </div>
 
-                            {/* AFTER BANNERS COLUMN */}
-                            <div className="p-4 rounded-2xl bg-emerald-950/20 border-2 border-emerald-500/50 space-y-3 shadow-lg">
-                              <div className="flex items-center justify-between pb-2 border-b border-emerald-500/20">
-                                <span className="font-bold text-emerald-400 text-xs flex items-center gap-1.5">
-                                  <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
-                                  <span>🟢 BANNER / ẢNH MỚI VỪA BẮT ĐƯỢC</span>
+                            {/* AFTER BANNERS COLUMN - ĐỔI MÀU CẢNH BÁO ĐỎ RỰC */}
+                            <div className="p-4 rounded-2xl bg-gradient-to-b from-rose-950/50 via-red-950/30 to-slate-950 border-2 border-rose-500 space-y-3 shadow-2xl shadow-rose-950/80 ring-2 ring-rose-500/40 animate-pulse">
+                              <div className="flex items-center justify-between pb-2 border-b border-rose-500/40">
+                                <span className="font-black text-white text-xs flex items-center gap-2">
+                                  <AlertTriangle className="w-4 h-4 text-yellow-300 animate-bounce" />
+                                  <span>🚨 CẢNH BÁO: BANNER / ẢNH MỚI VỪA BẮT ĐƯỢC</span>
                                 </span>
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                                  {afterImages.length} banner mới
+                                <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black uppercase shadow">
+                                  {afterImages.length} banner mới (Cảnh báo)
                                 </span>
                               </div>
 
@@ -2971,44 +3020,54 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                                 {afterImages.map((aImg, aIdx) => (
                                   <div
                                     key={aIdx}
-                                    className="relative group rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-slate-950 shadow-md p-2 space-y-2"
+                                    className="relative group rounded-xl overflow-hidden border-2 border-rose-500/80 bg-slate-950 shadow-xl p-2.5 space-y-2 ring-1 ring-rose-400"
                                   >
                                     <CompetitorBannerImage
                                       src={aImg}
                                       alt={`Banner Mới ${aIdx + 1} - ${item.name}`}
-                                      badge={`✨ Banner Mới #${aIdx + 1}`}
+                                      badge={`🚨 Banner Mới #${aIdx + 1}`}
                                       isNew={true}
                                       articleUrl={item.url}
                                       onExpand={(srcToExpand) => setLightboxImage({ 
                                         src: srcToExpand, 
-                                        title: `Banner Mới #${aIdx + 1} - ${item.name}`, 
+                                        title: `🚨 Banner Mới #${aIdx + 1} - ${item.name}`, 
                                         subtitle: `Banner vừa được đối thủ tung ra trên bài viết: ${item.url}`, 
                                         type: 'after' 
                                       })}
                                     />
 
                                     {/* Direct links footer for each new banner */}
-                                    <div className="flex items-center justify-between text-[11px] pt-1 text-slate-300">
+                                    <div className="flex items-center justify-between text-[11px] pt-1.5 text-slate-300 border-t border-slate-800">
                                       <a
                                         href={item.url}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-emerald-400 hover:underline font-bold flex items-center gap-1 truncate max-w-[200px]"
+                                        className="text-rose-300 hover:text-white hover:underline font-black flex items-center gap-1 truncate max-w-[200px]"
                                         title={`Mở bài viết đối thủ chứa banner này: ${item.url}`}
                                       >
-                                        <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                        <Globe className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                                         <span className="truncate">🔗 Mở bài viết: {item.url}</span>
                                         <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                                       </a>
-                                      <a
-                                        href={aImg}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-cyan-300 hover:underline flex items-center gap-0.5 font-mono shrink-0 text-[10px]"
-                                      >
-                                        <span>Xem ảnh gốc</span>
-                                        <ExternalLink className="w-2.5 h-2.5" />
-                                      </a>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'counter' }))}
+                                          className="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white font-bold text-[10px] flex items-center gap-0.5 cursor-pointer shadow"
+                                        >
+                                          <Zap className="w-2.5 h-2.5 text-yellow-300" />
+                                          <span>Phản công</span>
+                                        </button>
+                                        <a
+                                          href={aImg}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-cyan-300 hover:underline flex items-center gap-0.5 font-mono shrink-0 text-[10px]"
+                                        >
+                                          <span>Ảnh gốc</span>
+                                          <ExternalLink className="w-2.5 h-2.5" />
+                                        </a>
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
