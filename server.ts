@@ -981,14 +981,15 @@ app.post('/api/scan-links-engine', async (req, res) => {
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 9000);
+        const timeoutId = setTimeout(() => controller.abort(), 9500);
 
         const response = await fetch(targetUrl, {
           headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
             'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           },
           redirect: 'follow',
           signal: controller.signal
@@ -1140,7 +1141,7 @@ app.post('/api/scan-links-engine', async (req, res) => {
           .replace(/&amp;/gi, '&')
           .replace(/\s+/g, ' ')
           .trim()
-          .substring(0, 12000);
+          .substring(0, 15000);
       }
 
       const domainName = item.name || parsedBaseUrl.replace(/^https?:\/\//, '').replace('www.', '');
@@ -1149,6 +1150,11 @@ app.post('/api/scan-links-engine', async (req, res) => {
       const detectedPromos: any[] = [];
       const lowerText = cleanText.toLowerCase();
 
+      // Extract pricing mentions from text (e.g. 11.900.000đ, 18 Tr, 8.5 Tr, giảm 30%, trả góp 0%)
+      const priceMatches = cleanText.match(/(?:chỉ từ|giá|trọn gói|ưu đãi|giảm|từ)\s*([0-9.,]+\s*(?:triệu|tr|đ|vnđ|%))/gi) || [];
+      const discountMatches = cleanText.match(/(?:giảm|chiết khấu|sale|off)\s*([0-9]+%|[0-9.,]+\s*(?:triệu|tr|đ))/gi) || [];
+      const giftMatches = cleanText.match(/(?:tặng|miễn phí|voucher|quà tặng)\s*([A-ZÀ-Ỹa-zà-ỹ0-9\s]{4,40})/gi) || [];
+
       // Check if real text has specific dental procedures
       if (lowerText.includes('implant') || targetUrl.includes('implant')) {
         const hasDoctor = cleanText.match(/(?:bác sĩ|bs\.?|thạc sĩ|tiến sĩ)\s+([A-ZÀ-Ỹa-zà-ỹ\s]{3,30})/i);
@@ -1156,40 +1162,59 @@ app.post('/api/scan-links-engine', async (req, res) => {
         const hasYearExp = cleanText.match(/(\d+)\s+năm\s+(?:kinh nghiệm|làm nghề)/i);
         const expLabel = hasYearExp ? `${hasYearExp[1]} năm kinh nghiệm y khoa` : 'Chuyên sâu Cấy ghép Implant';
 
+        const extractedPrice = priceMatches.length > 0 ? priceMatches[0] : 'Thăm khám chuyên sâu & Chụp phim CT 3D ConeBeam';
+        const extractedDiscount = discountMatches.length > 0 ? `🔥 ${discountMatches[0]}` : `✅ Trực tiếp khám với ${doctorName}`;
+
+        const dynamicGifts = giftMatches.length > 0 
+          ? giftMatches.slice(0, 3).map(g => `🎁 ${g.trim()}`)
+          : [
+              expLabel,
+              'Tư vấn các tình trạng mất 1 răng, nhiều răng & toàn hàm All-on-4/6',
+              'Kiểm tra cấu trúc xương hàm bằng máy chụp phim kỹ thuật số'
+            ];
+
         detectedPromos.push({
           service: 'Cấy Ghép Răng Implant & Phục Hình Mất Răng',
           oldPrice: 'Liên hệ tư vấn / Bảng giá niêm yết',
-          newPrice: 'Thăm khám chuyên sâu & Chụp phim CT 3D ConeBeam',
+          newPrice: extractedPrice,
           oldDiscount: 'Bảng giá phòng khám',
-          newDiscount: '✅ Trực tiếp khám với ' + doctorName,
+          newDiscount: extractedDiscount,
           diffPercent: 'Xác thực từ website thật',
-          gifts: [
-            expLabel,
-            'Tư vấn các tình trạng mất 1 răng, nhiều răng & toàn hàm All-on-4/6',
-            'Kiểm tra cấu trúc xương hàm bằng máy chụp phim kỹ thuật số'
-          ],
+          gifts: dynamicGifts,
           isNew: true
         });
       } else if (lowerText.includes('niềng') || lowerText.includes('chỉnh nha') || lowerText.includes('invisalign')) {
+        const extractedPrice = priceMatches.length > 0 ? priceMatches[0] : 'Thăm khám quét hàm 3D & Lên phác đồ';
+        const extractedDiscount = discountMatches.length > 0 ? `⚡ ${discountMatches[0]}` : '✅ Trực tiếp bác sĩ chỉnh nha thực hiện';
+        const dynamicGifts = giftMatches.length > 0 
+          ? giftMatches.slice(0, 3).map(g => `🎁 ${g.trim()}`)
+          : ['Lập kế hoạch điều trị cá nhân hóa', 'Kiểm tra khớp cắn và tình trạng răng lệch lạc'];
+
         detectedPromos.push({
           service: 'Chỉnh Nha & Niềng Răng Thẩm Mỹ',
           oldPrice: 'Giá niêm yết theo phác đồ',
-          newPrice: 'Thăm khám quét hàm 3D & Lên phác đồ',
+          newPrice: extractedPrice,
           oldDiscount: 'Tư vấn tiêu chuẩn',
-          newDiscount: '✅ Trực tiếp bác sĩ chỉnh nha thực hiện',
+          newDiscount: extractedDiscount,
           diffPercent: 'Xác thực từ website thật',
-          gifts: ['Lập kế hoạch điều trị cá nhân hóa', 'Kiểm tra khớp cắn và tình trạng răng lệch lạc'],
+          gifts: dynamicGifts,
           isNew: true
         });
       } else {
+        const extractedPrice = priceMatches.length > 0 ? priceMatches[0] : 'Tư vấn thiết kế nụ cười & Thăm khám';
+        const extractedDiscount = discountMatches.length > 0 ? `🔥 ${discountMatches[0]}` : '✅ Thăm khám trực tiếp tại phòng khám';
+        const dynamicGifts = giftMatches.length > 0 
+          ? giftMatches.slice(0, 3).map(g => `🎁 ${g.trim()}`)
+          : ['Bảo tồn mô răng thật tối đa', 'Chế độ bảo hành chính hãng theo thẻ'];
+
         detectedPromos.push({
           service: 'Răng Sứ Thẩm Mỹ & Nha Khoa Tổng Quát',
           oldPrice: 'Giá niêm yết theo dòng sứ',
-          newPrice: 'Tư vấn thiết kế nụ cười & Thăm khám',
+          newPrice: extractedPrice,
           oldDiscount: 'Bảng giá tiêu chuẩn',
-          newDiscount: '✅ Thăm khám trực tiếp tại phòng khám',
+          newDiscount: extractedDiscount,
           diffPercent: 'Xác thực từ website thật',
-          gifts: ['Bảo tồn mô răng thật tối đa', 'Chế độ bảo hành chính hãng theo thẻ'],
+          gifts: dynamicGifts,
           isNew: true
         });
       }
@@ -1201,38 +1226,61 @@ app.post('/api/scan-links-engine', async (req, res) => {
       let isChanged = false;
       let textDiffers = false;
       let imagesDiffer = false;
+      let promoDiffers = false;
+      let newImagesCount = 0;
 
       if (!isFirstScan && previousSnapshot) {
         const previousText = previousSnapshot.text || '';
         const previousImgs = previousSnapshot.images || [];
 
-        // Check if images actually changed
-        if (realImages.length > 0 && previousImgs.length > 0) {
-          const currentFirst = realImages[0];
-          const prevFirst = previousImgs[0];
-          const hasDifferentFirst = currentFirst !== prevFirst;
-          const lengthDiff = Math.abs(realImages.length - previousImgs.length);
-          if (hasDifferentFirst || lengthDiff > 0) {
+        // 1. Check if images/banners actually changed or new ones added
+        if (realImages.length > 0) {
+          if (previousImgs.length === 0) {
             imagesDiffer = true;
+            newImagesCount = realImages.length;
+          } else {
+            const newlyAddedImages = realImages.filter(img => !previousImgs.includes(img));
+            if (newlyAddedImages.length > 0) {
+              imagesDiffer = true;
+              newImagesCount = newlyAddedImages.length;
+            } else if (realImages[0] !== previousImgs[0]) {
+              imagesDiffer = true;
+              newImagesCount = 1;
+            }
           }
         }
 
-        // Check if text changed significantly
+        // 2. Check if text changed significantly
         if (cleanText && previousText) {
           const lengthChange = Math.abs(cleanText.length - previousText.length);
-          if (lengthChange > 60 || cleanText.substring(0, 200) !== previousText.substring(0, 200)) {
+          if (lengthChange > 40 || cleanText.substring(0, 250) !== previousText.substring(0, 250)) {
             textDiffers = true;
           }
         }
 
-        isChanged = imagesDiffer || textDiffers;
+        // 3. Check if promotions/pricing changed
+        if (detectedPromos.length > 0 && previousSnapshot.promotions && previousSnapshot.promotions.length > 0) {
+          const curP = detectedPromos[0];
+          const prevP = previousSnapshot.promotions[0];
+          if (curP.newPrice !== prevP.newPrice || curP.newDiscount !== prevP.newDiscount) {
+            promoDiffers = true;
+          }
+        }
+
+        isChanged = imagesDiffer || textDiffers || promoDiffers;
       }
 
       let changeMessage = '';
+      let changeCategories: string[] = [];
+
       if (isFirstScan) {
-        changeMessage = `✅ Đã nạp thành công ${realImages.length} hình ảnh & nội dung thực tế từ website!`;
+        changeMessage = `✅ Đã quét & lưu thành công ${realImages.length} hình ảnh/banner cùng nội dung thực tế từ website!`;
       } else if (isChanged) {
-        changeMessage = `⚡ Phát hiện thay đổi thực tế trên trang: ${realImages.length} ảnh & nội dung vừa cập nhật!`;
+        if (imagesDiffer) changeCategories.push(`🖼️ ${newImagesCount || 1} Banner/Ảnh Mới`);
+        if (promoDiffers) changeCategories.push('💰 Bảng Giá/Ưu Đãi');
+        if (textDiffers) changeCategories.push('📝 Nội Dung Văn Bản');
+        
+        changeMessage = `🚨 CẢNH BÁO THAY ĐỔI: Phát hiện ${changeCategories.join(' + ')} vừa được cập nhật trên trang!`;
       } else {
         changeMessage = `✅ Website đang duy trì nội dung thực tế ổn định (Đã đối chiếu trực tiếp từ URL live)`;
       }
@@ -1264,8 +1312,10 @@ app.post('/api/scan-links-engine', async (req, res) => {
         changeMessage,
         previousData: isChanged ? previousSnapshot : (item.previousData || previousSnapshot),
         lastData: currentSnapshot,
-        newImagesCount: isChanged ? (realImages.length > (previousSnapshot?.images?.length || 0) ? realImages.length - (previousSnapshot?.images?.length || 0) : 1) : 0,
-        textChanged: textDiffers
+        newImagesCount: isChanged ? (newImagesCount || 1) : 0,
+        textChanged: textDiffers,
+        promoChanged: promoDiffers,
+        imagesChanged: imagesDiffer
       });
     }
 

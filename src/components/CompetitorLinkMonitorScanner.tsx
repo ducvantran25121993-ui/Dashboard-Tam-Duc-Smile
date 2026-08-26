@@ -2220,6 +2220,41 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
         </div>
       </form>
 
+      {/* ACTIVE CHANGES ALERT BANNER */}
+      {changedCount > 0 && (
+        <div className="p-4 rounded-3xl bg-gradient-to-r from-rose-950 via-red-950/80 to-slate-950 border-2 border-rose-500/80 shadow-2xl shadow-rose-950/60 flex flex-col md:flex-row md:items-center justify-between gap-3 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-rose-600 flex items-center justify-center text-white font-black shadow-lg shadow-rose-600/50 shrink-0">
+              <AlertTriangle className="w-6 h-6 animate-bounce" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-sm sm:text-base font-black text-white tracking-wide">
+                  🚨 CẢNH BÁO ĐỎ: PHÁT HIỆN {changedCount} LINK ĐỐI THỦ VỪA CÓ THAY ĐỔI MỚI!
+                </h4>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white uppercase tracking-wider">
+                  Live Change Alert
+                </span>
+              </div>
+              <p className="text-xs text-rose-200 mt-0.5">
+                Hệ thống phát hiện banner mới, bảng giá điều chỉnh, ưu đãi hoặc nội dung văn bản vừa được cập nhật trực tiếp trên website đối thủ.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setFilterStatus('changed')}
+              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs shadow-lg shadow-rose-600/40 flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
+            >
+              <span>🚨 Lọc Xem {changedCount} Link Có Thay Đổi</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* FILTER & SEARCH BAR */}
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs">
         {/* Status Filter */}
@@ -2229,8 +2264,8 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
           </span>
           {[
             { id: 'all', label: `Tất cả (${monitoredLinks.length})` },
-            { id: 'changed', label: `Đã thay đổi (${changedCount})` },
-            { id: 'unchanged', label: `Chưa đổi (${monitoredLinks.length - changedCount})` }
+            { id: 'changed', label: `🚨 Đã thay đổi (${changedCount})`, isAlert: true },
+            { id: 'unchanged', label: `🟢 Chưa đổi (${monitoredLinks.length - changedCount})` }
           ].map(st => (
             <button
               key={st.id}
@@ -2238,8 +2273,12 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
               onClick={() => setFilterStatus(st.id)}
               className={`px-3 py-1.5 rounded-xl font-bold transition-all text-xs cursor-pointer whitespace-nowrap ${
                 filterStatus === st.id
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  ? st.isAlert && changedCount > 0
+                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 ring-2 ring-rose-400'
+                    : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                  : st.isAlert && changedCount > 0
+                    ? 'bg-rose-950/60 text-rose-300 border border-rose-500/50 hover:bg-rose-900/60 animate-pulse'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
               }`}
             >
               {st.label}
@@ -2300,7 +2339,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                 key={item.id}
                 className={`p-5 rounded-3xl transition-all border shadow-xl ${
                   item.status === 'Changed'
-                    ? 'bg-gradient-to-br from-slate-950 via-rose-950/20 to-slate-950 border-rose-500/50 hover:border-rose-400'
+                    ? 'bg-gradient-to-br from-rose-950/50 via-slate-950 to-slate-950 border-2 border-rose-500 shadow-2xl shadow-rose-950/70 ring-2 ring-rose-500/30 hover:border-rose-400'
                     : 'bg-slate-950/90 border-slate-800 hover:border-indigo-500/40'
                 }`}
               >
@@ -2404,11 +2443,11 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                     <div className="flex items-start sm:items-center gap-3">
                       <div className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0 ${
                         item.status === 'Changed'
-                          ? 'bg-gradient-to-tr from-rose-600 to-orange-500 shadow-rose-600/30 animate-pulse'
+                          ? 'bg-gradient-to-tr from-rose-600 to-red-500 shadow-rose-600/50 animate-pulse ring-2 ring-rose-400'
                           : 'bg-gradient-to-tr from-indigo-600 to-cyan-600'
                       }`}>
                         {item.status === 'Changed' ? (
-                          <AlertTriangle className="w-5 h-5" />
+                          <AlertTriangle className="w-6 h-6 animate-bounce" />
                         ) : (
                           <Globe className="w-5 h-5" />
                         )}
@@ -2428,11 +2467,32 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
 
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${
                             item.status === 'Changed'
-                              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse'
+                              ? 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-600/50 animate-pulse'
                               : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                           }`}>
-                            {item.status === 'Changed' ? '🔴 ĐÃ THAY ĐỔI' : '🟢 CHƯA THAY ĐỔI'}
+                            {item.status === 'Changed' ? '🚨 CẢNH BÁO: ĐÃ THAY ĐỔI' : '🟢 CHƯA THAY ĐỔI'}
                           </span>
+
+                          {item.status === 'Changed' && (
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {((item.newImagesCount && item.newImagesCount > 0) || (item.lastData?.images && item.lastData.images.length > 0)) && (
+                                <span className="px-2 py-0.5 rounded-lg bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold">
+                                  🖼️ Banner / Ảnh Mới
+                                </span>
+                              )}
+                              {item.lastData?.promotions && item.lastData.promotions.length > 0 && (
+                                <span className="px-2 py-0.5 rounded-lg bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                                  💰 Bảng Giá / Ưu Đãi Mới
+                                </span>
+                              )}
+                              {item.textChanged && (
+                                <span className="px-2 py-0.5 rounded-lg bg-purple-950/80 text-purple-300 border border-purple-500/40 text-[10px] font-bold">
+                                  📝 Văn Bản Cập Nhật
+                                </span>
+                              )}
+                            </div>
+                          )}
+
                           <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-mono">
                             {item.category === 'implant' ? 'Trồng Răng Implant' : item.category === 'ortho' ? 'Niềng Răng' : item.category === 'cosmetic' ? 'Răng Sứ' : 'Nha Khoa'}
                           </span>
