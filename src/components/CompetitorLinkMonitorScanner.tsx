@@ -1872,21 +1872,6 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
 
           {/* TOP ACTION BUTTONS */}
           <div className="flex items-center gap-2.5 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
-            {/* Notification Drawer Toggle */}
-            <button
-              type="button"
-              onClick={() => setShowNotificationDrawer(!showNotificationDrawer)}
-              className="relative px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
-            >
-              <Bell className="w-4 h-4 text-cyan-400" />
-              <span>Thông Báo</span>
-              {unreadNotifsCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
-                  {unreadNotifsCount}
-                </span>
-              )}
-            </button>
-
             {/* Saved Links Manager Toggle */}
             <button
               type="button"
