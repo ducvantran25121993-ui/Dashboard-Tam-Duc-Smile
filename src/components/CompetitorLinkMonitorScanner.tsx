@@ -55,6 +55,7 @@ export interface DetectedPromotion {
 }
 
 export interface MonitoredSnapshot {
+  title?: string;
   text: string;
   images: string[];
   promotions?: DetectedPromotion[];
@@ -74,6 +75,8 @@ export interface MonitoredLink {
   previousData?: MonitoredSnapshot;
   newImagesCount?: number;
   textChanged?: boolean;
+  imagesChanged?: boolean;
+  promoChanged?: boolean;
 }
 
 export interface ScanNotification {
