@@ -2696,7 +2696,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                       </div>
 
                       {/* HIGH PRIORITY LIVE CHANGE ALERT WARNING BAR */}
-                      {(item.status === 'Changed' || afterImages.length > 0) && (
+                      {isChanged && (
                         <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-950 via-red-950/90 to-slate-950 border-2 border-rose-500 shadow-2xl shadow-rose-950/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-pulse ring-2 ring-rose-500/30">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-2xl bg-rose-600 text-white flex items-center justify-center font-black shrink-0 shadow-lg shadow-rose-600/60 ring-2 ring-rose-300">
@@ -2705,14 +2705,14 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                             <div>
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-black text-white text-sm sm:text-base tracking-wide flex items-center gap-1.5">
-                                  🚨 CẢNH BÁO ĐỎ: ĐÃ BẮT ĐƯỢC {afterImages.length} BANNER & ƯU ĐÃI MỚI VỪA THAY ĐỔI!
+                                  🚨 CẢNH BÁO ĐỎ: ĐÃ BẮT ĐƯỢC {(item.newImagesCount && item.newImagesCount > 0) ? item.newImagesCount : (afterImages.length || 1)} BANNER & ƯU ĐÃI MỚI VỪA THAY ĐỔI!
                                 </span>
                                 <span className="px-2.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider shadow">
                                   ĐÃ ĐỔI MÀU CẢNH BÁO
                                 </span>
                               </div>
                               <p className="text-rose-200 text-xs mt-1 leading-relaxed">
-                                Phát hiện {afterImages.length} banner mới (ví dụ: Ưu đãi giảm 30% / Đội ngũ bác sĩ) và bảng giá vừa cập nhật trực tiếp trên trang {item.name}.
+                                Phát hiện {(item.newImagesCount && item.newImagesCount > 0) ? item.newImagesCount : (afterImages.length || 1)} banner mới (ví dụ: Ưu đãi giảm 30% / Đội ngũ bác sĩ) và bảng giá vừa cập nhật trực tiếp trên trang {item.name}.
                               </p>
                             </div>
                           </div>
@@ -2738,15 +2738,17 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'promotions' }))}
                             className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'promotions'
-                                ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg shadow-rose-600/40 ring-2 ring-rose-400'
-                                : currentPromos.length > 0
+                                ? isChanged
+                                  ? 'bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-lg shadow-rose-600/40 ring-2 ring-rose-400'
+                                  : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                : isChanged && (currentPromos.length > 0 || item.promoChanged)
                                   ? 'bg-rose-950/40 text-rose-300 hover:text-white border border-rose-500/40'
                                   : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                             }`}
                           >
                             <Gift className="w-4 h-4 text-yellow-300" />
                             <span>🎁 Ưu Đãi & Bảng Giá Thật (Trước vs Sau)</span>
-                            {currentPromos.length > 0 && (
+                            {isChanged && currentPromos.length > 0 && (
                               <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
                                 🚨 {currentPromos.length} Giá Mới
                               </span>
@@ -2758,17 +2760,25 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                             onClick={() => setDiffSubTabs(prev => ({ ...prev, [item.id]: 'banners' }))}
                             className={`px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentSubTab === 'banners'
-                                ? 'bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 text-white shadow-xl shadow-rose-600/50 ring-2 ring-rose-400 animate-pulse'
-                                : afterImages.length > 0
+                                ? isChanged
+                                  ? 'bg-gradient-to-r from-rose-600 via-red-600 to-orange-600 text-white shadow-xl shadow-rose-600/50 ring-2 ring-rose-400 animate-pulse'
+                                  : 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                : isChanged && (afterImages.length > 0 || item.imagesChanged)
                                   ? 'bg-rose-950/60 text-rose-300 hover:text-white border-2 border-rose-500/60 animate-pulse'
                                   : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                             }`}
                           >
                             <ImageIcon className="w-4 h-4 text-yellow-200" />
                             <span>🖼️ Banner & Hình Ảnh (Visual Diff 2 Cột)</span>
-                            <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black shadow ring-1 ring-white/50">
-                              🚨 {afterImages.length} mới
-                            </span>
+                            {isChanged && ((item.newImagesCount && item.newImagesCount > 0) || afterImages.length > 0) ? (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black shadow ring-1 ring-white/50">
+                                🚨 {item.newImagesCount || afterImages.length} mới
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-semibold border border-slate-700">
+                                0 mới
+                              </span>
+                            )}
                           </button>
 
                           <button
@@ -2798,9 +2808,13 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                           </button>
                         </div>
 
-                        <span className="text-[11px] text-rose-300 font-mono flex items-center gap-1.5 font-bold">
-                          <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                          <span>Đã bóc tách & đổi màu cảnh báo</span>
+                        <span className={`text-[11px] font-mono flex items-center gap-1.5 font-bold ${
+                          isChanged ? 'text-rose-300' : 'text-emerald-400'
+                        }`}>
+                          <span className={`w-2 h-2 rounded-full ${
+                            isChanged ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'
+                          }`} />
+                          <span>{isChanged ? 'Đã bóc tách & đổi màu cảnh báo' : 'Dữ liệu ổn định - Chưa phát hiện thay đổi'}</span>
                         </span>
                       </div>
 
