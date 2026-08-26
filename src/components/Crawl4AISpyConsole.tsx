@@ -172,7 +172,13 @@ export const Crawl4AISpyConsole: React.FC<{
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);
 
-      const data = await response.json();
+      let data: any;
+      try {
+        const textData = await response.text();
+        data = JSON.parse(textData);
+      } catch (parseErr) {
+        throw new Error(`Máy chủ đang tải lại hoặc phản hồi không đúng định dạng JSON (${response.status}: ${response.statusText}). Vui lòng bấm "Thử Lại" sau vài giây.`);
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || 'Không thể cào dữ liệu từ trang web đối thủ.');
@@ -210,9 +216,6 @@ export const Crawl4AISpyConsole: React.FC<{
               <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-600 text-white text-xs font-black tracking-wider shadow-lg shadow-cyan-500/30">
                 <Zap className="w-3.5 h-3.5 fill-current animate-pulse" />
                 CRAWL4AI LIVE SPY ENGINE
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-indigo-950/80 border border-indigo-400/40 text-[11px] font-mono text-indigo-300">
-                ⭐ GitHub 79.4k Stars Architecture
               </span>
               <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-[11px] font-semibold text-emerald-300 flex items-center gap-1">
                 <ShieldCheck className="w-3 h-3 text-emerald-400" />
