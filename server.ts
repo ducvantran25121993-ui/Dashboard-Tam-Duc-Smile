@@ -1746,3 +1746,65 @@ async function start() {
 }
 
 start();
+import chromium from '@sparticuz/chromium';
+import playwright from 'playwright-core';
+
+// API cào dữ liệu website đối thủ
+app.get('/api/scrape-competitors', async (req, res) => {
+  const COMPETITOR_TARGETS = [
+    { id: 'kim', name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html' },
+    { id: 'paris', name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html' },
+    { id: 'drcare', name: 'Dr. Care Implant', url: 'https://drcareimplant.com/bang-gia-trong-rang-implant-tai-nha-khoa-dr-care-13' }
+  ];
+
+  let browser = null;
+  const scrapedResults: any[] = [];
+
+  try {
+    browser = await playwright.chromium.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless === 'true' || true,
+    });
+
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 800 },
+    });
+
+    for (const comp of COMPETITOR_TARGETS) {
+      try {
+        const page = await context.newPage();
+        await page.goto(comp.url, { waitUntil: 'domcontentloaded', timeout: 25000 });
+        await page.waitForTimeout(2000);
+
+        const title = await page.title();
+        const banners = await page.evaluate(() => {
+          const imgs = Array.from(document.querySelectorAll('img'));
+          return imgs.map(img => img.src).filter(src => src && (src.includes('banner') || src.includes('khuyen-mai') || src.includes('implant'))).slice(0, 5);
+        });
+        const pageText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').substring(0, 8000));
+
+        scrapedResults.push({
+          name: comp.name,
+          url: comp.url,
+          title,
+          banners,
+          rawSummary: pageText.substring(0, 500) + '...',
+          scannedAt: new Date().toISOString(),
+          status: 'success'
+        });
+        await page.close();
+      } catch (err: any) {
+        scrapedResults.push({ name: comp.name, url: comp.url, status: 'error', error: err.message });
+      }
+    }
+
+    return res.json({ success: true, timestamp: new Date().toISOString(), data: scrapedResults });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  } finally {
+    if (browser) await browser.close();
+  }
+});
