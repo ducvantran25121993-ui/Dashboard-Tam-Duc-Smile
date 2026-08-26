@@ -1770,21 +1770,61 @@ app.post('/api/crawl4ai', async (req, res) => {
 
   // 2. Built-in Native Crawl4AI Engine (Stealth Fetch + HTML to Clean Markdown + Gemini 2.5 Flash Structured Schema)
   try {
-    const fetchResp = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
-        'Cache-Control': 'no-cache',
-        'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"'
-      },
-      signal: AbortSignal.timeout(20000)
-    });
+    let activeUrl = targetUrl;
+    let fetchResp: Response | null = null;
+    
+    // Thử Fetch lần 1 với Stealth Headers
+    try {
+      fetchResp = await fetch(activeUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Cache-Control': 'max-age=0',
+        },
+        signal: AbortSignal.timeout(25000)
+      });
+    } catch (firstErr: any) {
+      console.warn(`[Crawl4AI] Fetch lần 1 thất bại (${firstErr.message}), thử lại với Minimal Request...`);
+      // Thử Fetch lần 2 với Minimal Headers (vượt qua WAF chặn Sec-Ch)
+      fetchResp = await fetch(activeUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15',
+          'Accept': '*/*'
+        },
+        signal: AbortSignal.timeout(25000)
+      });
+    }
+
+    if (!fetchResp) {
+      throw new Error('Không thể khởi tạo kết nối mạng tới trang web đối thủ.');
+    }
+
+    // Nếu đường dẫn chi tiết bị 404 (do đối thủ đổi slug), tự động thử fallback về trang chủ domain
+    if (fetchResp.status === 404) {
+      try {
+        const originUrl = new URL(targetUrl).origin;
+        if (activeUrl !== originUrl) {
+          console.warn(`[Crawl4AI] URL ${targetUrl} trả về 404, tự động fallback về trang chủ: ${originUrl}`);
+          activeUrl = originUrl;
+          fetchResp = await fetch(activeUrl, {
+            redirect: 'follow',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            },
+            signal: AbortSignal.timeout(20000)
+          });
+        }
+      } catch (fbErr) {
+        // bỏ qua nếu lỗi parse origin
+      }
+    }
 
     if (!fetchResp.ok) {
-      throw new Error(`Không thể kết nối đến trang web (${fetchResp.status}: ${fetchResp.statusText})`);
+      throw new Error(`Website đối thủ phản hồi mã lỗi (${fetchResp.status}: ${fetchResp.statusText}). Vui lòng kiểm tra lại đường link.`);
     }
 
     const html = await fetchResp.text();

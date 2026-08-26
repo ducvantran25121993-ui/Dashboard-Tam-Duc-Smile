@@ -82,19 +82,19 @@ const PRESET_DENTAL_URLS = [
   {
     name: 'Nha Khoa I-DENT',
     category: 'Implant Kiều Bào',
-    url: 'https://nhakhoaident.com/trong-rang-implant',
+    url: 'https://nhakhoaident.com/bang-gia/implant/',
     badge: 'Chuyên khoa sâu'
   },
   {
     name: 'Nha Khoa Parkway',
     category: 'Niềng Răng Invisalign',
-    url: 'https://nhakhoaparkway.com/invisalign',
+    url: 'https://nhakhoaparkway.com/bang-gia/',
     badge: 'Black Diamond'
   },
   {
     name: 'Nha Khoa Shark',
     category: 'Bọc Răng Sứ Thẩm Mỹ',
-    url: 'https://nhakhoashark.vn/dich-vu/tham-my-boc-rang-su/',
+    url: 'https://nhakhoashark.vn/bang-gia-nha-khoa/',
     badge: 'Chuẩn Đức'
   }
 ];
