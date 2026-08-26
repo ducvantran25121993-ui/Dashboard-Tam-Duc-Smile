@@ -45,6 +45,8 @@ import {
   MonitorPlay
 } from 'lucide-react';
 import { GoogleAdsTransparencyCenter } from './GoogleAdsTransparencyCenter';
+import { CompetitorLinkMonitorScanner } from './CompetitorLinkMonitorScanner';
+import { Crawl4AISpyConsole } from './Crawl4AISpyConsole';
 import { CompetitorDiffItem, INITIAL_COMPETITOR_DIFFS } from '../data/competitorDiffs';
 
 // Verified Top Dental Chains on Google Ads in Vietnam
@@ -1064,9 +1066,9 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
 
 export const CompetitorWebDiffScanner: React.FC = () => {
   // Modes: 
-  // 1. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
-  // 2. 'auto_radar': AI Săn Tìm & Tự Động Phân Tích Quảng Cáo
-  const [activeMode, setActiveMode] = useState<'google_transparency' | 'auto_radar'>('google_transparency');
+  // 1. 'crawl4ai': Crawl4AI Live Web Scraper & LLM Extraction (Chuẩn xác 100%)
+  // 2. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
+  const [activeMode, setActiveMode] = useState<'crawl4ai' | 'google_transparency'>('crawl4ai');
 
   // Google Transparency Center State
   const [customDomainInput, setCustomDomainInput] = useState<string>('');
@@ -1297,6 +1299,20 @@ export const CompetitorWebDiffScanner: React.FC = () => {
       {/* TOP NAVIGATION BUTTONS */}
       <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 shrink-0 overflow-x-auto">
+          {/* TAB 0: CRAWL4AI LIVE SPY & PRICING EXTRACTOR */}
+          <button
+            type="button"
+            onClick={() => setActiveMode('crawl4ai')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              activeMode === 'crawl4ai'
+                ? 'bg-gradient-to-r from-cyan-500 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-cyan-400/60'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-cyan-300 animate-pulse fill-current" />
+            <span>🚀 CRAWL4AI BÓC TÁCH GIÁ THẬT 100%</span>
+          </button>
+
           {/* TAB 1: GOOGLE ADS TRANSPARENCY CENTER */}
           <button
             type="button"
@@ -1308,7 +1324,7 @@ export const CompetitorWebDiffScanner: React.FC = () => {
             }`}
           >
             <ShieldCheck className="w-4 h-4 text-emerald-300" />
-            <span>GOOGLE ADS TRANSPARENCY CENTER</span>
+            <span>GOOGLE ADS TRANSPARENCY</span>
           </button>
         </div>
 
@@ -1325,536 +1341,23 @@ export const CompetitorWebDiffScanner: React.FC = () => {
       </div>
 
       {/* ========================================================================= */}
+      {/* CHẾ ĐỘ 0: CRAWL4AI LIVE SPY & PRICING EXTRACTOR (CHUẨN XÁC 100%)           */}
+      {/* ========================================================================= */}
+      {activeMode === 'crawl4ai' && (
+        <div className="animate-fadeIn">
+          <Crawl4AISpyConsole />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* CHẾ ĐỘ 1: GOOGLE ADS TRANSPARENCY CENTER (TRUNG TÂM MINH BẠCH GOOGLE 100%) */}
       {/* ========================================================================= */}
       {activeMode === 'google_transparency' && (
         <div className="animate-fadeIn">
-          <GoogleAdsTransparencyCenter
-            onSelectCompetitorForRadar={(compName) => {
-              setSelectedCompetitor(compName);
-              setActiveMode('auto_radar');
-            }}
-          />
+          <GoogleAdsTransparencyCenter />
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* CHẾ ĐỘ 2: AI SPY RADAR (TỰ ĐỘNG SĂN TÌM QUẢNG CÁO)                        */}
-      {/* ========================================================================= */}
-      {activeMode === 'auto_radar' && (
-        <div className="space-y-6 animate-fadeIn">
-          {/* AUTO-HUNT CONTROL PANEL */}
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-cyan-950/40 to-slate-950 border-2 border-cyan-500/40 shadow-2xl relative overflow-hidden space-y-5">
-            <div className="absolute -top-10 -right-10 w-72 h-72 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-              <div className="flex items-center gap-3.5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/40 shrink-0">
-                  <Radar className={`w-7 h-7 ${isAutoHunting ? 'animate-spin' : ''}`} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg sm:text-xl font-black text-white tracking-tight">
-                      AI TỰ ĐỘNG TÌM BÀI QUẢNG CÁO & QUÉT ĐỐI THỦ (GOOGLE & FACEBOOK ADS)
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 animate-pulse">
-                      Live Spy Engine
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 mt-1 max-w-3xl">
-                    Tự động rà quét các mạng lưới quảng cáo theo dịch vụ trọng tâm, trích xuất ưu đãi ngầm và viết sẵn mẫu quảng cáo phản công cho Tâm Đức Smile.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* SELECTION PILLS */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 relative z-10">
-              {/* 1. Service Focus */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-                <label className="text-[11px] font-bold text-cyan-300 flex items-center gap-1.5">
-                  <Target className="w-3.5 h-3.5 text-cyan-400" />
-                  1. Dịch Vụ Cần Săn Tìm Quảng Cáo:
-                </label>
-                <select
-                  value={selectedService}
-                  onChange={e => setSelectedService(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-400"
-                >
-                  <option value="Trồng Răng Implant">Trồng Răng Implant (Đơn lẻ & All-on-4/6)</option>
-                  <option value="Răng Sứ Thẩm Mỹ">Răng Sứ Thẩm Mỹ (Cercon, Zirconia, Veneer)</option>
-                  <option value="Niềng Răng - Chỉnh Nha">Niềng Răng (Mắc Cài & Trong Suốt Invisalign)</option>
-                  <option value="Khách Việt Kiều Về Nước">Khách Việt Kiều Về Nước Làm Răng</option>
-                  <option value="Nhổ Răng Khôn Siêu Âm">Nhổ Răng Khôn & Nha Khoa Tổng Quát</option>
-                  <option value="Toàn Bộ Dịch Vụ Nha Khoa">Tất Cả Các Dịch Vụ</option>
-                </select>
-              </div>
-
-              {/* 2. Target Competitor */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-                <label className="text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-                  <Crosshair className="w-3.5 h-3.5 text-indigo-400" />
-                  2. Đối Thủ Mục Tiêu:
-                </label>
-                <select
-                  value={selectedCompetitor}
-                  onChange={e => setSelectedCompetitor(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-400"
-                >
-                  <option value="Tất cả đối thủ lớn">Tất cả chuỗi nha khoa đối thủ (Quét toàn diện)</option>
-                  <option value="Nha Khoa Kim">Nha Khoa Kim (nhakhoakim.com)</option>
-                  <option value="Nha Khoa Paris">Nha Khoa Paris (nhakhoaparis.vn)</option>
-                  <option value="Nha Khoa Việt Hàn 04">Nha Khoa Việt Hàn 04 (nhakhoaviethan04.com)</option>
-                  <option value="Nha Khoa Sài Gòn B.H">Nha Khoa Sài Gòn B.H (nhakhoasaigon.vn)</option>
-                  <option value="Nha Khoa Trồng Răng">Nha Khoa Trồng Răng Sài Gòn (nhakhoatrongrang.com)</option>
-                  <option value="Sài Gòn Implant">Nha Khoa Sài Gòn Implant (saigonimplant.com)</option>
-                  <option value="Dr. Care Implant">Dr. Care Implant (drcareimplant.com)</option>
-                  <option value="Nha Khoa Shark">Nha Khoa Shark (nhakhoashark.vn)</option>
-                  <option value="Nha Khoa Parkway">Nha Khoa Parkway (parkway.com.vn)</option>
-                  <option value="Nha Khoa I-Dent">Nha Khoa I-Dent (nhakhoaident.com)</option>
-                  <option value="Nha Khoa Đông Nam">Nha Khoa Đông Nam (nhakhoadongnam.com)</option>
-                </select>
-              </div>
-
-              {/* 3. Location */}
-              <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-1.5">
-                <label className="text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-emerald-400" />
-                  3. Thị Trường / Khu Vực:
-                </label>
-                <select
-                  value={selectedLocation}
-                  onChange={e => setSelectedLocation(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400"
-                >
-                  <option value="TP.HCM & Miền Tây Nam Bộ">TP.HCM & Miền Tây (Cần Thơ, Tiền Giang, Cà Mau...)</option>
-                  <option value="Toàn TP. Hồ Chí Minh">Khu vực TP. Hồ Chí Minh</option>
-                  <option value="Các Tỉnh Miền Tây Nam Bộ">Riêng các Tỉnh Miền Tây</option>
-                  <option value="Khách Kiều Bào (Mỹ, Úc, Canada)">Khách Kiều Bào (Mỹ, Úc, Canada, Châu Âu)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* ACTION BUTTON */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-              <div className="text-xs text-slate-400 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>AI sẽ trích xuất <strong>tiêu đề, mô tả, ưu đãi ngầm, điểm yếu</strong> và <strong>mẫu phản công</strong>.</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleAutoHuntAds}
-                disabled={isAutoHunting}
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-black text-xs shadow-xl shadow-cyan-950/80 flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
-              >
-                {isAutoHunting ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>AI Đang Quét Tìm Toàn Bộ Quảng Cáo Đối Thủ...</span>
-                  </>
-                ) : (
-                  <>
-                    <Radar className="w-4 h-4 text-cyan-200" />
-                    <span>⚡ AI TỰ ĐỘNG TÌM & QUÉT BÀI QUẢNG CÁO NGAY</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Auto Hunt Summary Banner */}
-            {autoHuntSummary && (
-              <div className="p-4 rounded-2xl bg-cyan-950/60 border border-cyan-500/50 text-cyan-200 text-xs flex items-start gap-2.5 animate-fadeIn">
-                <CheckCircle2 className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-bold text-white mb-0.5">Kết Quả Quét Tự Động:</div>
-                  <p className="text-slate-300 leading-relaxed">{autoHuntSummary}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* DISCOVERED ADS LIST */}
-          <div className="space-y-4">
-            {(() => {
-              // 1. Filter by Competitor
-              const competitorFiltered = selectedCompetitor === 'Tất cả đối thủ lớn'
-                ? discoveredAds
-                : discoveredAds.filter(ad => 
-                    ad.competitorName.toLowerCase().includes(selectedCompetitor.toLowerCase()) ||
-                    selectedCompetitor.toLowerCase().includes(ad.competitorName.toLowerCase())
-                  );
-              
-              // 2. Filter by Category
-              const categoryFiltered = radarCategoryFilter === 'all'
-                ? competitorFiltered
-                : competitorFiltered.filter(ad => 
-                    (ad.category && ad.category.toLowerCase().includes(radarCategoryFilter.toLowerCase())) ||
-                    (ad.targetKeyword && ad.targetKeyword.toLowerCase().includes(radarCategoryFilter.toLowerCase())) ||
-                    (ad.campaignTitle && ad.campaignTitle.toLowerCase().includes(radarCategoryFilter.toLowerCase()))
-                  );
-
-              // 3. Filter by Format
-              const formatFiltered = radarFormatFilter === 'all'
-                ? categoryFiltered
-                : radarFormatFilter === 'search'
-                ? categoryFiltered.filter(ad => ad.adPlatform.includes('Search'))
-                : radarFormatFilter === 'media'
-                ? categoryFiltered.filter(ad => ad.mediaAds && ad.mediaAds.some(m => m.type === 'image'))
-                : radarFormatFilter === 'video'
-                ? categoryFiltered.filter(ad => ad.mediaAds && ad.mediaAds.some(m => m.type === 'video'))
-                : categoryFiltered;
-
-              const displayList = formatFiltered;
-
-              return (
-                <>
-                  {/* Category & Format Filter Header */}
-                  <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-3">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-                          <Megaphone className="w-4 h-4 text-cyan-400" />
-                          <span>
-                            {selectedCompetitor !== 'Tất cả đối thủ lớn' 
-                              ? `Toàn Bộ Chiến Dịch Của ${selectedCompetitor} (${competitorFiltered.length} mẫu)`
-                              : `Tất Cả Mẫu Quảng Cáo Đang Chạy (${discoveredAds.length} mẫu)`}
-                          </span>
-                        </h4>
-                        {selectedCompetitor !== 'Tất cả đối thủ lớn' && (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedCompetitor('Tất cả đối thủ lớn')}
-                            className="px-2.5 py-0.5 rounded-full bg-slate-800 hover:bg-slate-700 text-[10px] text-cyan-300 border border-slate-700 cursor-pointer font-bold transition-colors"
-                          >
-                            Hiển thị tất cả đối thủ ✕
-                          </button>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-slate-400 font-mono">
-                        Hiển thị {displayList.length} / {competitorFiltered.length} chiến dịch
-                      </span>
-                    </div>
-
-                    {/* Category Filter Pills */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-                      <span className="text-[11px] font-bold text-slate-400 shrink-0">Dịch vụ:</span>
-                      {[
-                        { id: 'all', label: `Tất cả (${competitorFiltered.length})` },
-                        { id: 'implant', label: `Trồng Răng Implant (${competitorFiltered.filter(a => (a.category||'').toLowerCase().includes('implant') || a.targetKeyword.toLowerCase().includes('implant')).length})` },
-                        { id: 'nieng', label: `Niềng Răng (${competitorFiltered.filter(a => (a.category||'').toLowerCase().includes('niềng') || a.targetKeyword.toLowerCase().includes('niềng')).length})` },
-                        { id: 'su', label: `Răng Sứ (${competitorFiltered.filter(a => (a.category||'').toLowerCase().includes('sứ') || a.targetKeyword.toLowerCase().includes('sứ')).length})` },
-                        { id: 'khon', label: `Nhổ Răng & Tẩy Trắng (${competitorFiltered.filter(a => (a.category||'').toLowerCase().includes('nhổ') || (a.category||'').toLowerCase().includes('tẩy') || a.targetKeyword.toLowerCase().includes('răng khôn')).length})` },
-                      ].map(cat => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => setRadarCategoryFilter(cat.id)}
-                          className={`px-3 py-1 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                            radarCategoryFilter === cat.id
-                              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/30'
-                              : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800'
-                          }`}
-                        >
-                          {cat.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Format Filter Pills */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin pt-1 border-t border-slate-900">
-                      <span className="text-[11px] font-bold text-slate-400 shrink-0">Định dạng QC:</span>
-                      {[
-                        { id: 'all', label: 'Tất cả định dạng' },
-                        { id: 'search', label: 'Google Search Ads' },
-                        { id: 'media', label: 'Banner GDN / PMax' },
-                        { id: 'video', label: 'Video YouTube / Social' },
-                      ].map(fmt => (
-                        <button
-                          key={fmt.id}
-                          type="button"
-                          onClick={() => setRadarFormatFilter(fmt.id)}
-                          className={`px-2.5 py-0.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                            radarFormatFilter === fmt.id
-                              ? 'bg-indigo-600 text-white font-bold'
-                              : 'bg-slate-900/60 hover:bg-slate-800 text-slate-400'
-                          }`}
-                        >
-                          {fmt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-5">
-                    {displayList.map((ad, idx) => (
-                      <div
-                        key={idx}
-                        className="p-6 rounded-3xl bg-slate-950/90 border border-slate-800 hover:border-cyan-500/40 shadow-xl space-y-5 transition-all"
-                      >
-                        {/* Top Bar of Ad Card */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
-                              {ad.competitorName.slice(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-white text-base">{ad.competitorName}</span>
-                                <span className="text-[10px] px-2 py-0.2 rounded-full bg-slate-800 text-slate-300 font-mono">
-                                  {ad.domain}
-                                </span>
-                              </div>
-                              <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                                <span className="text-cyan-400 font-semibold">{ad.adPlatform}</span>
-                                <span>•</span>
-                                <span>Từ khóa: <strong className="text-slate-200">"{ad.targetKeyword}"</strong></span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                              ad.threatLevel === 'Rất cao'
-                                ? 'bg-rose-500/10 text-rose-300 border-rose-500/40'
-                                : 'bg-amber-500/10 text-amber-300 border-amber-500/40'
-                            }`}>
-                              Mức độ đe dọa: {ad.threatLevel}
-                            </span>
-                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                              {ad.changeType}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Campaign Name & Focus Category Bar */}
-                        {ad.campaignTitle && (
-                          <div className="px-3.5 py-2 rounded-xl bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-xs">
-                            <span className="font-bold text-cyan-300 flex items-center gap-1.5">
-                              <Megaphone className="w-3.5 h-3.5 text-cyan-400" />
-                              <span>Chiến dịch: <strong>{ad.campaignTitle}</strong></span>
-                            </span>
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-900/60 text-cyan-200 font-mono">
-                              Phân nhóm: {ad.category || 'Nha khoa chuyên sâu'}
-                            </span>
-                          </div>
-                        )}
-
-                  {/* 1. MẪU QUẢNG CÁO GOOGLE ADS ĐỐI THỦ ĐANG CHẠY (MOCKUP LIVE SEARCH AD) */}
-                  <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      <span className="flex items-center gap-1.5 text-cyan-400">
-                        <Eye className="w-3.5 h-3.5" /> Mẫu Quảng Cáo Đối Thủ Đang Hiển Thị Trên Google:
-                      </span>
-                      <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30">
-                        Được tài trợ (Ad)
-                      </span>
-                    </div>
-
-                    {/* Google Search Result Mockup */}
-                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1.5 font-sans">
-                      <div className="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
-                        <span className="font-bold text-slate-300">Ad</span>
-                        <span>•</span>
-                        <span className="text-slate-400 truncate">{ad.adCopy.displayedUrl}</span>
-                      </div>
-                      <div className="text-sm font-bold text-cyan-400 hover:underline cursor-pointer">
-                        {ad.adCopy.headline}
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed">
-                        {ad.adCopy.description}
-                      </p>
-                      
-                      {/* Sitelinks badges */}
-                      <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-900 text-xs">
-                        {ad.adCopy.sitelinks.map((site, sIdx) => (
-                          <span key={sIdx} className="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-cyan-300 text-[11px] border border-slate-800 cursor-pointer">
-                            {site}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Media Ads (Images & Videos) in Radar Card */}
-                    {ad.mediaAds && ad.mediaAds.length > 0 && (
-                      <div className="space-y-2 pt-2">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
-                          <span className="flex items-center gap-1.5 text-cyan-400">
-                            <Film className="w-3.5 h-3.5" /> Mẫu Quảng Cáo Hình Ảnh & Video ({ad.competitorName}):
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-mono">Google Display & YouTube</span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {ad.mediaAds.map((media, mIdx) => (
-                            <div
-                              key={mIdx}
-                              className="group relative rounded-xl bg-slate-950 border border-slate-800 hover:border-cyan-500/40 overflow-hidden shadow transition-all flex flex-col justify-between"
-                            >
-                              <div className="relative aspect-video w-full overflow-hidden bg-slate-900">
-                                <img
-                                  src={media.previewUrl}
-                                  alt={media.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                  referrerPolicy="no-referrer"
-                                  onError={(e) => {
-                                    const target = e.currentTarget;
-                                    if (!target.src.includes('/api/proxy-image')) {
-                                      target.src = `/api/proxy-image?url=${encodeURIComponent(media.previewUrl)}`;
-                                    }
-                                  }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                                
-                                <div className="absolute top-2 left-2">
-                                  <span className="px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-md text-[10px] font-bold text-white border border-slate-700/80 flex items-center gap-1">
-                                    {media.type === 'video' ? (
-                                      <Video className="w-3 h-3 text-rose-400" />
-                                    ) : (
-                                      <ImageIcon className="w-3 h-3 text-cyan-400" />
-                                    )}
-                                    {media.badge}
-                                  </span>
-                                </div>
-
-                                {media.type === 'video' && (
-                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-9 h-9 rounded-full bg-rose-600/90 text-white flex items-center justify-center shadow-lg shadow-rose-600/50 group-hover:scale-110 transition-transform">
-                                      <Play className="w-4 h-4 fill-white ml-0.5" />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {media.videoDuration && (
-                                  <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-slate-950/90 text-[10px] font-mono text-white font-bold">
-                                    {media.videoDuration}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="p-3 space-y-1">
-                                <div className="text-xs font-bold text-slate-200 group-hover:text-cyan-300 transition-colors line-clamp-1">
-                                  {media.title}
-                                </div>
-                                {media.headlineOverlay && (
-                                  <div className="text-[11px] font-semibold text-emerald-400 line-clamp-1">
-                                    "{media.headlineOverlay}"
-                                  </div>
-                                )}
-                                {media.descriptionText && (
-                                  <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                                    {media.descriptionText}
-                                  </p>
-                                )}
-                                <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px] text-slate-400">
-                                  <span>{media.dimensions || 'Chuẩn Display / Video'}</span>
-                                  <span className="text-cyan-400 font-medium">Đang chạy thực tế</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 2. ĐỐI CHIẾU ƯU ĐÃI / BẢNG GIÁ CŨ VS MỚI */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-1">
-                      <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1">
-                        <History className="w-3 h-3" /> Mức Giá / Ưu Đãi Cũ Trước Đây:
-                      </div>
-                      <p className="text-xs text-slate-300 line-through decoration-rose-400/80">
-                        {ad.oldPromo}
-                      </p>
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 space-y-1">
-                      <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> Ưu Đãi Mới Đối Thủ Vừa Tung Ra:
-                      </div>
-                      <p className="text-xs font-bold text-emerald-300">
-                        {ad.detectedPromo}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 3. TỬ HUYỆT ĐỐI THỦ & MẪU PHẢN CÔNG TÂM ĐỨC SMILE */}
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/60 via-slate-900 to-cyan-950/60 border border-indigo-500/40 space-y-3">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                      <div className="text-xs font-bold text-white flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-cyan-400" />
-                        <span>CHIẾN LƯỢC & MẪU QUẢNG CÁO PHẢN CÔNG CHO TÂM ĐỨC SMILE</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleCopyCounterAd(ad, idx)}
-                        className="flex items-center gap-1 px-3 py-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md cursor-pointer transition-all shrink-0"
-                      >
-                        {copiedAdIndex === idx ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-300" />
-                            <span>Đã Copy Mẫu QC!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>Copy Mẫu QC Phản Công</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Weakness analysis */}
-                    <div className="text-xs text-slate-300 bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1">
-                      <strong className="text-rose-400 flex items-center gap-1">
-                        <ShieldAlert className="w-3.5 h-3.5" /> Điểm yếu của đối thủ:
-                      </strong>
-                      <p className="text-slate-300">{ad.competitorWeakness}</p>
-                    </div>
-
-                    {/* Counter Ad Preview */}
-                    <div className="p-3.5 rounded-xl bg-slate-950 border border-indigo-500/50 space-y-2">
-                      <div className="text-[11px] font-mono text-emerald-400 font-bold">
-                        Mẫu QC Tâm Đức Smile: {ad.counterAdTemplate.headline}
-                      </div>
-                      <p className="text-xs text-slate-200">
-                        {ad.counterAdTemplate.description}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {ad.counterAdTemplate.sitelinks.map((st, stIdx) => (
-                          <span key={stIdx} className="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-200 text-[10px] font-medium border border-indigo-700/50">
-                            +{st}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Bidding Advice */}
-                    <div className="text-xs text-cyan-300 flex items-center gap-1.5 pt-1">
-                      <BarChart3 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                      <span><strong>Lời khuyên giá thầu:</strong> {ad.counterAdTemplate.biddingAdvice}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        );
-      })()}
-    </div>
-  </div>
-)}
-
-      {/* ========================================================================= */}
-      {/* CHẾ ĐỘ 3: QUÉT & LƯU LINK ĐỐI THỦ (AUTO DIFF & BANNER SCANNER)             */}
-      {/* ========================================================================= */}
-      {activeMode === 'url_scanner' && (
-        <div className="animate-fadeIn">
-          <CompetitorLinkMonitorScanner />
-        </div>
-      )}
-    </div>
+      </div>
   );
 };

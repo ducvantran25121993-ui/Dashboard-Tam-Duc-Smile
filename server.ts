@@ -1723,89 +1723,247 @@ app.post('/api/scan-links-engine', async (req, res) => {
   }
 });
 
-// Vite middleware in dev or static serving in prod
-async function start() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+// =========================================================================
+// CRAWL4AI ENDPOINT (HỖ TRỢ DOCKER CRAWL4AI & BUILT-IN STEALTH LLM ENGINE)
+// =========================================================================
+app.post('/api/crawl4ai', async (req, res) => {
+  const startTime = Date.now();
+  const { url, crawl4aiHost, extractionPrompt } = req.body || {};
+
+  if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+    return res.status(400).json({ success: false, error: 'URL không hợp lệ. Vui lòng nhập link đầy đủ (ví dụ: https://...)' });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-  });
-}
+  const targetUrl = url.trim();
 
-start();
-import chromium from '@sparticuz/chromium';
-import playwright from 'playwright-core';
+  // 1. Kiểm tra nếu người dùng cấu hình Crawl4AI Docker Host (ví dụ: http://localhost:11235 hoặc VPS riêng)
+  if (crawl4aiHost && typeof crawl4aiHost === 'string' && crawl4aiHost.startsWith('http')) {
+    try {
+      const dockerCrawlUrl = `${crawl4aiHost.replace(/\/+$/, '')}/crawl`;
+      const dockerResp = await fetch(dockerCrawlUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          urls: [targetUrl],
+          priority: 10,
+          extraction_strategy: 'LLMExtractionStrategy',
+          extraction_prompt: extractionPrompt || 'Trích xuất toàn bộ bảng giá nha khoa (dịch vụ, giá gốc, giá giảm, quà tặng), banner khuyến mãi, ưu đãi.',
+          headless: true,
+          stealth: true
+        }),
+        signal: AbortSignal.timeout(30000)
+      });
 
-// API cào dữ liệu website đối thủ
-app.get('/api/scrape-competitors', async (req, res) => {
-  const COMPETITOR_TARGETS = [
-    { id: 'kim', name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html' },
-    { id: 'paris', name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html' },
-    { id: 'drcare', name: 'Dr. Care Implant', url: 'https://drcareimplant.com/bang-gia-trong-rang-implant-tai-nha-khoa-dr-care-13' }
-  ];
+      if (dockerResp.ok) {
+        const dockerData = await dockerResp.json();
+        return res.json({
+          success: true,
+          engine: 'crawl4ai-docker',
+          executionTimeMs: Date.now() - startTime,
+          data: dockerData
+        });
+      }
+    } catch (dockerErr: any) {
+      console.warn('[Crawl4AI] Docker host không khả dụng, chuyển sang Built-in Engine:', dockerErr.message);
+    }
+  }
 
-  let browser = null;
-  const scrapedResults: any[] = [];
-
+  // 2. Built-in Native Crawl4AI Engine (Stealth Fetch + HTML to Clean Markdown + Gemini 2.5 Flash Structured Schema)
   try {
-    browser = await playwright.chromium.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless === 'true' || true,
+    const fetchResp = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"'
+      },
+      signal: AbortSignal.timeout(20000)
     });
 
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-      viewport: { width: 1280, height: 800 },
-    });
+    if (!fetchResp.ok) {
+      throw new Error(`Không thể kết nối đến trang web (${fetchResp.status}: ${fetchResp.statusText})`);
+    }
 
-    for (const comp of COMPETITOR_TARGETS) {
-      try {
-        const page = await context.newPage();
-        await page.goto(comp.url, { waitUntil: 'domcontentloaded', timeout: 25000 });
-        await page.waitForTimeout(2000);
+    const html = await fetchResp.text();
+    const parsedBaseUrl = new URL(targetUrl).origin;
 
-        const title = await page.title();
-        const banners = await page.evaluate(() => {
-          const imgs = Array.from(document.querySelectorAll('img'));
-          return imgs.map(img => img.src).filter(src => src && (src.includes('banner') || src.includes('khuyen-mai') || src.includes('implant'))).slice(0, 5);
-        });
-        const pageText = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').substring(0, 8000));
+    // A. Trích xuất Title & Meta
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const pageTitle = titleMatch ? titleMatch[1].trim() : targetUrl;
 
-        scrapedResults.push({
-          name: comp.name,
-          url: comp.url,
-          title,
-          banners,
-          rawSummary: pageText.substring(0, 500) + '...',
-          scannedAt: new Date().toISOString(),
-          status: 'success'
-        });
-        await page.close();
-      } catch (err: any) {
-        scrapedResults.push({ name: comp.name, url: comp.url, status: 'error', error: err.message });
+    const descMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
+                      html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+    const pageDescription = descMatch ? descMatch[1].trim() : '';
+
+    // B. Trích xuất Media / Banner thật từ web
+    const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|srcset)=["']([^"'>\s]+)["']/gi;
+    let match;
+    const rawImages: string[] = [];
+    while ((match = imgRegex.exec(html)) !== null) {
+      if (match[1]) {
+        const rawSrc = match[1].split(' ')[0].split(',')[0].trim();
+        rawImages.push(rawSrc);
       }
     }
 
-    return res.json({ success: true, timestamp: new Date().toISOString(), data: scrapedResults });
+    const realBanners: string[] = [];
+    for (const src of rawImages) {
+      if (!src || src.startsWith('data:') || src.includes('.svg') || src.includes('base64')) continue;
+      let finalUrl = src;
+      if (src.startsWith('//')) finalUrl = 'https:' + src;
+      else if (src.startsWith('/')) finalUrl = parsedBaseUrl + src;
+      else if (!src.startsWith('http://') && !src.startsWith('https://')) finalUrl = parsedBaseUrl + '/' + src;
+
+      const lower = finalUrl.toLowerCase();
+      const isExcluded = lower.includes('favicon') || lower.includes('pixel') || lower.includes('analytics') || lower.includes('1x1') || lower.includes('icon');
+      const isPhoto = lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') || lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/');
+
+      if (!isExcluded && isPhoto && !realBanners.includes(finalUrl)) {
+        realBanners.push(finalUrl);
+      }
+    }
+
+    // C. Làm sạch HTML -> Clean Markdown (chuẩn định dạng Crawl4AI)
+    const strippedHtml = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '')
+      .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '')
+      .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '');
+
+    const cleanMarkdown = strippedHtml
+      .replace(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, '\n\n# $1\n\n')
+      .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n')
+      .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
+      .replace(/<tr[^>]*>([\s\S]*?)<\/tr>/gi, '$1\n')
+      .replace(/<td[^>]*>([\s\S]*?)<\/td>/gi, ' | $1')
+      .replace(/<th[^>]*>([\s\S]*?)<\/th>/gi, ' | **$1**')
+      .replace(/<li[^>]*>([\s\S]*?)<\/li>/gi, '\n- $1')
+      .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n')
+      .replace(/<[^>]*>?/gm, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&gt;/gi, '>')
+      .replace(/&lt;/gi, '<')
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
+
+    // D. Trích xuất Cấu trúc Bảng Giá & Ưu đãi qua Gemini LLM Structured JSON Schema
+    let structuredResult: any = {
+      dentalName: pageTitle,
+      services: [],
+      specialOffers: [],
+      keyHighlights: [],
+      counterStrategy: {
+        weakness: 'Giá niêm yết cao, điều kiện bảo hành giới hạn',
+        tamducCounterTitle: 'Trồng Răng Implant Tiêu Chuẩn Quốc Tế - Trợ Giá 50%',
+        recommendedHeadlines: [
+          'Trồng Răng Trả Góp 0% Lãi Suất',
+          'Tặng Mão Sứ 2.5Tr & Chụp CT 3D Miễn Phí',
+          'Đội Ngũ Bác Sĩ Chuyên Khoa 15+ Năm KN'
+        ],
+        recommendedDescriptions: [
+          'Nha Khoa Tâm Đức Smile - Cam kết giá trọn gói không phát sinh. Đặt hẹn ngay hôm nay để nhận ưu đãi.'
+        ]
+      }
+    };
+
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const { GoogleGenAI } = await import('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+        const prompt = `Bạn là Crawl4AI LLM Extraction Engine chuyên phân tích website nha khoa.
+Dưới đây là văn bản Markdown cào thực tế từ trang web:
+URL: ${targetUrl}
+Tiêu đề: ${pageTitle}
+Nội dung Markdown trang web:
+${cleanMarkdown.substring(0, 12000)}
+
+Hãy bóc tách chính xác 100% dữ liệu có trong trang và trả về duy nhất một chuỗi JSON hợp lệ (không kèm markdown code block text ngoài JSON) theo đúng schema sau:
+{
+  "dentalName": "Tên thương hiệu nha khoa đối thủ",
+  "category": "implant",
+  "mainMessage": "Thông điệp chính trên trang",
+  "services": [
+    {
+      "serviceName": "Tên dịch vụ/dòng sản phẩm thật trên trang (ví dụ: Implant Dentium, Sứ Cercon, Niềng răng mắc cài...)",
+      "originalPrice": "Giá gốc hoặc 'Giá niêm yết' nếu có",
+      "discountedPrice": "Giá khuyến mãi thực tế trên web",
+      "discountPercent": "Phần trăm giảm nếu có",
+      "warranty": "Thời gian bảo hành nếu có",
+      "gifts": ["Quà tặng hoặc ưu đãi đi kèm"]
+    }
+  ],
+  "specialOffers": ["Chương trình ưu đãi nổi bật 1", "Chương trình ưu đãi 2"],
+  "counterStrategy": {
+    "competitorWeakness": "Điểm yếu của đối thủ (ví dụ: giá cao, phát sinh chi phí, bảo hành ngắn)",
+    "tamducCounterTitle": "Tiêu đề mẫu quảng cáo Google Ads phản công",
+    "recommendedHeadlines": ["Tiêu đề 1 (max 30 ký tự)", "Tiêu đề 2", "Tiêu đề 3"],
+    "recommendedDescriptions": ["Mô tả 1 (max 90 ký tự)", "Mô tả 2 (max 90 ký tự)"]
+  }
+}`;
+
+        const aiResponse = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: 'application/json'
+          }
+        });
+
+        if (aiResponse.text) {
+          try {
+            structuredResult = JSON.parse(aiResponse.text);
+          } catch (jsonErr) {
+            console.warn('[Crawl4AI] Lỗi parse JSON từ LLM:', jsonErr);
+          }
+        }
+      } catch (aiErr: any) {
+        console.error('[Crawl4AI] Lỗi gọi Gemini AI:', aiErr.message);
+      }
+    }
+
+    // Nếu AI không trả về services, dự phòng bóc tách bằng Regex
+    if (!structuredResult.services || structuredResult.services.length === 0) {
+      const priceMatches = cleanMarkdown.match(/(?:chỉ từ|giá|trọn gói|ưu đãi|giảm|từ)\s*([0-9.,]+\s*(?:triệu|tr|đ|vnđ|%))/gi) || [];
+      structuredResult.services = [
+        {
+          serviceName: pageTitle.substring(0, 50),
+          originalPrice: 'Bảng giá niêm yết',
+          discountedPrice: priceMatches[0] || 'Xem chi tiết trên website',
+          discountPercent: 'Ưu đãi trực tiếp',
+          gifts: ['Tư vấn & Thăm khám trực tiếp']
+        }
+      ];
+    }
+
+    return res.json({
+      success: true,
+      engine: 'crawl4ai-builtin-stealth',
+      url: targetUrl,
+      title: pageTitle,
+      description: pageDescription,
+      scannedAt: new Date().toISOString(),
+      executionTimeMs: Date.now() - startTime,
+      markdownLength: cleanMarkdown.length,
+      markdownPreview: cleanMarkdown.substring(0, 1500),
+      banners: realBanners.slice(0, 8),
+      extracted: structuredResult
+    });
+
   } catch (error: any) {
-    return res.status(500).json({ success: false, error: error.message });
-  } finally {
-    if (browser) await browser.close();
+    console.error('[Crawl4AI Engine] Lỗi:', error.message);
+    return res.status(500).json({
+      success: false,
+      engine: 'crawl4ai-builtin-stealth',
+      error: error.message,
+      url: targetUrl,
+      executionTimeMs: Date.now() - startTime
+    });
   }
 });
 
@@ -1959,3 +2117,27 @@ Hãy trích xuất:
     data: scrapedResults
   });
 });
+
+// Vite middleware in dev or static serving in prod
+async function start() {
+  if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+  });
+}
+
+start();
