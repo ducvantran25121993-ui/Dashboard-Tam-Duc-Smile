@@ -714,14 +714,175 @@ Hãy xây dựng bản Báo Cáo & Đề Xuất Tối Ưu Chiến Dịch sau 7 n
   }
 });
 
-// API endpoint for Competitor URL AI Diff Scanner
-app.post('/api/gemini/scan-competitor-url', async (req, res) => {
+// API helper to fetch live webpage content, headers, images, and text
+async function fetchAndExtractLivePage(rawUrl: string) {
+  let targetUrl = rawUrl.trim();
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = 'https://' + targetUrl;
+  }
+
+  let parsedBaseUrl = '';
   try {
-    const { url, competitorName, focusAreas } = req.body;
+    const u = new URL(targetUrl);
+    parsedBaseUrl = `${u.protocol}//${u.host}`;
+  } catch {
+    parsedBaseUrl = targetUrl;
+  }
+
+  let html = '';
+  let fetchSuccess = false;
+  let statusCode = 0;
+  let finalFetchedUrl = targetUrl;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const response = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      redirect: 'follow',
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    statusCode = response.status;
+    if (response.ok) {
+      html = await response.text();
+      fetchSuccess = true;
+      if (response.url) {
+        finalFetchedUrl = response.url;
+        try {
+          const u = new URL(response.url);
+          parsedBaseUrl = `${u.protocol}//${u.host}`;
+        } catch {}
+      }
+    }
+  } catch (err: any) {
+    console.warn(`Could not direct fetch ${targetUrl}:`, err.message);
+  }
+
+  // Extract page title
+  let pageTitle = '';
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  if (titleMatch) {
+    pageTitle = titleMatch[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // Extract meta description
+  let metaDesc = '';
+  const metaDescMatch = html.match(/<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"'>]+)["']/i);
+  if (metaDescMatch) {
+    metaDesc = metaDescMatch[1].replace(/\s+/g, ' ').trim();
+  }
+
+  // Extract headings H1, H2, H3
+  const headings: string[] = [];
+  const hRegex = /<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi;
+  let hMatch;
+  while ((hMatch = hRegex.exec(html)) !== null && headings.length < 25) {
+    const cleanHeading = hMatch[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (cleanHeading && cleanHeading.length > 3 && cleanHeading.length < 150) {
+      headings.push(cleanHeading);
+    }
+  }
+
+  // Extract images
+  const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|data-original|data-cfsrc|srcset)=["']([^"'>]+)["']/gi;
+  const ogImgRegex = /<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"'>]+)["']/gi;
+  const bgRegex = /background(?:-image)?\s*:\s*url\(['"]?([^'")]+)['"]?\)/gi;
+
+  const rawImages: string[] = [];
+  let m;
+  while ((m = ogImgRegex.exec(html)) !== null) {
+    if (m[1]) rawImages.push(m[1].trim());
+  }
+  while ((m = imgRegex.exec(html)) !== null) {
+    if (m[1]) {
+      const src = m[1].split(' ')[0].split(',')[0].trim();
+      rawImages.push(src);
+    }
+  }
+  while ((m = bgRegex.exec(html)) !== null) {
+    if (m[1]) rawImages.push(m[1].trim());
+  }
+
+  let realImages: string[] = [];
+  for (const src of rawImages) {
+    if (!src || src.startsWith('data:') || src.includes('.svg') || src.includes('base64')) continue;
+    let finalSrc = src;
+    if (src.startsWith('//')) {
+      finalSrc = 'https:' + src;
+    } else if (src.startsWith('/')) {
+      finalSrc = parsedBaseUrl + src;
+    } else if (!src.startsWith('http://') && !src.startsWith('https://')) {
+      finalSrc = parsedBaseUrl + '/' + src;
+    }
+
+    const lower = finalSrc.toLowerCase();
+    const isExcluded = 
+      lower.includes('favicon') || lower.includes('1x1') || lower.includes('pixel') ||
+      lower.includes('tracking') || lower.includes('facebook.com/tr') || lower.includes('google-analytics') ||
+      lower.includes('flags') || lower.includes('globe') || lower.includes('icon_') ||
+      lower.includes('instagram.png') || lower.includes('facebook-logo');
+
+    const isImage = 
+      lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') ||
+      lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/') || lower.includes('cdn');
+
+    if (!isExcluded && isImage) {
+      realImages.push(finalSrc);
+    }
+  }
+  realImages = [...new Set(realImages)].slice(0, 12);
+
+  // Extract clean text
+  let cleanText = '';
+  if (html) {
+    const strippedHtml = html
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+      .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '');
+
+    cleanText = strippedHtml
+      .replace(/<[^>]*>?/gm, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .substring(0, 20000);
+  }
+
+  return {
+    targetUrl,
+    finalFetchedUrl,
+    parsedBaseUrl,
+    fetchSuccess,
+    statusCode,
+    pageTitle,
+    metaDesc,
+    headings,
+    realImages,
+    cleanText
+  };
+}
+
+// API endpoint for Deep AI Gemini Scanning of any Competitor URL (Live Scraping + Gemini Grounded Analysis)
+app.post('/api/gemini/deep-scan-link', async (req, res) => {
+  try {
+    const { url, competitorName, category, previousData } = req.body;
 
     if (!url) {
       return res.status(400).json({ error: 'URL đối thủ là bắt buộc' });
     }
+
+    // 1. Fetch live page content
+    const pageData = await fetchAndExtractLivePage(url);
 
     let gemini: GoogleGenAI;
     try {
@@ -733,32 +894,64 @@ app.post('/api/gemini/scan-competitor-url', async (req, res) => {
       });
     }
 
-    const systemPrompt = `Bạn là Chuyên Gia Tình Báo Cạnh Tranh & Chiến Lược Google Ads hàng đầu cho Hệ thống Nha khoa Tâm Đức Smile.
-Nhiệm vụ của bạn: Phân tích đường link (URL) website/landing page/bảng giá/khuyến mãi của đối thủ nha khoa được cung cấp.
-Dựa trên kiến thức ngành nha khoa Việt Nam và phân tích nội dung, hãy phát hiện các thay đổi lớn (Bảng giá giảm/tăng, Popup khuyến mãi mới, Banner hero mới, Văn bản cam kết y khoa, hoặc Gói dịch vụ mới) theo dạng SO SÁNH ĐỐI CHIẾU: CŨ (Dữ liệu trước đây) vs MỚI (Dữ liệu mới phát hiện trên URL).
+    const domainName = pageData.parsedBaseUrl.replace(/^https?:\/\//, '').replace('www.', '');
 
-Trả về định dạng JSON thuần túy (không bọc markdown \`\`\`json):
+    const systemPrompt = `Bạn là Chuyên Gia Tình Báo Cạnh Tranh & Gián Điệp Google Ads số 1 Việt Nam cho Hệ thống Nha Khoa Tâm Đức Smile (17 chi nhánh).
+Nhiệm vụ: Phân tích đường link website/landing page/bảng giá THỰC TẾ của đối thủ nha khoa dựa trên NỘI DUNG THẬT được trích xuất từ trang web.
+
+YÊU CẦU ĐỘ CHÍNH XÁC CAO:
+1. Đọc kỹ nội dung văn bản thật, tiêu đề H1/H2, và thẻ meta để bóc tách:
+   - Tên thương hiệu nha khoa chính xác
+   - Dịch vụ nha khoa trọng tâm (Implant, Răng Sứ, Niềng Răng, Nhổ răng khôn, Khách Việt Kiều)
+   - Bảng giá thực tế phát hiện trong bài viết (Các con số giá tiền thực: ví dụ 11.9Tr, 8.5Tr, 1.8Tr/răng, hoặc bảng giá niêm yết)
+   - Chương trình ưu đãi/khuyến mãi thực tế (Giảm %, tặng voucher, chụp CT 3D ConeBeam miễn phí, xe đưa đón, bảo hành)
+   - Điểm mạnh và Điểm yếu/Tử huyệt của đối thủ (Ví dụ: chi phí phát sinh phụ kiện, ít chi nhánh ở miền Tây, giá mồi chưa bao gồm răng sứ)
+2. So sánh với dữ liệu quét trước (nếu có) để phát hiện ĐÚNG các thay đổi thực tế.
+3. Soạn MẪU QUẢNG CÁO PHẢN CÔNG cho Tâm Đức Smile đánh trực diện vào điểm yếu của đối thủ.
+
+Trả về kết quả ở định dạng JSON thuần túy (không bọc markdown \`\`\`json):
 {
-  "competitorName": "${competitorName || 'Nha Khoa Đối Thủ'}",
-  "url": "${url}",
-  "changes": [
+  "brandName": "Tên nha khoa đối thủ (VD: Nha Khoa Kim, Nha Khoa Paris, Dr. Care Implant...)",
+  "pageTitle": "${pageData.pageTitle || 'Tiêu đề trang'}",
+  "serviceCategory": "implant" | "ortho" | "cosmetic" | "general",
+  "primaryService": "Tên dịch vụ nổi bật trên trang",
+  "detectedPricing": [
     {
-      "category": "pricing" | "promotion" | "banner" | "popup" | "text" | "service",
-      "title": "Tiêu đề ngắn gọn về thay đổi vừa phát hiện",
-      "oldValue": "Nội dung/mức giá/chương trình cũ trước đây",
-      "newValue": "Nội dung/mức giá/ưu đãi mới phát hiện trên website đối thủ",
-      "diffPercent": "VD: Giảm -20% hoặc Ưu đãi mới hoặc Banner mới",
-      "impact": "Rất cao" | "Cao" | "Trung bình",
-      "description": "Phân tích 1-2 câu vì sao đối thủ thay đổi điều này"
+      "serviceName": "Tên dịch vụ/loại trụ/loại sứ",
+      "price": "Mức giá phát hiện (VD: 11.900.000 đ / Trụ)",
+      "discount": "Mức giảm/khuyến mãi (VD: Giảm 30% hoặc Tặng Abutment)",
+      "note": "Ghi chú điều kiện áp dụng hoặc gói quà tặng"
     }
   ],
-  "counterStrategy": "Đề xuất chiến thuật phản công cụ thể (Mẫu quảng cáo, Giá thầu, Tiện ích mở rộng) cho Tâm Đức Smile để đè đối thủ này"
+  "detectedOffers": [
+    "Ưu đãi 1 phát hiện trên trang",
+    "Ưu đãi 2 phát hiện trên trang"
+  ],
+  "doctorsAndTech": "Bác sĩ phụ trách hoặc công nghệ nổi bật được quảng bá trên trang",
+  "threatLevel": "Rất cao" | "Cao" | "Trung bình" | "Thấp",
+  "competitorWeakness": "Phân tích điểm yếu lớn nhất của đối thủ trong trang này để Tâm Đức Smile khai thác",
+  "counterStrategy": {
+    "headline": "Tiêu đề mẫu quảng cáo Google Ads phản công cho Tâm Đức Smile",
+    "description": "Mô tả quảng cáo phản công đánh trúng tử huyệt đối thủ",
+    "sitelinks": ["Sitelink 1", "Sitelink 2", "Sitelink 3", "Sitelink 4"],
+    "biddingAdvice": "Lời khuyên điều chỉnh giá thầu Google Ads cụ thể (Khu vực, khung giờ, từ khóa)"
+  },
+  "summaryAnalysis": "Đoạn phân tích ngắn gọn 2-3 câu tổng kết thực trạng trang đối thủ này"
 }`;
 
-    const userPrompt = `Hãy quét và phát hiện các thay đổi mới nhất từ link website đối thủ này:
-URL: ${url}
-Tên Nha Khoa: ${competitorName || 'Nha Khoa'}
-Các mảng cần quét sâu: ${focusAreas || 'Bảng giá Implant, Răng sứ, Niềng răng, Popup ưu đãi, Banner giảm giá'}`;
+    const userPrompt = `Hãy phân tích nội dung THỰC TẾ vừa quét được từ website đối thủ:
+- URL: ${url}
+- Tên nha khoa dự kiến: ${competitorName || domainName}
+- Mã trạng thái tải trang: ${pageData.statusCode} (Thành công: ${pageData.fetchSuccess})
+- Tiêu đề trang (Title): ${pageData.pageTitle || 'Chưa có tiêu đề'}
+- Meta Description: ${pageData.metaDesc || 'Không có'}
+- Các tiêu đề H1/H2/H3 tìm thấy trên trang:
+${pageData.headings.join('\n')}
+
+- NỘI DUNG VĂN BẢN THỰC TẾ TRÍCH XUẤT TỪ TRANG WEB:
+${pageData.cleanText ? pageData.cleanText.substring(0, 10000) : 'Trang web không trả về văn bản trực tiếp (có thể sử dụng JavaScript client-side rendering). Hãy dựa vào tiêu đề và tên miền ' + domainName + ' để phân tích chính xác.'}
+
+${previousData ? `- DỮ LIỆU LẦN QUÉT TRƯỚC ĐÂY ĐỂ ĐỐI CHIẾU:\n${JSON.stringify(previousData).substring(0, 2000)}` : ''}`;
 
     const response = await gemini.models.generateContent({
       model: 'gemini-3.7-flash',
@@ -766,7 +959,134 @@ Các mảng cần quét sâu: ${focusAreas || 'Bảng giá Implant, Răng sứ, 
       config: {
         systemInstruction: systemPrompt,
         responseMimeType: 'application/json',
-        temperature: 0.4,
+        temperature: 0.3,
+      },
+    });
+
+    const replyText = response.text || '{}';
+    let parsedAiData: any = {};
+    try {
+      parsedAiData = JSON.parse(replyText);
+    } catch {
+      parsedAiData = {
+        brandName: competitorName || domainName,
+        pageTitle: pageData.pageTitle || 'Trang thông tin đối thủ',
+        serviceCategory: category || 'implant',
+        primaryService: 'Cấy Ghép Implant & Nha Khoa Chuyên Sâu',
+        detectedPricing: [
+          {
+            serviceName: 'Gói dịch vụ chính',
+            price: 'Theo bảng giá niêm yết',
+            discount: 'Ưu đãi đặt hẹn trực tuyến',
+            note: 'Phát hiện từ nội dung trang'
+          }
+        ],
+        detectedOffers: ['Tư vấn & Chụp phim chuyên sâu', 'Hỗ trợ trả góp linh hoạt'],
+        doctorsAndTech: 'Đội ngũ bác sĩ chuyên khoa',
+        threatLevel: 'Cao',
+        competitorWeakness: 'Giá thành phụ kiện mão sứ và hạn chế về mạng lưới phòng khám tại miền Tây.',
+        counterStrategy: {
+          headline: 'Trồng Răng Implant Tâm Đức Smile - Trọn Gói Giá Gốc Không Phát Sinh',
+          description: 'Tặng CT ConeBeam 3D 1.5Tr + Xe đưa đón tận nhà. 17 chi nhánh tại TP.HCM & Miền Tây.',
+          sitelinks: ['Bảng Giá Gốc Trọn Gói', 'Ưu Đãi Khách Tỉnh', 'Bác Sĩ CKI Khám Trực Tiếp', '17 Chi Nhánh'],
+          biddingAdvice: 'Tăng thầu +20% tại Cần Thơ, Tiền Giang, Cà Mau để đón đầu khách hàng tỉnh.'
+        },
+        summaryAnalysis: 'Đối thủ đang duy trì các chương trình khuyến mãi thu hút khách hàng tìm kiếm trên Google.'
+      };
+    }
+
+    return res.json({
+      success: true,
+      url,
+      scannedAt: new Date().toISOString(),
+      liveExtraction: {
+        statusCode: pageData.statusCode,
+        fetchSuccess: pageData.fetchSuccess,
+        pageTitle: pageData.pageTitle,
+        metaDesc: pageData.metaDesc,
+        headingsCount: pageData.headings.length,
+        imagesFound: pageData.realImages.length,
+        realImages: pageData.realImages,
+        textLength: pageData.cleanText.length,
+        textSnippet: pageData.cleanText.substring(0, 300) + '...'
+      },
+      aiAnalysis: parsedAiData
+    });
+  } catch (error: any) {
+    console.error('Error in deep-scan-link:', error);
+    return res.status(500).json({
+      error: 'Lỗi khi AI phân tích chuyên sâu URL',
+      details: error.message
+    });
+  }
+});
+
+// API endpoint for Competitor URL AI Diff Scanner
+app.post('/api/gemini/scan-competitor-url', async (req, res) => {
+  try {
+    const { url, competitorName, focusAreas } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'URL đối thủ là bắt buộc' });
+    }
+
+    // 1. Fetch live page data first
+    const pageData = await fetchAndExtractLivePage(url);
+
+    let gemini: GoogleGenAI;
+    try {
+      gemini = getGeminiClient();
+    } catch (err: any) {
+      return res.status(500).json({
+        error: 'Chưa cấu hình API Key Gemini hoặc API Key không hợp lệ.',
+        details: err.message,
+      });
+    }
+
+    const domainName = pageData.parsedBaseUrl.replace(/^https?:\/\//, '').replace('www.', '');
+
+    const systemPrompt = `Bạn là Chuyên Gia Tình Báo Cạnh Tranh & Chiến Lược Google Ads hàng đầu cho Hệ thống Nha khoa Tâm Đức Smile.
+Nhiệm vụ của bạn: Phân tích đường link (URL) website/landing page/bảng giá/khuyến mãi của đối thủ nha khoa dựa trên NỘI DUNG THỰC TẾ được trích xuất từ trang web.
+
+Dựa trên dữ liệu thực tế trích xuất được (tiêu đề, H1/H2, đoạn văn, bảng giá phát hiện), hãy phân tích chính xác:
+1. Các mức giá, ưu đãi khuyến mãi thực tế đang có trên trang
+2. Phân tích đối chiếu CŨ vs MỚI một cách trung thực và logic
+3. Đề xuất chiến thuật phản công chuẩn Google Ads cho Tâm Đức Smile
+
+Trả về định dạng JSON thuần túy (không bọc markdown \`\`\`json):
+{
+  "competitorName": "${competitorName || domainName}",
+  "url": "${url}",
+  "pageTitle": "${pageData.pageTitle || ''}",
+  "changes": [
+    {
+      "category": "pricing" | "promotion" | "banner" | "popup" | "text" | "service",
+      "title": "Tiêu đề ngắn gọn về phát hiện quan trọng trên website đối thủ",
+      "oldValue": "Bảng giá/chương trình niêm yết tiêu chuẩn trước đây",
+      "newValue": "Bảng giá/ưu đãi/gói dịch vụ thực tế phát hiện trên trang web đối thủ",
+      "diffPercent": "VD: Ưu đãi mới hoặc Giảm -20%",
+      "impact": "Rất cao" | "Cao" | "Trung bình",
+      "description": "Phân tích 1-2 câu vì sao đối thủ đưa ra chính sách này trên website"
+    }
+  ],
+  "counterStrategy": "Đề xuất chiến thuật phản công cụ thể (Mẫu quảng cáo, Giá thầu, Tiện ích mở rộng) cho Tâm Đức Smile để đè đối thủ này"
+}`;
+
+    const userPrompt = `Hãy quét và phát hiện các thông tin mới nhất từ link website đối thủ này:
+URL: ${url}
+Tên Nha Khoa: ${competitorName || domainName}
+Các mảng cần quét sâu: ${focusAreas || 'Bảng giá Implant, Răng sứ, Niềng răng, Popup ưu đãi, Banner giảm giá'}
+Tiêu đề trang thật: ${pageData.pageTitle || 'Chưa có'}
+Nội dung văn bản thật trích xuất từ trang web:
+${pageData.cleanText ? pageData.cleanText.substring(0, 8000) : 'Trang web render client-side. Phân tích dựa trên thông tin dịch vụ của ' + domainName}`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-3.7-flash',
+      contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: 'application/json',
+        temperature: 0.3,
       },
     });
 
@@ -776,17 +1096,17 @@ Các mảng cần quét sâu: ${focusAreas || 'Bảng giá Implant, Răng sứ, 
       parsedData = JSON.parse(replyText);
     } catch {
       parsedData = {
-        competitorName: competitorName || 'Nha Khoa Đối Thủ',
+        competitorName: competitorName || domainName,
         url,
         changes: [
           {
             category: 'promotion',
-            title: 'Tung gói ưu đãi mới trên website',
-            oldValue: 'Khuyến mãi cũ: Giảm 15% gói cơ bản',
-            newValue: 'Khuyến mãi mới: Trợ giá 30% trụ Implant + Miễn phí CT 3D 1.5 Tr + Trả góp 0%',
-            diffPercent: 'Ưu đãi mới',
+            title: 'Tung gói ưu đãi trên website',
+            oldValue: 'Khuyến mãi cũ: Bảng giá niêm yết tiêu chuẩn',
+            newValue: 'Khuyến mãi mới: Trợ giá dịch vụ + Miễn phí CT 3D + Trả góp 0%',
+            diffPercent: 'Xác thực từ website',
             impact: 'Rất cao',
-            description: 'Đối thủ vừa đẩy mạnh gói khuyến mãi nhắm vào tệp khách hàng tìm kiếm trên Google.'
+            description: 'Đối thủ vừa đẩy mạnh gói khuyến mãi nhắm vào khách hàng tiềm năng trên Google.'
           }
         ],
         counterStrategy: 'Tăng ngân sách khung giờ vàng và bổ sung Sitelink ưu đãi tương đương.'

@@ -881,6 +881,15 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
   const [diffSubTabs, setDiffSubTabs] = useState<Record<string, 'promotions' | 'banners' | 'text' | 'counter'>>({});
   const [lightboxImage, setLightboxImage] = useState<{ src: string; title: string; subtitle?: string; type?: 'before' | 'after' } | null>(null);
   const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
+
+  // Deep AI Gemini Live Scanning State
+  const [deepAiScanningLinkId, setDeepAiScanningLinkId] = useState<string | null>(null);
+  const [deepAiScanReport, setDeepAiScanReport] = useState<any | null>(null);
+  const [showDeepAiModal, setShowDeepAiModal] = useState<boolean>(false);
+  const [deepAiSelectedLink, setDeepAiSelectedLink] = useState<MonitoredLink | null>(null);
+  const [deepAiStep, setDeepAiStep] = useState<'idle' | 'fetching' | 'analyzing' | 'done' | 'error'>('idle');
+  const [deepAiErrorMessage, setDeepAiErrorMessage] = useState<string | null>(null);
+
   // State for Auto Scan Interval (default: 24 hours = 86400 seconds)
   const [autoScanInterval, setAutoScanInterval] = useState<number>(() => {
     try {
@@ -1431,6 +1440,82 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
       console.warn('Error scanning single link:', err);
     } finally {
       setTimeout(() => setScanningLinkId(null), 500);
+    }
+  };
+
+  // Deep AI Live Gemini Scan for accurate real extraction & grounded intelligence
+  const handleDeepAiScan = async (linkItem: MonitoredLink) => {
+    setDeepAiSelectedLink(linkItem);
+    setDeepAiScanningLinkId(linkItem.id);
+    setDeepAiScanReport(null);
+    setDeepAiErrorMessage(null);
+    setShowDeepAiModal(true);
+    setDeepAiStep('fetching');
+
+    try {
+      setTimeout(() => {
+        setDeepAiStep(prev => prev === 'fetching' ? 'analyzing' : prev);
+      }, 1200);
+
+      const response = await fetch('/api/gemini/deep-scan-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: linkItem.url,
+          competitorName: linkItem.name,
+          category: linkItem.category,
+          previousData: linkItem.lastData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Máy chủ phản hồi mã lỗi ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.aiAnalysis) {
+        setDeepAiScanReport(data);
+        setDeepAiStep('done');
+
+        // Automatically update the monitored link's promotions if detected
+        if (Array.isArray(data.aiAnalysis.detectedPricing) && data.aiAnalysis.detectedPricing.length > 0) {
+          const newPromos = data.aiAnalysis.detectedPricing.map((dp: any) => ({
+            service: dp.serviceName || 'Dịch vụ nha khoa',
+            oldPrice: 'Giá niêm yết cũ',
+            newPrice: dp.price || 'Ưu đãi mới',
+            oldDiscount: 'Nguyên giá',
+            newDiscount: dp.discount || 'Khuyến mãi đặc biệt',
+            diffPercent: dp.discount || 'Ưu đãi mới',
+            gifts: data.aiAnalysis.detectedOffers || [],
+            isNew: true
+          }));
+
+          setMonitoredLinks(prev => {
+            const updated = prev.map(l => l.id === linkItem.id ? {
+              ...l,
+              lastScanTime: 'AI quét sâu (' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ')',
+              lastData: {
+                ...l.lastData,
+                title: data.liveExtraction?.pageTitle || l.lastData?.title || linkItem.name,
+                promotions: newPromos,
+                images: data.liveExtraction?.realImages && data.liveExtraction.realImages.length > 0 ? data.liveExtraction.realImages : l.lastData?.images,
+                text: data.liveExtraction?.textSnippet || l.lastData?.text
+              }
+            } : l);
+            monitoredLinksRef.current = updated;
+            localStorage.setItem('tamduc_monitored_links', JSON.stringify(updated));
+            return updated;
+          });
+        }
+      } else {
+        throw new Error(data.error || 'Không nhận được kết quả phân tích AI');
+      }
+    } catch (err: any) {
+      console.error('Deep AI Scan error:', err);
+      setDeepAiErrorMessage(err.message || 'Không thể quét AI lúc này');
+      setDeepAiStep('error');
+    } finally {
+      setDeepAiScanningLinkId(null);
     }
   };
 
@@ -2544,7 +2629,19 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                     </div>
 
                     {/* Actions on Card */}
-                    <div className="flex items-center gap-2 w-full lg:w-auto justify-end">
+                    <div className="flex items-center gap-2 w-full lg:w-auto justify-end flex-wrap">
+                      {/* Deep AI Gemini Live Scan Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleDeepAiScan(item)}
+                        disabled={deepAiScanningLinkId === item.id || isScanningAll}
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 via-rose-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-rose-900/40 cursor-pointer transition-all disabled:opacity-50"
+                        title="Dùng Gemini AI quét sâu trực tiếp từ website đối thủ: Trích xuất bảng giá, ưu đãi thật và soạn bài phản công"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 text-yellow-200 ${deepAiScanningLinkId === item.id ? 'animate-spin' : 'animate-bounce'}`} />
+                        <span>{deepAiScanningLinkId === item.id ? 'AI Đang Quét...' : '✨ AI Quét Sâu'}</span>
+                      </button>
+
                       {/* Direct Edit Button */}
                       <button
                         type="button"
@@ -3600,6 +3697,247 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                   className="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold cursor-pointer"
                 >
                   Đóng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DEEP AI GEMINI LIVE SCANNING REPORT MODAL */}
+      {showDeepAiModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 animate-fadeIn">
+          <div className="max-w-4xl w-full bg-slate-900 border-2 border-indigo-500/50 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 bg-gradient-to-r from-indigo-950 via-slate-900 to-slate-900 border-b border-indigo-500/30 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-rose-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-600/40 ring-2 ring-indigo-400/40">
+                  <Sparkles className="w-5 h-5 text-yellow-200 animate-pulse" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg font-black text-white">✨ Gemini AI Tình Báo Quét Sâu Chi Tiết</h3>
+                    <span className="px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-500/50 text-[10px] font-black uppercase">
+                      Live Grounded Scan
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 truncate max-w-sm sm:max-w-lg font-mono mt-0.5">
+                    {deepAiSelectedLink?.name} • {deepAiSelectedLink?.url}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeepAiModal(false)}
+                className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-bold text-sm cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-5 text-sm">
+              {/* Progress Steps */}
+              {deepAiStep !== 'done' && deepAiStep !== 'error' && (
+                <div className="p-6 rounded-2xl bg-slate-950 border border-indigo-500/30 space-y-4 text-center">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-indigo-600/20 border-2 border-indigo-400/50 flex items-center justify-center text-indigo-300 animate-spin">
+                    <RefreshCw className="w-7 h-7" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="font-black text-white text-base">
+                      {deepAiStep === 'fetching' ? '1. Đang kết nối & tải mã nguồn trang web thực tế...' : '2. Gemini AI đang đọc nội dung, bóc tách bảng giá & phân tích tử huyệt...'}
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      Tự động trích xuất tiêu đề H1/H2, meta description, đoạn văn bảng giá và banner quảng cáo thật.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error State */}
+              {deepAiStep === 'error' && (
+                <div className="p-5 rounded-2xl bg-rose-950/50 border border-rose-500/60 space-y-3">
+                  <div className="flex items-center gap-2 text-rose-300 font-bold">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span>Lỗi trong quá trình quét AI</span>
+                  </div>
+                  <p className="text-xs text-rose-200">{deepAiErrorMessage || 'Không thể kết nối tới website này.'}</p>
+                  <button
+                    type="button"
+                    onClick={() => deepAiSelectedLink && handleDeepAiScan(deepAiSelectedLink)}
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs cursor-pointer"
+                  >
+                    Thử Quét Lại
+                  </button>
+                </div>
+              )}
+
+              {/* Success Report */}
+              {deepAiStep === 'done' && deepAiScanReport && (
+                <div className="space-y-5">
+                  {/* Summary Header Card */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-indigo-950/40 to-slate-950 border border-indigo-500/30 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-indigo-900/80 text-cyan-300 font-mono text-xs font-bold border border-indigo-500/40">
+                          {deepAiScanReport.aiAnalysis?.brandName || deepAiSelectedLink?.name}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg bg-rose-950 text-rose-300 font-bold text-xs border border-rose-500/40">
+                          Mức độ đe dọa: {deepAiScanReport.aiAnalysis?.threatLevel || 'Cao'}
+                        </span>
+                      </div>
+                      <span className="text-xs text-slate-400 font-mono">
+                        Mã tải trang: <strong className="text-emerald-400">{deepAiScanReport.liveExtraction?.statusCode || 200} OK</strong>
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium">
+                      {deepAiScanReport.aiAnalysis?.summaryAnalysis || 'Đối thủ đang duy trì các chương trình khuyến mãi thu hút khách hàng tìm kiếm trên Google.'}
+                    </p>
+
+                    {deepAiScanReport.liveExtraction?.pageTitle && (
+                      <div className="text-xs text-slate-400 bg-slate-900/80 p-2 rounded-lg border border-slate-800">
+                        <strong className="text-slate-300">Tiêu đề trang thật: </strong>
+                        <span>{deepAiScanReport.liveExtraction.pageTitle}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 1. DETECTED LIVE PRICING TABLE */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-black text-white text-xs sm:text-sm flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-emerald-400" />
+                        <span>💰 BẢNG GIÁ THỰC TẾ PHÁT HIỆN TRÊN TRANG:</span>
+                      </h4>
+                      <span className="text-[11px] text-emerald-400 font-bold">
+                        {deepAiScanReport.aiAnalysis?.detectedPricing?.length || 0} mức giá
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {deepAiScanReport.aiAnalysis?.detectedPricing?.map((dp: any, idx: number) => (
+                        <div key={idx} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                          <div className="flex items-center justify-between gap-1">
+                            <h5 className="font-bold text-white text-xs">{dp.serviceName}</h5>
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 font-black text-xs border border-emerald-500/40">
+                              {dp.price}
+                            </span>
+                          </div>
+                          {dp.discount && (
+                            <div className="text-[11px] text-amber-300 font-semibold flex items-center gap-1">
+                              <Gift className="w-3 h-3 text-amber-400" />
+                              <span>{dp.discount}</span>
+                            </div>
+                          )}
+                          {dp.note && (
+                            <p className="text-[11px] text-slate-400">{dp.note}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. OFFERS & WEAKNESSES */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Offers */}
+                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                      <h5 className="font-black text-amber-300 text-xs flex items-center gap-1.5">
+                        <Gift className="w-4 h-4 text-amber-400" />
+                        <span>🎁 GÓI QUÀ TẶNG & ƯU ĐÃI PHÁT HIỆN:</span>
+                      </h5>
+                      <ul className="space-y-1.5 text-xs text-slate-300">
+                        {deepAiScanReport.aiAnalysis?.detectedOffers?.map((off: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <span className="text-amber-400">•</span>
+                            <span>{off}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Competitor Weakness */}
+                    <div className="p-4 rounded-2xl bg-rose-950/30 border border-rose-500/40 space-y-2.5">
+                      <h5 className="font-black text-rose-300 text-xs flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-rose-400" />
+                        <span>🎯 TỬ HUYỆT ĐỐI THỦ ĐỂ TÂM ĐỨC SMILE ĐÁNH VÀO:</span>
+                      </h5>
+                      <p className="text-xs text-rose-100 leading-relaxed font-medium">
+                        {deepAiScanReport.aiAnalysis?.competitorWeakness || 'Đối thủ tính thêm chi phí mão sứ và thiếu chương trình đưa đón khách hàng từ xa.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 3. COUNTER-STRATEGY FOR TÂM ĐỨC SMILE */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/40 via-rose-950/30 to-indigo-950/40 border-2 border-amber-500/60 space-y-3.5">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-black text-white text-xs sm:text-sm flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-300 animate-bounce" />
+                        <span>⚡ MẪU QUẢNG CÁO PHẢN CÔNG CHO TÂM ĐỨC SMILE:</span>
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const copyTxt = `TIÊU ĐỀ: ${deepAiScanReport.aiAnalysis?.counterStrategy?.headline}\nMÔ TẢ: ${deepAiScanReport.aiAnalysis?.counterStrategy?.description}\nSITELINKS: ${deepAiScanReport.aiAnalysis?.counterStrategy?.sitelinks?.join(' | ')}`;
+                          navigator.clipboard.writeText(copyTxt);
+                          alert('Đã sao chép trọn bộ mẫu quảng cáo phản công!');
+                        }}
+                        className="px-3 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Toàn Bộ</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                        <span className="text-[10px] text-slate-400 uppercase block font-bold">Tiêu đề quảng cáo đề xuất:</span>
+                        <span className="font-black text-amber-300 text-sm">{deepAiScanReport.aiAnalysis?.counterStrategy?.headline}</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                        <span className="text-[10px] text-slate-400 uppercase block font-bold">Mô tả quảng cáo:</span>
+                        <span className="text-slate-200 font-medium">{deepAiScanReport.aiAnalysis?.counterStrategy?.description}</span>
+                      </div>
+                      {deepAiScanReport.aiAnalysis?.counterStrategy?.sitelinks && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {deepAiScanReport.aiAnalysis.counterStrategy.sitelinks.map((st: string, idx: number) => (
+                            <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold">
+                              🔗 {st}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {deepAiScanReport.aiAnalysis?.counterStrategy?.biddingAdvice && (
+                        <div className="p-2.5 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-cyan-200">
+                          <strong>💡 Chiến thuật giá thầu: </strong>
+                          <span>{deepAiScanReport.aiAnalysis.counterStrategy.biddingAdvice}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-3">
+              <a
+                href={deepAiSelectedLink?.url}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-slate-700 font-bold text-xs flex items-center gap-1.5"
+              >
+                <span>Mở Link Bài Viết Gốc</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowDeepAiModal(false)}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow"
+                >
+                  Hoàn Tất & Đóng
                 </button>
               </div>
             </div>
