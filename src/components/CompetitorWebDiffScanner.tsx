@@ -45,7 +45,6 @@ import {
   MonitorPlay
 } from 'lucide-react';
 import { GoogleAdsTransparencyCenter } from './GoogleAdsTransparencyCenter';
-import { CompetitorLinkMonitorScanner } from './CompetitorLinkMonitorScanner';
 import { CompetitorDiffItem, INITIAL_COMPETITOR_DIFFS } from '../data/competitorDiffs';
 
 // Verified Top Dental Chains on Google Ads in Vietnam
@@ -1067,8 +1066,7 @@ export const CompetitorWebDiffScanner: React.FC = () => {
   // Modes: 
   // 1. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
   // 2. 'auto_radar': AI Săn Tìm & Tự Động Phân Tích Quảng Cáo
-  // 3. 'url_scanner': Dán Link Web Đối Chiếu CŨ vs MỚI
-  const [activeMode, setActiveMode] = useState<'google_transparency' | 'auto_radar' | 'url_scanner'>('url_scanner');
+  const [activeMode, setActiveMode] = useState<'google_transparency' | 'auto_radar'>('google_transparency');
 
   // Google Transparency Center State
   const [customDomainInput, setCustomDomainInput] = useState<string>('');
@@ -1311,20 +1309,6 @@ export const CompetitorWebDiffScanner: React.FC = () => {
           >
             <ShieldCheck className="w-4 h-4 text-emerald-300" />
             <span>GOOGLE ADS TRANSPARENCY CENTER</span>
-          </button>
-
-          {/* TAB 2: URL DEEP SCANNER & MONITORED LINKS */}
-          <button
-            type="button"
-            onClick={() => setActiveMode('url_scanner')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
-              activeMode === 'url_scanner'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-indigo-400/50'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <Globe className="w-4 h-4 text-indigo-300" />
-            <span>THEO DÕI ĐỐI THỦ (AUTO)</span>
           </button>
         </div>
 

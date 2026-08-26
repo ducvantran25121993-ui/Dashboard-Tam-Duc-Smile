@@ -2679,18 +2679,6 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
 
                     {/* Actions on Card */}
                     <div className="flex items-center gap-2 w-full lg:w-auto justify-end flex-wrap">
-                      {/* Deep AI Gemini Live Scan Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDeepAiScan(item)}
-                        disabled={deepAiScanningLinkId === item.id || isScanningAll}
-                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 via-rose-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-rose-900/40 cursor-pointer transition-all disabled:opacity-50"
-                        title="Dùng Gemini AI quét sâu trực tiếp từ website đối thủ: Trích xuất bảng giá, ưu đãi thật và soạn bài phản công"
-                      >
-                        <Sparkles className={`w-3.5 h-3.5 text-yellow-200 ${deepAiScanningLinkId === item.id ? 'animate-spin' : 'animate-bounce'}`} />
-                        <span>{deepAiScanningLinkId === item.id ? 'AI Đang Quét...' : '✨ AI Quét Sâu'}</span>
-                      </button>
-
                       {/* Direct Edit Button */}
                       <button
                         type="button"
