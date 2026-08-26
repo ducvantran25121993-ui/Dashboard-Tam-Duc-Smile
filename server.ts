@@ -1808,3 +1808,154 @@ app.get('/api/scrape-competitors', async (req, res) => {
     if (browser) await browser.close();
   }
 });
+
+// API cào dữ liệu website đối thủ (Real-time Live Fetch & AI Extract 100% dữ liệu thực tế)
+app.get('/api/scrape-competitors', async (req, res) => {
+  const COMPETITOR_TARGETS = [
+    { id: 'kim', name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html' },
+    { id: 'paris', name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html' },
+    { id: 'drcare', name: 'Dr. Care Implant', url: 'https://drcareimplant.com/bang-gia-trong-rang-implant-tai-nha-khoa-dr-care-13' }
+  ];
+
+  const scrapedResults: any[] = [];
+
+  for (const comp of COMPETITOR_TARGETS) {
+    try {
+      const response = await fetch(comp.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7'
+        },
+        signal: AbortSignal.timeout(15000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+      }
+
+      const html = await response.text();
+
+      // 1. Trích xuất Tiêu đề trang thực tế (<title>)
+      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+      const pageTitle = titleMatch ? titleMatch[1].trim() : comp.name;
+
+      // 2. Trích xuất tất cả Banner & Hình ảnh thực tế từ mã nguồn HTML
+      const parsedBaseUrl = new URL(comp.url).origin;
+      const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|srcset)=["']([^"'>\s]+)["']/gi;
+      let match;
+      const rawImages: string[] = [];
+      while ((match = imgRegex.exec(html)) !== null) {
+        if (match[1]) {
+          const rawSrc = match[1].split(' ')[0].split(',')[0].trim();
+          rawImages.push(rawSrc);
+        }
+      }
+
+      // Chuẩn hóa và lọc URL hình ảnh thật của đối thủ
+      const realBanners: string[] = [];
+      for (const src of rawImages) {
+        if (!src || src.startsWith('data:') || src.includes('.svg') || src.includes('base64')) continue;
+        let finalUrl = src;
+        if (src.startsWith('//')) {
+          finalUrl = 'https:' + src;
+        } else if (src.startsWith('/')) {
+          finalUrl = parsedBaseUrl + src;
+        } else if (!src.startsWith('http://') && !src.startsWith('https://')) {
+          finalUrl = parsedBaseUrl + '/' + src;
+        }
+
+        const lower = finalUrl.toLowerCase();
+        const isExcluded = 
+          lower.includes('favicon') || lower.includes('pixel') || lower.includes('tracking') ||
+          lower.includes('facebook.com') || lower.includes('analytics') || lower.includes('1x1') ||
+          lower.includes('icon') || lower.includes('logo');
+
+        const isBannerOrPhoto = (
+          lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') ||
+          lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/') || lower.includes('/media/')
+        );
+
+        if (!isExcluded && isBannerOrPhoto && !realBanners.includes(finalUrl)) {
+          realBanners.push(finalUrl);
+        }
+      }
+
+      // 3. Bóc tách toàn bộ nội dung văn bản sạch thực tế
+      const cleanHtml = html
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<noscript\b[^<]*(?:(?!<\/noscript>)<[^<]*)*<\/noscript>/gi, '');
+
+      const cleanText = cleanHtml
+        .replace(/<[^>]*>?/gm, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // 4. Trích xuất chính xác các con số giá tiền & mức giảm giá có trong trang
+      const priceMatches = [...new Set(cleanText.match(/(?:chỉ từ|giá|trọn gói|ưu đãi|giảm|từ)\s*([0-9.,]+\s*(?:triệu|tr|đ|vnđ|%))/gi) || [])];
+      const discountMatches = [...new Set(cleanText.match(/(?:giảm|chiết khấu|sale|off)\s*([0-9]+%|[0-9.,]+\s*(?:triệu|tr|đ))/gi) || [])];
+
+      // 5. Nếu có cấu hình Gemini API, dùng AI phân tích cấu trúc bảng giá và chiến lược phản công
+      let aiStrategicAnalysis: any = null;
+      if (process.env.GEMINI_API_KEY) {
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const aiPrompt = `Phân tích dữ liệu thực tế cào được từ trang web đối thủ:
+Tên đối thủ: ${comp.name}
+Tiêu đề web: ${pageTitle}
+URL: ${comp.url}
+Nội dung văn bản thật trên web:
+${cleanText.substring(0, 7000)}
+
+Hãy trích xuất:
+1. Bảng giá dịch vụ chính (Tên dịch vụ, Giá gốc, Giá khuyến mãi nếu có)
+2. Chương trình ưu đãi nổi bật
+3. Đề xuất thông điệp Google Ads phản công cho Nha Khoa Tâm Đức Smile.`;
+
+          const aiResp = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: aiPrompt,
+          });
+          aiStrategicAnalysis = aiResp.text;
+        } catch (e: any) {
+          console.error('Lỗi phân tích Gemini:', e.message);
+        }
+      }
+
+      scrapedResults.push({
+        competitorId: comp.id,
+        name: comp.name,
+        url: comp.url,
+        title: pageTitle,
+        banners: realBanners.slice(0, 6),
+        detectedPrices: priceMatches.slice(0, 8),
+        detectedDiscounts: discountMatches.slice(0, 5),
+        aiAnalysis: aiStrategicAnalysis,
+        rawTextSnippet: cleanText.substring(0, 400) + '...',
+        scannedAt: new Date().toISOString(),
+        status: 'success'
+      });
+    } catch (err: any) {
+      console.error(`Lỗi cào ${comp.name}:`, err.message);
+      scrapedResults.push({
+        competitorId: comp.id,
+        name: comp.name,
+        url: comp.url,
+        status: 'error',
+        error: err.message,
+        scannedAt: new Date().toISOString()
+      });
+    }
+  }
+
+  return res.json({
+    success: true,
+    totalScanned: scrapedResults.length,
+    timestamp: new Date().toISOString(),
+    data: scrapedResults
+  });
+});
