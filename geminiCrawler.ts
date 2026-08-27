@@ -55,19 +55,18 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
   banners: string[];
   engine: string;
 }> {
-  // Ưu tiên dùng đường link ngrok của bạn chạy hôm nay, nếu không có mới tìm biến môi trường
+  // Tự động dùng đường link ngrok đang online của máy bạn, nếu không có mới tìm biến môi trường
   const ngrokEndpoint = (customNgrokUrl || "https://ngrok-free.dev").trim();
   
-  // 1. GỬI YÊU CẦU TỚI MÁY CHỦ CRAWL4AI CỦA BẠN (ĐÃ KHỬ CACHE VÀ CHẤP NHẬN NGROK LINK)
+  // 1. GỬI YÊU CẦU TỚI MÁY CHỦ CRAWL4AI CỦA BẠN (ĐÃ KHỬ CACHE VÀ BỎ QUA CHẶN LINK)
   if (ngrokEndpoint && !ngrokEndpoint.includes('placeholder')) {
     try {
       const baseUrl = ngrokEndpoint.replace(/\/+$/, '');
-      // Sửa endpoint cho khớp với file main.py của bạn là /api/crawl thay vì /crawl
       const fullNgrokUrl = `${baseUrl}/api/crawl?url=${encodeURIComponent(targetUrl)}`;
       console.log(`[geminiCrawler] Đang gửi yêu cầu tới ngrok Crawl4AI: ${fullNgrokUrl}`);
       
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 45000); // Tăng thời gian chờ lên 45s cho cào nâng cao
+      const timeout = setTimeout(() => controller.abort(), 45000); // Đợi 45s cho cào nâng cao tải xong trang
       
       const res = await fetch(fullNgrokUrl, {
         method: 'GET',
@@ -75,14 +74,13 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
           'Accept': 'application/json',
           'ngrok-skip-browser-warning': '69420'
         },
-        cache: 'no-store', // ◄ ÉP VERCEL LUÔN GỌI MỚI DỮ LIỆU THỰC TẾ KHÔNG LƯU CACHE
+        cache: 'no-store', // ◄ ÉP VERCEL KHÔNG LƯU CACHE CŨ, LUÔN LẤY GIÁ THỰC TẾ
         signal: controller.signal
       });
       clearTimeout(timeout);
 
       if (res.ok) {
         const data = await res.json();
-        // Kiểm tra đúng key "markdown" trả về từ file main.py của bạn
         if (data && (data.markdown || data.text || data.html)) {
           return {
             markdown: data.markdown || data.text || '',
@@ -111,7 +109,7 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
 
     let resp = await fetch(targetUrl, { 
       headers: fetchHeaders,
-      cache: 'no-store', // Khử luôn cache ở bộ dự phòng
+      cache: 'no-store',
       signal: controller.signal
     });
     clearTimeout(fetchTimeout);
@@ -193,7 +191,7 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
 }
 
 /**
- * Xử lý yêu cầu Cào & Phân Tích dữ liệu Nha Khoa Đối Thủ qua Gemini 3.6 Flash
+ * Xử lý yêu cầu Cào & Phân Tích dữ liệu Nha Khoa Đối Thủ qua Gemini 2.5 Flash
  */
 async function handleDashboardChat(userPromptOrUrl: string, customNgrokUrl?: string): Promise<CrawlChatResult> {
   const input = userPromptOrUrl.trim();
@@ -214,9 +212,9 @@ async function handleDashboardChat(userPromptOrUrl: string, customNgrokUrl?: str
 
   // 2. Gửi dữ liệu sạch về cho Gemini phân tích chuyên sâu
   const modelsToTry = [
-    'gemini-2.5-flash', // Đổi về các dòng mô hình chạy ổn định trên AI Studio
-    'gemini-1.5-pro',
-    'gemini-1.5-flash'
+    'models/gemini-2.5-flash',
+    'models/gemini-1.5-pro',
+    'models/gemini-1.5-flash'
   ];
 
   const systemInstruction = `Bạn là Chuyên gia Tình Báo Giá & Phân Tích Đối Thủ Google Ads hàng đầu cho hệ thống Nha Khoa Tâm Đức Smile.
@@ -278,3 +276,10 @@ PHẦN 2: CHUỖI JSON DỮ LIỆU ĐÃ BÓC TÁCH theo cấu trúc:
           break;
         }
       } catch (err: any) {
+        console.warn(`[geminiCrawler] Model ${m} gặp sự cố, chuyển sang model tiếp theo...`);
+      }
+    }
+  } catch (keyErr: any) {
+    console.warn('[geminiCrawler] GEMINI_API_KEY chưa cấu hình hoặc gặp lỗi:', keyErr.message);
+  }
+
