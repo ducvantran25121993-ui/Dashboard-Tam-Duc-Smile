@@ -26,7 +26,7 @@ export async function callClientGemini(
   messages: ChatMessage[],
   contextData: any,
   apiKey: string,
-  modelName: string = 'gemini-2.5-flash'
+  modelName: string = 'gemini-3.7-flash'
 ): Promise<string> {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 

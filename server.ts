@@ -19,7 +19,14 @@ function getGeminiClient(): GoogleGenAI {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable is missing');
     }
-    aiClient = new GoogleGenAI({ apiKey });
+    aiClient = new GoogleGenAI({
+      apiKey,
+      httpOptions: {
+        headers: {
+          'User-Agent': 'aistudio-build',
+        },
+      },
+    });
   }
   return aiClient;
 }
@@ -426,7 +433,14 @@ PHONG CÁCH TRẢ LỜI:
       });
     }
     try {
-      gemini = new GoogleGenAI({ apiKey: effectiveGeminiKey });
+      gemini = new GoogleGenAI({
+        apiKey: effectiveGeminiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
+      });
     } catch (err: any) {
       return res.status(500).json({
         error: 'Khởi tạo Google GenAI SDK thất bại: ' + err.message,
@@ -2272,7 +2286,7 @@ Hãy trích xuất:
 3. Đề xuất thông điệp Google Ads phản công cho Nha Khoa Tâm Đức Smile.`;
 
           const aiResp = await gemini.models.generateContent({
-            model: 'gemini-3.6-flash',
+            model: 'gemini-3.7-flash',
             contents: aiPrompt,
           });
           aiStrategicAnalysis = aiResp.text;

@@ -57,7 +57,7 @@ const AI_PROVIDERS: AIProviderConfig[] = [
     name: 'Google Gemini AI',
     badge: 'Mặc định có sẵn',
     badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
-    models: ['gemini-3.7-flash', 'gemini-2.5-pro', 'gemini-2.5-flash'],
+    models: ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite'],
     defaultModel: 'gemini-3.7-flash',
     apiKeyPlaceholder: 'Đã cấu hình server-side (Có thể nhập key riêng)',
     description: 'Mô hình siêu tốc độ cao & suy luận sâu từ Google DeepMind.',

@@ -5,7 +5,14 @@ function getGemini() {
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY environment variable is missing.');
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      },
+    },
+  });
 }
 
 export interface CrawlChatResult {
@@ -193,7 +200,7 @@ async function handleDashboardChat(userPromptOrUrl: string, customNgrokUrl?: str
   const { markdown, title, banners, engine } = await fetchCleanPageMarkdown(targetUrl, customNgrokUrl);
 
   // 2. Gửi dữ liệu sạch về cho Gemini phân tích chuyên sâu
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
+  const modelsToTry = ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3.1-flash-lite'];
 
   const systemInstruction = `Bạn là Chuyên gia Tình Báo Giá & Phân Tích Đối Thủ Google Ads hàng đầu cho hệ thống Nha Khoa Tâm Đức Smile.
 Nhiệm vụ của bạn là đọc toàn bộ nội dung Markdown cào được từ website đối thủ, phân tích kỹ lưỡng các dịch vụ nha khoa (Implant, Sứ, Niềng răng, Tổng quát...), giá niêm yết, giá khuyến mãi, chính sách quà tặng, bảo hành và đưa ra chiến lược quảng cáo Google Ads phản công chi tiết.`;

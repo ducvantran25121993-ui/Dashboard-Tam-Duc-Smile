@@ -71,13 +71,20 @@ PHONG CÁCH:
                 return;
               }
 
-              const gemini = new GoogleGenAI({ apiKey: apiKeyToUse });
+              const gemini = new GoogleGenAI({
+                apiKey: apiKeyToUse,
+                httpOptions: {
+                  headers: {
+                    'User-Agent': 'aistudio-build',
+                  },
+                },
+              });
               const formattedContents = (messages || []).map((msg: any) => ({
                 role: msg.role === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.content }],
               }));
 
-              const preferredModel = model || 'gemini-2.5-flash';
+              const preferredModel = model || 'gemini-3.7-flash';
               let reply = '';
 
               try {
@@ -89,7 +96,7 @@ PHONG CÁCH:
                 reply = aiRes.text || '';
               } catch {
                 const fallbackRes = await gemini.models.generateContent({
-                  model: 'gemini-2.5-flash',
+                  model: 'gemini-3.7-flash',
                   contents: formattedContents,
                   config: { systemInstruction, temperature: 0.7 },
                 });
