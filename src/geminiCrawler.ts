@@ -17,7 +17,7 @@ export interface CrawlChatResult {
 
 export async function handleDashboardChat(userPromptOrUrl: string, customNgrokUrl?: string): Promise<CrawlChatResult> {
   const targetUrl = userPromptOrUrl.trim().match(/(https?:\/\/[^\s]+)/i)?.[1] || userPromptOrUrl.trim();
-  const ngrokEndpoint = (customNgrokUrl || "https://ngrok-free.dev").trim();
+  const ngrokEndpoint = (customNgrokUrl || "https://run.app").trim();
   
   let markdown = `Yêu cầu xử lý URL: ${targetUrl}`;
   let engine = 'crawl4ai-fallback';
