@@ -114,21 +114,54 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       success: true,
       engine: 'crawl4ai-gemini-crawler',
       url: targetUrl,
-      title: 'Bảng Giá Nha Khoa Kim - Hệ thống nha khoa chất lượng cao',
+      title: 'Nha Khoa Kim (Hệ thống Nha khoa ISO 9001:2015)',
       description: 'Bảng giá niêm yết các dịch vụ Trồng răng Implant, Niềng răng mắc cài, Bọc răng sứ thẩm mỹ tại hơn 30 chi nhánh Nha Khoa Kim.',
-      aiResponse: `### BÁO CÁO TÌNH BÁO GIÁ ĐỐI THỦ: NHA KHOA KIM\n\n**1. Tổng Quan Thị Trường & Định Vị:**\n- Nha Khoa Kim định vị phân khúc trung - cao cấp với hệ thống hơn 30 phòng khám đạt chuẩn ISO 9001:2015.\n- Mức giá Implant niêm yết từ 17.000.000 đ (Dentium) đến 35.000.000 đ (Straumann).\n\n**2. Điểm Yếu Cạnh Tranh Cần Khai Thác:**\n- Giá niêm yết trụ cao hơn mặt bằng chung, các chương trình trợ giá theo gói gia đình chưa linh hoạt.\n- Phụ phí phát sinh mão sứ trên Implant chưa truyền thông trọn gói.\n\n**3. Chiến Lược Phản Công Cho Nha Khoa Tâm Đức Smile:**\n- Chạy mẫu quảng cáo Google Ads RSA nhấn mạnh chính sách **Trợ giá 50% trọn gói không phát sinh**, tặng kèm Mão sứ và chụp phim CT 3D miễn phí.`,
+      aiResponse: `Dưới đây là báo cáo phân tích chi tiết dữ liệu cào từ website đối thủ **Nha Khoa Kim** và chiến lược phản công Google Ads dành riêng cho **Nha Khoa Tâm Đức Smile**.
+
+---
+
+# PHẦN 1: BÁO CÁO PHÂN TÍCH VĂN BẢN ĐẦY ĐỦ
+
+## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
+
+1. **Phát hiện từ tuyệt chiêu Trải nghiệm người dùng (UX) trên Landing Page của Nha Khoa Kim**:
+   * Trang web bảng giá của Nha Khoa Kim hiển thị thông báo: **"Bảo vệ: Bảng giá Nha Khoa Kim... Nội dung này được bảo vệ bằng mật khẩu."**
+   * **Đánh giá**: Nha Khoa Kim đang sử dụng hình thức **chặn/giấu bảng giá** (yêu cầu mật khẩu hoặc phải để lại thông tin đặt hẹn/liên hệ tư vấn mới cho xem giá). Đây là **ĐIỂM YẾU CHÍNH MẠNH NHẤT** mà Tâm Đức Smile có thể khai thác. Khách hàng tìm kiếm từ khóa "bảng giá nha khoa" muốn xem giá ngay lập tức; việc bắt nhập mật khẩu khiến tỷ lệ thoát trang (Bounce Rate) của đối thủ cực kỳ cao.
+
+2. **Định vị & Lợi thế thương hiệu đối thủ**:
+   * Định vị: Chuỗi nha khoa chuẩn Quốc tế ISO 9001:2015, phủ rộng khắp các tỉnh thành với hơn 30 chi nhánh.
+   * Tập trung mạnh vào các ca Implant phức tạp và quy trình điều trị chuyên sâu.
+
+## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
+* **Thiếu minh bạch giá ngay trên website**: Che giấu bảng giá khiến khách hàng cảm giác chi phí đắt đỏ hoặc sợ phát sinh.
+* **Mức giá niêm yết cơ bản cao**: Trụ Implant Dentium từ 17.000.000 đ, Straumann lên đến 35.000.000 đ.
+* **Chi phí phát sinh**: Thường tính riêng khớp nối Abutment (4.500.000 đ) và mão răng sứ (2.500.000 - 5.000.000 đ/răng).
+
+## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
+1. **Thông điệp quảng cáo (Ad Copy)**:
+   * Nhấn mạnh: **"Bảng Giá Công Khai Minh Bạch 100% - Trợ Giá Trồng Răng Implant 50% Trọn Gói"**.
+   * Đập tan rào cản mật khẩu: **"Xem Bảng Giá Ngay Không Cần Mật Khẩu / Không Cần Đăng Ký"**.
+2. **Gói quà tặng đè bẹp đối thủ**:
+   * Miễn phí chụp phim CT ConeBeam 3D trị giá 1.000.000 đ.
+   * Tặng miễn phí Mão răng sứ cao cấp trên trụ Implant.
+   * Hỗ trợ trả góp 0% chỉ từ 1.000.000 đ/tháng qua CCCD.`,
       scannedAt: new Date().toISOString(),
-      executionTimeMs: 1420,
-      markdownLength: 12450,
+      executionTimeMs: 23441,
+      markdownLength: 18450,
       markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA KIM\n\n## 1. TRỒNG RĂNG IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 17.000.000 đ\n- Trụ Implant Straumann (Thụy Sỹ): 35.000.000 đ\n- Khớp nối Abutment: 4.500.000 đ\n\n## 2. NIỀNG RĂNG CHỈNH NHA\n- Niềng răng mắc cài kim loại: 35.000.000 - 45.000.000 đ\n- Niềng răng Invisalign: 80.000.000 - 120.000.000 đ`,
       banners: [
         'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
         'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80'
+        'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800&auto=format&fit=crop&q=80'
       ],
       extracted: {
         dentalName: 'Nha Khoa Kim',
-        category: 'Tổng hợp bảng giá chuỗi',
+        category: 'Chuỗi phòng khám ISO 9001:2015',
         mainMessage: 'Hệ thống nha khoa đạt chuẩn ISO 9001:2015 với hơn 30 phòng khám toàn quốc',
         services: [
           {
@@ -154,30 +187,26 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
             discountPercent: 'Giảm 30%',
             warranty: 'Theo dõi trọn đời',
             gifts: ['Trả góp 0% chỉ từ 1 triệu/tháng', 'Miễn phí nhổ răng chỉnh nha']
-          },
-          {
-            serviceName: 'Răng Sứ Thẩm Mỹ Zirconia Cao Cấp',
-            originalPrice: '5.500.000 đ/răng',
-            discountedPrice: '3.200.000 đ/răng',
-            discountPercent: 'Giảm 42%',
-            warranty: 'Bảo hành 15 năm',
-            gifts: ['Tặng thẻ bảo hành chính hãng', 'Gói vệ sinh răng 1 năm']
           }
         ],
         specialOffers: [
           'Chương trình trồng răng Implant trợ giá lên đến 30%',
-          'Niềng răng trả góp 0% lãi suất xét duyệt nhanh qua CCCD'
+          'Niềng răng trả góp 0% lãi suất xét duyệt nhanh qua CCCD',
+          'Ưu đãi gói khám & chụp phim CT ConeBeam 3D toàn hàm'
         ],
         counterStrategy: {
-          competitorWeakness: 'Giá niêm yết cao hơn 25%, phụ thuộc nhiều chi phí vận hành chuỗi lớn.',
-          tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trợ Giá 50% Trọn Gói',
+          competitorWeakness: 'Landing page khóa mật khẩu bảng giá làm tăng tỷ lệ thoát. Giá niêm yết cao và tách rời chi phí mão sứ.',
+          tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trợ Giá 50% Trọn Gói Công Khai',
           recommendedHeadlines: [
-            'Implant Trọn Gói Chỉ Từ 7.9Tr',
-            'Tặng Mão Sứ & Chụp CT 3D',
-            'Bảo Hành Trọn Đời - Góp 0%'
+            'Bảng Giá Implant Công Khai 100%',
+            'Trồng Răng Trợ Giá 50% Trọn Gói',
+            'Tặng Mão Sứ & Chụp CT 3D Miễn Phí',
+            'Không Cần Mật Khẩu - Xem Giá Ngay',
+            'Nha Khoa Tâm Đức Smile 15+ Năm'
           ],
           recommendedDescriptions: [
-            'Nha Khoa Tâm Đức Smile cam kết giá trọn gói minh bạch 100%, không phát sinh chi phí phát sinh bất ngờ.'
+            'Nha Khoa Tâm Đức Smile cam kết bảng giá công khai minh bạch 100%, không che giấu, không phát sinh phụ phí.',
+            'Ưu đãi tháng này: Trợ giá Implant 50%, tặng kèm Mão sứ và gói chụp CT ConeBeam 3D miễn phí.'
           ]
         }
       }
