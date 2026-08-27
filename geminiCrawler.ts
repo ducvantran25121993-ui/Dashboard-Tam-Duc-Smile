@@ -57,15 +57,15 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
 }> {
   const ngrokEndpoint = (customNgrokUrl || process.env.CRAWL4AI_NGROK_URL || '').trim();
   
-  // 1. Thử gọi qua link ngrok Crawl4AI nếu được cấu hình
-  if (ngrokEndpoint) {
+  // 1. Thử gọi qua link ngrok Crawl4AI nếu được cấu hình thực sự (bỏ qua placeholder)
+  if (ngrokEndpoint && !ngrokEndpoint.includes('ngrok-free.dev') && !ngrokEndpoint.includes('placeholder')) {
     try {
       const baseUrl = ngrokEndpoint.replace(/\/+$/, '');
       const fullNgrokUrl = `${baseUrl}/crawl?url=${encodeURIComponent(targetUrl)}`;
       console.log(`[geminiCrawler] Đang gửi yêu cầu tới ngrok Crawl4AI: ${fullNgrokUrl}`);
       
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
+      const timeout = setTimeout(() => controller.abort(), 3000);
       
       const res = await fetch(fullNgrokUrl, {
         method: 'GET',
@@ -102,7 +102,15 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
       'Cache-Control': 'no-cache'
     };
 
-    let resp = await fetch(targetUrl, { headers: fetchHeaders });
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 8000);
+
+    let resp = await fetch(targetUrl, { 
+      headers: fetchHeaders,
+      signal: controller.signal
+    });
+    clearTimeout(fetchTimeout);
+
     if (!resp.ok && targetUrl.includes('/')) {
       try {
         const u = new URL(targetUrl);
@@ -155,7 +163,7 @@ async function fetchCleanPageMarkdown(targetUrl: string, customNgrokUrl?: string
       .replace(/<b[^>]*>([\s\S]*?)<\/b>/gi, ' **$1** ')
       .replace(/<p[^>]*>([\s\S]*?)<\/p>/gi, '\n\n$1\n\n')
       .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<[^>]*>?/gm, ' ')
+      .replace(/<[^>]+>/g, ' ')
       .replace(/&nbsp;/gi, ' ')
       .replace(/&amp;/gi, '&')
       .replace(/&#8211;/gi, '-')

@@ -638,7 +638,7 @@ export const Crawl4AISpyConsole: React.FC<{
 }> = ({ onAddLinkToMonitor }) => {
   const [targetUrl, setTargetUrl] = useState<string>('https://nhakhoaident.com/bang-gia/implant/');
   const [ngrokUrl, setNgrokUrl] = useState<string>(() => {
-    return localStorage.getItem('craw4ai_ngrok_url') || 'https://ngrok-free.dev';
+    return localStorage.getItem('craw4ai_ngrok_url') || '';
   });
   const [showConfigDrawer, setShowConfigDrawer] = useState<boolean>(false);
   const [isCrawling, setIsCrawling] = useState<boolean>(false);
