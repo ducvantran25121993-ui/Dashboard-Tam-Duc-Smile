@@ -1,5 +1,7 @@
 import { handleDashboardChat } from '../geminiCrawler';
 
+export const maxDuration = 60; // Hỗ trợ Vercel Serverless Function chạy tối đa 60 giây
+
 export default async function handler(req: any, res: any) {
   // Cho phép CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
