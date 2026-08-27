@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
-import { handleDashboardChat } from './geminiCrawler';
+import { handleDashboardChat } from './src/geminiCrawler';
 
 dotenv.config();
 
