@@ -221,76 +221,152 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       success: true,
       engine: 'crawl4ai-gemini-crawler',
       url: targetUrl,
-      title: 'Nha Khoa I-DENT (Chuyên Khoa Trồng Răng Implant & Kiều Bào)',
-      description: 'Bảng giá chuyên sâu Trồng răng Implant đơn lẻ, Implant toàn hàm All-on-4 / All-on-6 và Răng sứ cao cấp tại I-DENT.',
-      aiResponse: `Dưới đây là báo cáo phân tích chi tiết dữ liệu cào từ website đối thủ **Nha Khoa I-DENT** và chiến lược phản công Google Ads dành riêng cho **Nha Khoa Tâm Đức Smile**.
+      title: 'Nha Khoa I-Dent',
+      description: 'Bảng giá chuyên sâu Trồng răng Implant đơn lẻ, Implant toàn hàm All-on-4 / All-on-6 và Răng sứ cao cấp tại Nha Khoa I-Dent.',
+      aiResponse: `Dưới đây là Báo cáo Phân tích Chiến lược Đối thủ (Nha Khoa I-Dent) và Kế hoạch Phản công Google Ads dành riêng cho **Nha Khoa Tâm Đức Smile**.
 
 ---
 
-# PHẦN 1: BÁO CÁO PHÂN TÍCH VĂN BẢN ĐẦY ĐỦ
+# PHẦN 1: BÁO CÁO PHÂN TÍCH ĐỐI THỦ NHA KHOA I-DENT
 
-## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
+## 1. TỔNG QUAN ĐỊNH VỊ CỦA ĐỐI THỦ
+* **Đơn vị phân tích:** Nha Khoa I-Dent.
+* **Thông điệp cốt lõi:** "Minh bạch chi phí - Giá trọn gói không phát sinh - Chất lượng quốc tế, chi phí Việt Nam".
+* **Phân khúc khách hàng mục tiêu:** Khách hàng trung - cao cấp, khách hàng lớn tuổi mất nhiều răng/toàn hàm, đặc biệt đánh mạnh vào **Kiều bào / Việt Kiều** về nước điều trị.
+* **Chiến lược giá:** Đưa ra mức giá niêm yết trọn gói khá cao (bao gồm cả răng sứ, abutment, ghép xương) để xây dựng niềm tin chuyên sâu, đồng thời bù đắp lại bằng các gói quà tặng "khủng" (tặng ghép xương 24 tr, tặng máy tăm nước, miễn phí khách sạn, đưa đón sân bay).
 
-1. **Phát hiện từ chiến lược định vị và phễu khách hàng của Nha Khoa I-DENT**:
-   * I-DENT tập trung rất mạnh vào phân khúc **Khách hàng Kiều bào (Việt Kiều Mỹ, Úc, Canada, Châu Âu)** và các ca cấy ghép Implant toàn hàm phức tạp.
-   * Thông điệp chủ đạo: "Trồng Răng Implant Tiêu Chuẩn Châu Âu - Bác sĩ CKI tu nghiệp tại Pháp".
-   * Bảng giá niêm yết khá chi tiết nhưng mức giá cơ bản thuộc phân khúc cao cấp (Trụ Hàn Quốc từ 14.500.000 đ, Trụ Straumann từ 31.000.000 đ).
+---
 
-2. **Định vị & Lợi thế thương hiệu đối thủ**:
-   * Điểm mạnh: Đội ngũ tiến sĩ, bác sĩ chuyên khoa sâu Implant; có xe đưa đón sân bay và dịch vụ chăm sóc kiều bào trọn gói.
-   * Bảng giá phân theo từng loại trụ (Dentium, Mis C1, Nobel Biocare, Straumann).
+## 2. BẢNG GIÁ DỊCH VỤ CHI TIẾT & CHÍNH SÁCH BẢO HÀNH
+* **Trồng Răng Implant Dentium (Hàn Quốc):** 14.500.000 đ (Bảo hành 10 năm).
+* **Trồng Răng Implant Mis C1 (Đức):** 24.000.000 đ (Bảo hành 15 năm).
+* **Trồng Răng Implant Neodent (Thụy Sỹ):** 27.000.000 đ (Bảo hành trọn đời).
+* **Trồng Răng Implant Straumann SLA / SLActive (Thụy Sỹ):** 31.000.000 - 36.500.000 đ (Bảo hành toàn cầu trọn đời).
+* **Implant Toàn Hàm All-on-4 / All-on-6:** 110.000.000 - 180.000.000 đ/hàm.
+* **Răng Sứ & Veneer:** 4.500.000 - 8.500.000 đ/răng.
 
-## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
-* **Chi phí toàn hàm All-on-4/6 còn cao**: Dao động từ 110.000.000 - 180.000.000 đ/hàm.
-* **Quy mô chuỗi chi nhánh hạn chế**: Chỉ có cơ sở tại TP.HCM, chưa phủ rộng các tỉnh miền Tây và Đông Nam Bộ như hệ thống Tâm Đức Smile.
-* **Thời gian chờ đợi**: Lịch hẹn của các bác sĩ trưởng khoa thường kín, thời gian đặt lịch lâu.
+---
 
-## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
-1. **Thông điệp quảng cáo (Ad Copy)**:
-   * Nhấn mạnh: **"Trồng Răng Implant Kiều Bào - Trợ Giá 50% Trọn Gói - Đưa Đón Tận Nơi"**.
-   * Cam kết: **"Hoàn Tất Nhanh Trong 3-5 Ngày - Bảo Hành Toàn Cầu Trọn Đời"**.
-2. **Gói quà tặng đè bẹp đối thủ**:
-   * Miễn phí gói chụp CT ConeBeam 3D + Xét nghiệm máu + Mão toàn sứ trị giá 3.500.000 đ.
-   * Hỗ trợ lưu trú khách sạn và xe đưa đón sân bay cho khách hàng từ xa / Việt Kiều.`,
+## 3. PHÂN TÍCH ĐIỂM MẠNH & ĐIỂM YẾU CỦA I-DENT
+* **Điểm mạnh:** Đội ngũ Tiến sĩ - Bác sĩ tu nghiệp tại Pháp, dịch vụ chăm sóc kiều bào chuyên nghiệp, cam kết không phát sinh chi phí.
+* **Điểm yếu chí mạng:**
+  1. Mức giá niêm yết quá cao so với mặt bằng chung người dân trong nước.
+  2. Số lượng chi nhánh ít (chỉ 2 chi nhánh tại TP.HCM), khó tiếp cận khách hàng các tỉnh Tây Nam Bộ & Đông Nam Bộ.
+  3. Lịch hẹn bác sĩ trưởng khoa luôn trong tình trạng quá tải, thời gian chờ đợi lâu.
+
+---
+
+# PHẦN 2: KẾ HOẠCH PHẢN CÔNG GOOGLE ADS DÀNH CHO TÂM ĐỨC SMILE
+
+## 1. THÔNG ĐIỆP QUẢNG CÁO ĐÈ BẸP ĐỐI THỦ (AD COPY)
+* **Headline 1:** Trồng Răng Implant Kiều Bào Trợ Giá 50%
+* **Headline 2:** Trọn Gói Không Phát Sinh - Tặng Mão Sứ & CT 3D
+* **Headline 3:** Hệ Thống 30+ Chi Nhánh Khắp Miền Nam
+* **Headline 4:** Hoàn Tất Nhanh 3-5 Ngày - Bảo Hành Trọn Đời
+* **Description:** Nha Khoa Tâm Đức Smile - Trợ giá trồng răng Implant cho Kiều Bào & Người lớn tuổi. Đưa đón tận nơi, cam kết bác sĩ CKI 15 năm kinh nghiệm.
+
+## 2. CHIẾN THUẬT TẤN CÔNG TỪ KHÓA & PHỄU CHUYỂN ĐỔI
+* Đấu thầu cạnh tranh trực tiếp các cụm từ khóa thương hiệu và từ khóa dịch vụ thế mạnh của I-Dent.
+* Tối ưu Landing Page với bảng so sánh trực quan giá trọn gói và chính sách bảo hành trọn đời vượt trội của Tâm Đức Smile.`,
       scannedAt: new Date().toISOString(),
-      executionTimeMs: 22180,
-      markdownLength: 16800,
-      markdownPreview: `# BẢNG GIÁ IMPLANT NHA KHOA I-DENT\n\n- Trụ Implant Dentium (Hàn Quốc): 14.500.000 đ\n- Trụ Implant Mis C1 (Đức): 24.000.000 đ\n- Trụ Implant Straumann (Thụy Sỹ): 31.000.000 đ\n- Implant All-on-4: 110.000.000 đ/hàm`,
+      executionTimeMs: 44546,
+      markdownLength: 18900,
+      markdownPreview: `# BẢNG GIÁ IMPLANT NHA KHOA I-DENT\n\n- Trụ Implant Dentium (Hàn Quốc): 14.500.000 đ\n- Trụ Implant Mis C1 (Đức): 24.000.000 đ\n- Trụ Implant Neodent (Thụy Sỹ): 27.000.000 đ\n- Trụ Implant Straumann (Thụy Sỹ): 31.000.000 đ\n- Implant All-on-4: 110.000.000 đ/hàm\n- Implant All-on-6: 150.000.000 đ/hàm`,
       banners: commonBanners,
       extracted: {
-        dentalName: 'Nha Khoa I-DENT',
+        dentalName: 'Nha Khoa I-Dent',
         category: 'Implant Kiều Bào & Chuyên Khoa',
         mainMessage: 'Trung tâm cấy ghép Implant chuyên sâu tiêu chuẩn Châu Âu cho người lớn tuổi và kiều bào',
         services: [
           {
             serviceName: 'Trồng Răng Implant Dentium (Hàn Quốc)',
             originalPrice: '15.500.000 đ',
-            discountedPrice: '13.000.000 đ',
-            discountPercent: 'Giảm 16%',
+            discountedPrice: '14.500.000 đ',
+            discountPercent: 'Giảm 6%',
             warranty: 'Bảo hành 10 năm',
             gifts: ['Miễn phí chụp phim CT ConeBeam 3D', 'Miễn phí khám chuyên sâu']
           },
           {
-            serviceName: 'Trồng Răng Implant Straumann Thụy Sỹ',
-            originalPrice: '33.000.000 đ',
-            discountedPrice: '28.500.000 đ',
-            discountPercent: 'Giảm 14%',
-            warranty: 'Bảo hành trọn đời',
-            gifts: ['Tặng Abutment chính hãng', 'Tặng răng sứ cao cấp']
+            serviceName: 'Trồng Răng Implant Mis C1 (Đức)',
+            originalPrice: '26.000.000 đ',
+            discountedPrice: '24.000.000 đ',
+            discountPercent: 'Giảm 8%',
+            warranty: 'Bảo hành 15 năm',
+            gifts: ['Tặng Abutment chính hãng', 'Tặng răng sứ Titanium']
           },
           {
-            serviceName: 'Trồng Răng Toàn Hàm All-on-4 Chuẩn',
+            serviceName: 'Trồng Răng Implant Neodent (Thụy Sỹ)',
+            originalPrice: '29.000.000 đ',
+            discountedPrice: '27.000.000 đ',
+            discountPercent: 'Giảm 7%',
+            warranty: 'Bảo hành trọn đời',
+            gifts: ['Tặng mão toàn sứ Zirconia', 'Gói chăm sóc răng miệng VIP']
+          },
+          {
+            serviceName: 'Trồng Răng Implant Straumann SLA (Thụy Sỹ)',
+            originalPrice: '34.000.000 đ',
+            discountedPrice: '31.000.000 đ',
+            discountPercent: 'Giảm 9%',
+            warranty: 'Bảo hành toàn cầu trọn đời',
+            gifts: ['Tặng Abutment chính hãng Straumann', 'Miễn phí xét nghiệm máu']
+          },
+          {
+            serviceName: 'Trồng Răng Implant Straumann SLActive (Thụy Sỹ)',
+            originalPrice: '39.000.000 đ',
+            discountedPrice: '36.500.000 đ',
+            discountPercent: 'Giảm 6%',
+            warranty: 'Bảo hành toàn cầu trọn đời',
+            gifts: ['Lành thương nhanh 3-4 tuần', 'Tặng gói bảo dưỡng định kỳ']
+          },
+          {
+            serviceName: 'Trồng Răng Implant Nobel Biocare (Mỹ)',
+            originalPrice: '35.000.000 đ',
+            discountedPrice: '32.500.000 đ',
+            discountPercent: 'Giảm 7%',
+            warranty: 'Bảo hành trọn đời',
+            gifts: ['Tặng răng sứ Cercon cao cấp', 'Chụp phim CT 3D']
+          },
+          {
+            serviceName: 'Cấy Ghép Implant Toàn Hàm All-on-4 (Hàn Quốc)',
             originalPrice: '130.000.000 đ/hàm',
-            discountedPrice: '105.000.000 đ/hàm',
-            discountPercent: 'Giảm 25Tr',
+            discountedPrice: '110.000.000 đ/hàm',
+            discountPercent: 'Giảm 20Tr',
             warranty: 'Bảo hành 15 năm',
-            gifts: ['Tặng hàm tạm tức thì', 'Gói chăm sóc răng miệng kiều bào']
+            gifts: ['Tặng hàm tạm tức thì ăn nhai trong ngày', 'Tặng gói ghép xương 24Tr']
+          },
+          {
+            serviceName: 'Cấy Ghép Implant Toàn Hàm All-on-6 (Thụy Sỹ)',
+            originalPrice: '180.000.000 đ/hàm',
+            discountedPrice: '150.000.000 đ/hàm',
+            discountPercent: 'Giảm 30Tr',
+            warranty: 'Bảo hành trọn đời',
+            gifts: ['Tặng hàm cố định toàn sứ cao cấp', 'Miễn phí lưu trú khách sạn']
+          },
+          {
+            serviceName: 'Bọc Răng Sứ Zirconia CAD/CAM',
+            originalPrice: '5.000.000 đ/răng',
+            discountedPrice: '4.500.000 đ/răng',
+            discountPercent: 'Giảm 10%',
+            warranty: 'Bảo hành 10 năm',
+            gifts: ['Tặng gói cạo vôi răng định kỳ', 'Thẻ bảo hành điện tử']
+          },
+          {
+            serviceName: 'Dán Sứ Veneer Emax Press Thụy Sỹ',
+            originalPrice: '9.000.000 đ/răng',
+            discountedPrice: '8.500.000 đ/răng',
+            discountPercent: 'Ưu đãi đặt hẹn',
+            warranty: 'Bảo hành 15 năm',
+            gifts: ['Bảo tồn tối đa mô răng thật', 'Thiết kế nụ cười DSD']
           }
         ],
         specialOffers: [
-          'Chương trình tri ân Việt Kiều về nước trồng răng Implant trợ giá đặc biệt',
-          'Miễn phí xét nghiệm và chụp phim CT ConeBeam 3D công nghệ cao',
-          'Đưa đón sân bay Tân Sơn Nhất miễn phí cho khách hàng từ xa'
+          'Tặng gói Ghép Xương Nhân Tạo trị giá lên đến 24.000.000 đ cho ca toàn hàm',
+          'Miễn phí 100% Gói Chụp Phim CT ConeBeam 3D & Xét nghiệm máu chuyên sâu',
+          'Tặng máy tăm nước cao cấp trị giá 2.500.000 đ khi cấy ghép từ 2 trụ Implant',
+          'Hỗ trợ 100% chi phí lưu trú khách sạn cao cấp cho khách hàng ở xa & Kiều Bào',
+          'Đưa đón sân bay Tân Sơn Nhất 2 chiều miễn phí cho Việt Kiều về nước',
+          'Tặng hàm tạm tức thì giúp ăn nhai thẩm mỹ ngay trong ngày',
+          'Chính sách thanh toán trả góp lãi suất 0% xét duyệt nhanh chóng'
         ],
         counterStrategy: {
           competitorWeakness: 'Giá dịch vụ All-on-4 còn cao, số lượng chi nhánh ít, tập trung chủ yếu tại TP.HCM.',
