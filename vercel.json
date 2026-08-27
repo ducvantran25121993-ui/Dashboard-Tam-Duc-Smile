@@ -1,15 +1,8 @@
 {
-  "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/scrape-competitors",
-      "schedule": "0 23 * * *"
+      "source": "/((?!api/.*).*)",
+      "destination": "/index.html"
     }
   ]
 }
