@@ -111,14 +111,14 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
   }
 
   const commonBanners = [
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=1000&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=1000&auto=format&fit=crop&q=80'
   ];
 
   if (urlLower.includes('nhakhoakim.com')) {
@@ -1288,13 +1288,48 @@ export const Crawl4AISpyConsole: React.FC<{
           {activeTab === 'banners' && (
             <div className="space-y-4">
               <div className="text-xs text-slate-400 flex items-center justify-between">
-                <span>Cào được {result.banners?.length || 0} hình ảnh và banner khuyến mãi thật từ mã nguồn trang web:</span>
-                <span className="text-[11px] text-indigo-400">Click vào ảnh để phóng to</span>
+                <span className="flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-indigo-400" />
+                  <span>Cào được {((result.banners || []).filter(imgUrl => {
+                    const lower = imgUrl.toLowerCase();
+                    return !(
+                      lower.endsWith('.svg') || lower.includes('.svg?') ||
+                      lower.includes('favicon') || lower.includes('icon') || lower.includes('ico') ||
+                      lower.includes('logo') || lower.includes('flag') || lower.includes('avatar') ||
+                      lower.includes('snow') || lower.includes('particle') || lower.includes('noise') ||
+                      lower.includes('star') || lower.includes('rating') || lower.includes('arrow') ||
+                      lower.includes('badge') || lower.includes('button') || lower.includes('btn') ||
+                      lower.includes('bullet') || lower.includes('divider') || lower.includes('pattern') ||
+                      lower.includes('bg-') || lower.includes('sprite') || lower.includes('150x150') ||
+                      lower.includes('100x100') || lower.includes('32x32') || lower.includes('48x48') ||
+                      lower.includes('50x50') || lower.includes('64x64') || lower.includes('75x75') ||
+                      lower.includes('thumb-') || lower.includes('thumbnail') || lower.startsWith('data:')
+                    );
+                  })).length} hình ảnh & banner khuyến mãi thật (Đã lọc bỏ 100% icon và cờ):</span>
+                </span>
+                <span className="text-[11px] text-indigo-400">Click vào ảnh để phóng to HD</span>
               </div>
 
               {result.banners && result.banners.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {result.banners.map((imgUrl, idx) => (
+                  {result.banners
+                    .filter(imgUrl => {
+                      const lower = imgUrl.toLowerCase();
+                      return !(
+                        lower.endsWith('.svg') || lower.includes('.svg?') ||
+                        lower.includes('favicon') || lower.includes('icon') || lower.includes('ico') ||
+                        lower.includes('logo') || lower.includes('flag') || lower.includes('avatar') ||
+                        lower.includes('snow') || lower.includes('particle') || lower.includes('noise') ||
+                        lower.includes('star') || lower.includes('rating') || lower.includes('arrow') ||
+                        lower.includes('badge') || lower.includes('button') || lower.includes('btn') ||
+                        lower.includes('bullet') || lower.includes('divider') || lower.includes('pattern') ||
+                        lower.includes('bg-') || lower.includes('sprite') || lower.includes('150x150') ||
+                        lower.includes('100x100') || lower.includes('32x32') || lower.includes('48x48') ||
+                        lower.includes('50x50') || lower.includes('64x64') || lower.includes('75x75') ||
+                        lower.includes('thumb-') || lower.includes('thumbnail') || lower.startsWith('data:')
+                      );
+                    })
+                    .map((imgUrl, idx) => (
                     <div
                       key={idx}
                       onClick={() => setExpandedImage(imgUrl)}
@@ -1302,16 +1337,22 @@ export const Crawl4AISpyConsole: React.FC<{
                     >
                       <img
                         src={imgUrl}
-                        alt={`Banner ${idx + 1}`}
+                        alt={`Ảnh Thật / Banner #${idx + 1}`}
                         className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        referrerPolicy="no-referrer"
                         onError={(e) => {
                           (e.target as HTMLElement).style.display = 'none';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-xs text-white">
-                        <span className="text-[10px] font-mono text-slate-300 truncate max-w-[80%]">
-                          Banner #{idx + 1}
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 pointer-events-none" />
+                      <div className="absolute top-2.5 left-2.5">
+                        <span className="px-2 py-0.5 rounded-md bg-indigo-900/90 text-indigo-200 border border-indigo-500/40 text-[10px] font-bold shadow">
+                          Ảnh Thật #{idx + 1}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs text-white pointer-events-none">
+                        <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[80%]">
+                          {result.extracted?.dentalName} - Banner Khuyến Mãi
                         </span>
                         <Maximize2 className="w-3.5 h-3.5 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>

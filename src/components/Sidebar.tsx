@@ -106,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'competitor',
       label: 'Theo Dõi Đối Thủ',
       icon: Swords,
-      badge: 'URL',
+      badge: 'Crawl4AI',
       badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 animate-pulse',
     },
     {

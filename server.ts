@@ -2239,11 +2239,21 @@ app.get('/api/scrape-competitors', async (req, res) => {
         const isExcluded = 
           lower.includes('favicon') || lower.includes('pixel') || lower.includes('tracking') ||
           lower.includes('facebook.com') || lower.includes('analytics') || lower.includes('1x1') ||
-          lower.includes('icon') || lower.includes('logo');
+          lower.includes('icon') || lower.includes('ico') || lower.includes('logo') ||
+          lower.includes('flag') || lower.includes('avatar') || lower.includes('snow') ||
+          lower.includes('particle') || lower.includes('noise') || lower.includes('star') ||
+          lower.includes('rating') || lower.includes('arrow') || lower.includes('badge') ||
+          lower.includes('button') || lower.includes('btn') || lower.includes('bullet') ||
+          lower.includes('divider') || lower.includes('pattern') || lower.includes('bg-') ||
+          lower.includes('sprite') || lower.includes('150x150') || lower.includes('100x100') ||
+          lower.includes('32x32') || lower.includes('48x48') || lower.includes('50x50') ||
+          lower.includes('64x64') || lower.includes('75x75') || lower.includes('thumb-') || lower.includes('thumbnail');
 
         const isBannerOrPhoto = (
           lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') ||
-          lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/') || lower.includes('/media/')
+          lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/') ||
+          lower.includes('/media/') || lower.includes('banner') || lower.includes('khuyen-mai') ||
+          lower.includes('implant') || lower.includes('slider')
         );
 
         if (!isExcluded && isBannerOrPhoto && !realBanners.includes(finalUrl)) {
