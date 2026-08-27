@@ -2315,8 +2315,15 @@ Hãy trích xuất:
   });
 });
 
+// Export for Vercel Serverless Functions
+export { app, getGeminiClient };
+export default app;
+
 // Vite middleware in dev or static serving in prod
 async function start() {
+  if (process.env.VERCEL) {
+    return;
+  }
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
