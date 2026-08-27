@@ -192,9 +192,8 @@ async function handleDashboardChat(userPromptOrUrl: string, customNgrokUrl?: str
   // 1. Cào dữ liệu Markdown và Banners từ trang web
   const { markdown, title, banners, engine } = await fetchCleanPageMarkdown(targetUrl, customNgrokUrl);
 
-  // 2. Gửi dữ liệu sạch về cho Gemini 3.6 Flash phân tích chuyên sâu
-  const ai = getGemini();
-  const modelsToTry = ['gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+  // 2. Gửi dữ liệu sạch về cho Gemini phân tích chuyên sâu
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
 
   const systemInstruction = `Bạn là Chuyên gia Tình Báo Giá & Phân Tích Đối Thủ Google Ads hàng đầu cho hệ thống Nha Khoa Tâm Đức Smile.
 Nhiệm vụ của bạn là đọc toàn bộ nội dung Markdown cào được từ website đối thủ, phân tích kỹ lưỡng các dịch vụ nha khoa (Implant, Sứ, Niềng răng, Tổng quát...), giá niêm yết, giá khuyến mãi, chính sách quà tặng, bảo hành và đưa ra chiến lược quảng cáo Google Ads phản công chi tiết.`;
@@ -237,24 +236,29 @@ PHẦN 2: CHUỖI JSON DỮ LIỆU ĐÃ BÓC TÁCH theo cấu trúc:
   let aiResponse = '';
   let structuredData: any = null;
 
-  for (const m of modelsToTry) {
-    try {
-      const resp = await ai.models.generateContent({
-        model: m,
-        contents: userPrompt,
-        config: {
-          systemInstruction,
-          temperature: 0.2
+  try {
+    const ai = getGemini();
+    for (const m of modelsToTry) {
+      try {
+        const resp = await ai.models.generateContent({
+          model: m,
+          contents: userPrompt,
+          config: {
+            systemInstruction,
+            temperature: 0.2
+          }
+        });
+        
+        if (resp.text) {
+          aiResponse = resp.text;
+          break;
         }
-      });
-      
-      if (resp.text) {
-        aiResponse = resp.text;
-        break;
+      } catch (err: any) {
+        console.warn(`[geminiCrawler] Model ${m} gặp sự cố:`, err.message);
       }
-    } catch (err: any) {
-      console.warn(`[geminiCrawler] Model ${m} gặp sự cố:`, err.message);
     }
+  } catch (keyErr: any) {
+    console.warn('[geminiCrawler] GEMINI_API_KEY chưa cấu hình hoặc gặp lỗi:', keyErr.message);
   }
 
   // Parse JSON block nếu có trong phản hồi của AI
