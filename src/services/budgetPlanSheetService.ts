@@ -41,25 +41,25 @@ export interface MultiMonthBudgetPlan {
 
 export const DEFAULT_BUDGET_PLAN_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1cUszmTk5RJLPZxkEyrs4uLm_0_yzc3NRjXPIKhA6FUs/edit?gid=0#gid=0';
 
-// EXACT FALLBACK DATA FOR THÁNG 6 (Từ Sheet 06/2026)
+// EXACT FALLBACK DATA FOR THÁNG 6 (Từ Sheet 06/2026: 1.054.000.000 đ Gốc, 1.230.285.520 đ VAT)
 export const FALLBACK_PLAN_T6_ITEMS: BranchPlanItem[] = [
-  { id: 't6_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 2000000, monthlyBudget: 62000000, monthlyBudgetVat: 72316800, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_cm', name: 'Cà Mau', dailyBudget: 700000, monthlyBudget: 21700000, monthlyBudgetVat: 25310800, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_dt', name: 'Đồng Tháp', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_bl', name: 'Bạc Liêu', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_st', name: 'Sóc Trăng', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_bd', name: 'Bình Dương', dailyBudget: 1400000, monthlyBudget: 43400000, monthlyBudgetVat: 50621760, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_vt', name: 'Phước Tỉnh+Xuyên Mộc + Bacu + Bà Rịa', dailyBudget: 1200000, monthlyBudget: 37200000, monthlyBudgetVat: 43390080, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_bh', name: 'Biên Hòa + Đại Phước', dailyBudget: 1200000, monthlyBudget: 37200000, monthlyBudgetVat: 43390080, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_hcm', name: 'HỒ CHÍ MINH lân cận', dailyBudget: 19000000, monthlyBudget: 589000000, monthlyBudgetVat: 687909600, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_vk', name: 'Việt Kiều', dailyBudget: 4000000, monthlyBudget: 124000000, monthlyBudgetVat: 144633600, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_qn', name: 'Quy Nhơn', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_tn', name: 'Tây Ninh', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_dn', name: 'Đà Nẵng', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_dl', name: 'Đà Lạt', dailyBudget: 600000, monthlyBudget: 18600000, monthlyBudgetVat: 21695040, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_da', name: 'Dĩ An', dailyBudget: 300000, monthlyBudget: 9300000, monthlyBudgetVat: 10847520, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_gk', name: 'Gia Kiệm', dailyBudget: 100000, monthlyBudget: 3100000, monthlyBudgetVat: 3615840, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
-  { id: 't6_bp', name: 'Bình Phước', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't6_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 2000000, monthlyBudget: 62000000, monthlyBudgetVat: 72316800, reduced30Budget: 43400000, reduced30Vat: 50621760, reducedExtra30Budget: 30380000, reducedExtra30Vat: 35435232 },
+  { id: 't6_cm', name: 'Cà Mau', dailyBudget: 700000, monthlyBudget: 21700000, monthlyBudgetVat: 25310800, reduced30Budget: 15190000, reduced30Vat: 17717560, reducedExtra30Budget: 10633000, reducedExtra30Vat: 12402292 },
+  { id: 't6_dt', name: 'Đồng Tháp', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 4340000, reduced30Vat: 5062176, reducedExtra30Budget: 3038000, reducedExtra30Vat: 3543523 },
+  { id: 't6_bl', name: 'Bạc Liêu', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 4340000, reduced30Vat: 5062176, reducedExtra30Budget: 3038000, reducedExtra30Vat: 3543523 },
+  { id: 't6_st', name: 'Sóc Trăng', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 4340000, reduced30Vat: 5062176, reducedExtra30Budget: 3038000, reducedExtra30Vat: 3543523 },
+  { id: 't6_bd', name: 'Bình Dương', dailyBudget: 1400000, monthlyBudget: 43400000, monthlyBudgetVat: 50621760, reduced30Budget: 30380000, reduced30Vat: 35435232, reducedExtra30Budget: 21266000, reducedExtra30Vat: 24804662 },
+  { id: 't6_vt', name: 'Phước Tỉnh+Xuyên Mộc + Bacu + Bà Rịa', dailyBudget: 1200000, monthlyBudget: 37200000, monthlyBudgetVat: 43390080, reduced30Budget: 26040000, reduced30Vat: 30373056, reducedExtra30Budget: 18228000, reducedExtra30Vat: 21261139 },
+  { id: 't6_bh', name: 'Biên Hòa + Đại Phước', dailyBudget: 1200000, monthlyBudget: 37200000, monthlyBudgetVat: 43390080, reduced30Budget: 26040000, reduced30Vat: 30373056, reducedExtra30Budget: 18228000, reducedExtra30Vat: 21261139 },
+  { id: 't6_hcm', name: 'HỒ CHÍ MINH lân cận', dailyBudget: 19000000, monthlyBudget: 589000000, monthlyBudgetVat: 687909600, reduced30Budget: 412300000, reduced30Vat: 481536720, reducedExtra30Budget: 288610000, reducedExtra30Vat: 337075704 },
+  { id: 't6_vk', name: 'Việt Kiều', dailyBudget: 4000000, monthlyBudget: 124000000, monthlyBudgetVat: 144633600, reduced30Budget: 86800000, reduced30Vat: 101243520, reducedExtra30Budget: 60760000, reducedExtra30Vat: 70870464 },
+  { id: 't6_qn', name: 'Quy Nhơn', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 19530000, reduced30Vat: 22779792, reducedExtra30Budget: 13671000, reducedExtra30Vat: 15945854 },
+  { id: 't6_tn', name: 'Tây Ninh', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 19530000, reduced30Vat: 22779792, reducedExtra30Budget: 13671000, reducedExtra30Vat: 15945854 },
+  { id: 't6_dn', name: 'Đà Nẵng', dailyBudget: 900000, monthlyBudget: 27900000, monthlyBudgetVat: 32542560, reduced30Budget: 19530000, reduced30Vat: 22779792, reducedExtra30Budget: 13671000, reducedExtra30Vat: 15945854 },
+  { id: 't6_dl', name: 'Đà Lạt', dailyBudget: 600000, monthlyBudget: 18600000, monthlyBudgetVat: 21695040, reduced30Budget: 13020000, reduced30Vat: 15186528, reducedExtra30Budget: 9114000, reducedExtra30Vat: 10630570 },
+  { id: 't6_da', name: 'Dĩ An', dailyBudget: 300000, monthlyBudget: 9300000, monthlyBudgetVat: 10847520, reduced30Budget: 6510000, reduced30Vat: 7593264, reducedExtra30Budget: 4557000, reducedExtra30Vat: 5315285 },
+  { id: 't6_gk', name: 'Gia Kiệm', dailyBudget: 100000, monthlyBudget: 3100000, monthlyBudgetVat: 3615840, reduced30Budget: 2170000, reduced30Vat: 2531088, reducedExtra30Budget: 1519000, reducedExtra30Vat: 1771762 },
+  { id: 't6_bp', name: 'Bình Phước', dailyBudget: 200000, monthlyBudget: 6200000, monthlyBudgetVat: 7231680, reduced30Budget: 4340000, reduced30Vat: 5062176, reducedExtra30Budget: 3038000, reducedExtra30Vat: 3543523 },
 ];
 
 // EXACT FALLBACK DATA FOR THÁNG 7 (Từ Sheet 07/2026)
@@ -114,10 +114,10 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       totalDaily: 34000000,
       totalMonthly: 1054000000,
       totalMonthlyVat: 1230285520,
-      totalReduced30: 0,
-      totalReduced30Vat: 0,
-      totalReducedExtra30: 0,
-      totalReducedExtra30Vat: 0,
+      totalReduced30: 737800000,
+      totalReduced30Vat: 861199864,
+      totalReducedExtra30: 516460000,
+      totalReducedExtra30Vat: 602839905,
       items: FALLBACK_PLAN_T6_ITEMS,
       lastUpdated: '12:00',
       isLive: false,
@@ -132,8 +132,8 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       totalMonthlyVat: 1230285520,
       totalReduced30: 737800000,
       totalReduced30Vat: 860569020,
-      totalReducedExtra30: 0,
-      totalReducedExtra30Vat: 0,
+      totalReducedExtra30: 516460000,
+      totalReducedExtra30Vat: 602839905,
       items: FALLBACK_PLAN_T7_ITEMS,
       lastUpdated: '12:00',
       isLive: false,
@@ -291,21 +291,25 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
     const redExtra30Vat = parseNumber(r[8]);
 
     if (name.toUpperCase().includes('TỔNG') || name.toUpperCase().includes('TOTAL')) {
+      // Calculate missing reduction totals if not explicitly in sheet
+      const computedMonthly = monthly || currentSection.items.reduce((s, i) => s + i.monthlyBudget, 0);
+      const computedMonthlyVat = monthlyVat || currentSection.items.reduce((s, i) => s + i.monthlyBudgetVat, 0);
+
       currentSection.totalRow = {
-        daily,
-        monthly,
-        monthlyVat,
-        red30,
-        red30Vat,
-        redExtra30,
-        redExtra30Vat,
+        daily: daily || currentSection.items.reduce((s, i) => s + i.dailyBudget, 0),
+        monthly: computedMonthly,
+        monthlyVat: computedMonthlyVat,
+        red30: red30 || Math.round(computedMonthly * 0.7),
+        red30Vat: red30Vat || Math.round(computedMonthlyVat * 0.7),
+        redExtra30: redExtra30 || Math.round(computedMonthly * 0.49),
+        redExtra30Vat: redExtra30Vat || Math.round(computedMonthlyVat * 0.49),
       };
 
       // Wrap up section
       const mNum = currentSection.monthNum;
       const secItems = currentSection.items;
       
-      // Calculate totals if totalRow was incomplete
+      // Calculate totals
       const totalDaily = currentSection.totalRow.daily || secItems.reduce((s, i) => s + i.dailyBudget, 0);
       const totalMonthly = currentSection.totalRow.monthly || secItems.reduce((s, i) => s + i.monthlyBudget, 0);
       const totalMonthlyVat = currentSection.totalRow.monthlyVat || secItems.reduce((s, i) => s + i.monthlyBudgetVat, 0);
@@ -337,16 +341,23 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
 
       currentSection = null;
     } else {
+      const calcMonthly = monthly || (daily > 0 ? daily * 31 : 0);
+      const calcMonthlyVat = monthlyVat || Math.round(calcMonthly * 1.1672538);
+      const calcRed30 = red30 || Math.round(calcMonthly * 0.7);
+      const calcRed30Vat = red30Vat || Math.round(calcMonthlyVat * 0.7);
+      const calcRedExtra30 = redExtra30 || Math.round(calcMonthly * 0.49);
+      const calcRedExtra30Vat = redExtra30Vat || Math.round(calcMonthlyVat * 0.49);
+
       currentSection.items.push({
         id: `t${currentSection.monthNum}_${idx}`,
         name,
         dailyBudget: daily,
-        monthlyBudget: monthly || (daily > 0 && monthly === 0 ? daily * 31 : 0),
-        monthlyBudgetVat: monthlyVat,
-        reduced30Budget: red30,
-        reduced30Vat: red30Vat,
-        reducedExtra30Budget: redExtra30,
-        reducedExtra30Vat: redExtra30Vat,
+        monthlyBudget: calcMonthly,
+        monthlyBudgetVat: calcMonthlyVat,
+        reduced30Budget: calcRed30,
+        reduced30Vat: calcRed30Vat,
+        reducedExtra30Budget: calcRedExtra30,
+        reducedExtra30Vat: calcRedExtra30Vat,
       });
     }
   });
