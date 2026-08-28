@@ -375,12 +375,13 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
   };
 }
 
-// Fetch live from Google Sheet with multiple fallbacks
+// Fetch live from Google Sheet with multiple fallbacks and server proxy
 export async function fetchMultiMonthBudgetPlan(sheetUrl: string = DEFAULT_BUDGET_PLAN_SHEET_URL): Promise<MultiMonthBudgetPlan> {
   const spreadsheetId = extractSpreadsheetId(sheetUrl);
   const cacheBust = Date.now();
 
   const endpoints = [
+    `/api/proxy-sheet?url=${encodeURIComponent(sheetUrl)}&_t=${cacheBust}`,
     `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&gid=0&_t=${cacheBust}`,
     `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=0&_t=${cacheBust}`,
     `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&_t=${cacheBust}`,
@@ -389,8 +390,9 @@ export async function fetchMultiMonthBudgetPlan(sheetUrl: string = DEFAULT_BUDGE
   const fetchOptions: RequestInit = {
     cache: 'no-store',
     headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
       'Pragma': 'no-cache',
+      'Expires': '0',
     }
   };
 
@@ -402,6 +404,8 @@ export async function fetchMultiMonthBudgetPlan(sheetUrl: string = DEFAULT_BUDGE
         if (text && !text.includes('<!DOCTYPE html>') && !text.includes('accounts.google.com') && text.length > 30) {
           const parsed = parseMultiMonthBudgetPlanCSV(text, sheetUrl);
           if (parsed && parsed.availableMonths.length > 0) {
+            parsed.lastUpdated = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            parsed.isLive = true;
             try {
               localStorage.setItem('tamduc_multi_month_plan_cache', JSON.stringify(parsed));
             } catch {}

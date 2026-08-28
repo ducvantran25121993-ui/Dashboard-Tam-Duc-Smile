@@ -217,6 +217,61 @@ app.get('/api/proxy-image', async (req, res) => {
   return res.send(fallbackSvg);
 });
 
+// Google Sheets Proxy endpoint to bypass CORS, browser caching, and ensure instant real-time live sync
+app.get('/api/proxy-sheet', async (req, res) => {
+  const sheetUrl = (req.query.url as string) || '';
+  if (!sheetUrl) {
+    return res.status(400).json({ error: 'Missing url parameter' });
+  }
+
+  try {
+    const match = sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    const spreadsheetId = match ? match[1] : sheetUrl;
+    const gid = (sheetUrl.match(/gid=([0-9]+)/) || [])[1] || '0';
+    const cacheBust = Date.now();
+
+    const targets = [
+      `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&gid=${gid}&_t=${cacheBust}`,
+      `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}&_t=${cacheBust}`,
+      `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&_t=${cacheBust}`,
+    ];
+
+    for (const target of targets) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+        const response = await fetch(target, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const csvText = await response.text();
+          if (csvText && !csvText.includes('<!DOCTYPE html>') && !csvText.includes('accounts.google.com') && csvText.length > 20) {
+            res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            return res.send(csvText);
+          }
+        }
+      } catch (e) {
+        // try next target
+      }
+    }
+
+    return res.status(502).json({ error: 'Unable to fetch CSV from Google Sheet' });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Server error proxying sheet' });
+  }
+});
+
 app.post('/api/permissions', (req, res) => {
   const { allowedTabs } = req.body;
   if (Array.isArray(allowedTabs)) {

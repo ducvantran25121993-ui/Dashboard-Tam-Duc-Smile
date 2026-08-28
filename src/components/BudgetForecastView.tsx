@@ -256,23 +256,52 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
   };
 
-  // Load Google Sheet Budget Plan (Reads multi-month T6, T7, T8)
-  const loadBudgetSheet = useCallback(async (url: string = sheetUrl) => {
-    setIsFetchingSheet(true);
+  // Load Google Sheet Budget Plan (Reads multi-month T6, T7, T8 in Real-Time)
+  const [syncStatusMsg, setSyncStatusMsg] = useState<string>('');
+
+  const loadBudgetSheet = useCallback(async (url: string = sheetUrl, isSilent: boolean = false) => {
+    if (!isSilent) setIsFetchingSheet(true);
     try {
       const data = await fetchMultiMonthBudgetPlan(url);
       if (data && data.availableMonths.length > 0) {
         setMultiMonthPlan(data);
+        setSyncStatusMsg(`Đã đồng bộ lúc ${data.lastUpdated || new Date().toLocaleTimeString('vi-VN')}`);
       }
     } catch (err) {
       console.error('Error fetching multi-month budget plan sheet:', err);
     } finally {
-      setIsFetchingSheet(false);
+      if (!isSilent) setIsFetchingSheet(false);
     }
   }, [sheetUrl]);
 
+  // Initial load + Real-time Window Focus listener + 30s Auto-polling interval
   useEffect(() => {
     loadBudgetSheet(sheetUrl);
+
+    // Auto-refresh every 30 seconds to catch spreadsheet edits automatically
+    const interval = setInterval(() => {
+      loadBudgetSheet(sheetUrl, true);
+    }, 30000);
+
+    // Auto-refresh immediately when user switches back to this browser tab
+    const handleFocus = () => {
+      loadBudgetSheet(sheetUrl, true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadBudgetSheet(sheetUrl, true);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [sheetUrl, loadBudgetSheet]);
 
   // Selected Month Number Helper
@@ -1078,10 +1107,11 @@ ${activeItems
           <button
             onClick={() => loadBudgetSheet(sheetUrl)}
             disabled={isFetchingSheet}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs transition-all active:scale-95 disabled:opacity-50"
-            title="Làm mới Google Sheet"
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-600/30 to-blue-600/30 hover:from-cyan-600/50 hover:to-blue-600/50 border border-cyan-500/40 text-cyan-300 text-xs font-bold transition-all active:scale-95 disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
+            title="Nhấn để cập nhật ngay số liệu mới nhất từ file Google Sheet"
           >
-            <RefreshCw className={`w-4 h-4 text-cyan-400 ${isFetchingSheet ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-cyan-400 ${isFetchingSheet ? 'animate-spin' : ''}`} />
+            <span>{isFetchingSheet ? 'Đang tải số mới...' : 'Đồng Bộ Ngay'}</span>
           </button>
 
           <button
@@ -1100,6 +1130,29 @@ ${activeItems
           >
             {copiedSummary ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
           </button>
+        </div>
+      </div>
+
+      {/* REAL-TIME LIVE SYNC NOTIFICATION / STATUS PILL */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 rounded-xl bg-slate-950/70 border border-slate-800/80 text-[11px]">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span className="font-semibold text-slate-300">
+            Trạng Thái Dữ Liệu: <span className="text-emerald-400 font-bold">Thời Gian Thực (Real-time Live Sync)</span>
+          </span>
+          <span className="text-slate-500">•</span>
+          <span className="text-slate-400 font-mono">
+            {multiMonthPlan.lastUpdated ? `Cập nhật lúc: ${multiMonthPlan.lastUpdated}` : syncStatusMsg || 'Vừa xong'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3 text-slate-400">
+          <span className="text-slate-400 text-[10px]">
+            ⚡ Tự động quét lại mỗi 30s hoặc khi bạn quay lại tab này sau khi chỉnh Google Sheet
+          </span>
         </div>
       </div>
 
