@@ -34,7 +34,7 @@ export const DEFAULT_BUDGET_PLAN_SHEET_URL = 'https://docs.google.com/spreadshee
 export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   {
     id: 'ct',
-    name: 'Cần Thơ 1 + 2 + TN',
+    name: 'Cần Thơ 1 + 2+TN',
     dailyBudget: 1800000,
     monthlyBudget: 54000000,
     monthlyBudgetVat: 62985600,
@@ -54,11 +54,11 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 19999188,
     reducedExtra30Budget: 12002256,
     reducedExtra30Vat: 13999431,
-    spentThisMonth: 22400000,
+    spentThisMonth: 15848719,
   },
   {
     id: 'dt',
-    name: 'Đồng Tháp (Cao Lãnh)',
+    name: 'Đồng Tháp',
     dailyBudget: 200000,
     monthlyBudget: 6000000,
     monthlyBudgetVat: 6998400,
@@ -66,7 +66,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 5714054,
     reducedExtra30Budget: 6000000,
     reducedExtra30Vat: 6998400,
-    spentThisMonth: 19800000,
+    spentThisMonth: 18319653,
   },
   {
     id: 'bl',
@@ -78,7 +78,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 5714054,
     reducedExtra30Budget: 6000000,
     reducedExtra30Vat: 6998400,
-    spentThisMonth: 4800000,
+    spentThisMonth: 12369172,
   },
   {
     id: 'st',
@@ -90,11 +90,11 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 5714054,
     reducedExtra30Budget: 6000000,
     reducedExtra30Vat: 6998400,
-    spentThisMonth: 18200000,
+    spentThisMonth: 11876628,
   },
   {
     id: 'bd',
-    name: 'Bình Dương (Thuận An & Dĩ An)',
+    name: 'Bình Dương',
     dailyBudget: 1400000,
     monthlyBudget: 42000000,
     monthlyBudgetVat: 48988800,
@@ -106,7 +106,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'vt',
-    name: 'Phước Tỉnh + Xuyên Mộc + Bacu + Bà Rịa (Vũng Tàu)',
+    name: 'Vũng Tàu (Phước Tỉnh + Xuyên Mộc + Bacu)',
     dailyBudget: 1200000,
     monthlyBudget: 36000000,
     monthlyBudgetVat: 41990400,
@@ -118,7 +118,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'bh',
-    name: 'Biên Hòa + Đại Phước (Đồng Nai)',
+    name: 'Biên Hòa + Đại Phước',
     dailyBudget: 1500000,
     monthlyBudget: 45000000,
     monthlyBudgetVat: 52488000,
@@ -130,7 +130,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'hcm',
-    name: 'HỒ CHÍ MINH & Lân Cận',
+    name: 'Hồ Chí Minh & Lân Cận',
     dailyBudget: 19000000,
     monthlyBudget: 570000000,
     monthlyBudgetVat: 664848000,
@@ -138,11 +138,11 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 542835095,
     reducedExtra30Budget: 325775520,
     reducedExtra30Vat: 379984567,
-    spentThisMonth: 485600000,
+    spentThisMonth: 717592304,
   },
   {
     id: 'vk',
-    name: 'Thị Trường Việt Kiều Toàn Cầu',
+    name: 'Việt Kiều Toàn Cầu',
     dailyBudget: 4000000,
     monthlyBudget: 120000000,
     monthlyBudgetVat: 139968000,
@@ -150,11 +150,11 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
     reduced30Vat: 114281073,
     reducedExtra30Budget: 68584320,
     reducedExtra30Vat: 79996751,
-    spentThisMonth: 104200000,
+    spentThisMonth: 128450000,
   },
   {
     id: 'qn',
-    name: 'Quy Nhơn (Bình Định)',
+    name: 'Quy Nhơn',
     dailyBudget: 900000,
     monthlyBudget: 27000000,
     monthlyBudgetVat: 31492800,
@@ -190,7 +190,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'dl',
-    name: 'Đà Lạt (Lâm Đồng)',
+    name: 'Đà Lạt',
     dailyBudget: 600000,
     monthlyBudget: 18000000,
     monthlyBudgetVat: 20995200,
@@ -214,7 +214,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'gk',
-    name: 'Gia Kiệm (Đồng Nai)',
+    name: 'Gia Kiệm',
     dailyBudget: 0,
     monthlyBudget: 0,
     monthlyBudgetVat: 0,
@@ -226,7 +226,7 @@ export const FALLBACK_BUDGET_PLAN_ITEMS: BranchPlanItem[] = [
   },
   {
     id: 'bp',
-    name: 'Bình Phước (Đồng Xoài)',
+    name: 'Bình Phước',
     dailyBudget: 0,
     monthlyBudget: 0,
     monthlyBudgetVat: 0,
