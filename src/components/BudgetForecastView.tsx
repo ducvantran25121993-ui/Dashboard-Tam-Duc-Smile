@@ -162,32 +162,95 @@ function getBranchCostFromMonthDataset(branchName: string, monthDataset: MonthDa
   if (!monthDataExists(monthDataset)) return 0;
   const bNorm = normalizeBranchName(branchName);
 
-  const found = monthDataset.regions.find((r) => {
+  let totalCost = 0;
+
+  monthDataset.regions.forEach((r) => {
     const rNorm = normalizeBranchName(r.name);
-    if (rNorm === bNorm) return true;
-    if (bNorm.includes(rNorm) || rNorm.includes(bNorm)) return true;
-    if (bNorm.includes('cantho') && rNorm.includes('cantho')) return true;
-    if (bNorm.includes('camau') && rNorm.includes('camau')) return true;
-    if (bNorm.includes('dongthap') && rNorm.includes('dongthap')) return true;
-    if (bNorm.includes('baclieu') && rNorm.includes('baclieu')) return true;
-    if (bNorm.includes('soctrang') && rNorm.includes('soctrang')) return true;
-    if (bNorm.includes('binhduong') && rNorm.includes('binhduong')) return true;
-    if (bNorm.includes('vungtau') && rNorm.includes('vungtau')) return true;
-    if (bNorm.includes('bienhoa') && rNorm.includes('bienhoa')) return true;
-    if ((bNorm.includes('hochiminh') || bNorm.includes('hcm')) && (rNorm.includes('hcm') || rNorm.includes('hochiminh'))) return true;
-    if (bNorm.includes('vietkieu') && rNorm.includes('vietkieu')) return true;
-    if (bNorm.includes('quynhon') && rNorm.includes('quynhon')) return true;
-    if (bNorm.includes('tayninh') && rNorm.includes('tayninh')) return true;
-    if (bNorm.includes('danang') && rNorm.includes('danang')) return true;
-    if (bNorm.includes('dalat') && rNorm.includes('dalat')) return true;
-    if (bNorm.includes('binhphuoc') && rNorm.includes('binhphuoc')) return true;
-    if (bNorm.includes('dian') && rNorm.includes('dian')) return true;
-    if (bNorm.includes('giakiem') && rNorm.includes('giakiem')) return true;
-    if (bNorm.includes('phanthiet') && rNorm.includes('phanthiet')) return true;
-    return false;
+    let matched = false;
+
+    if (rNorm === bNorm || bNorm.includes(rNorm) || rNorm.includes(bNorm)) {
+      matched = true;
+    } else if (
+      (bNorm.includes('phuoctinh') || bNorm.includes('baria') || bNorm.includes('vungtau') || bNorm.includes('bacu') || bNorm.includes('xuyenmoc')) &&
+      (rNorm.includes('vungtau') || rNorm.includes('baria') || rNorm.includes('phuoctinh') || rNorm.includes('bacu') || rNorm.includes('xuyenmoc'))
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('cantho') && rNorm.includes('cantho')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('camau') && rNorm.includes('camau')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('dongthap') && rNorm.includes('dongthap')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('baclieu') && rNorm.includes('baclieu')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('soctrang') && rNorm.includes('soctrang')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('binhduong') && rNorm.includes('binhduong')
+    ) {
+      matched = true;
+    } else if (
+      (bNorm.includes('bienhoa') || bNorm.includes('daiphuoc')) && (rNorm.includes('bienhoa') || rNorm.includes('daiphuoc'))
+    ) {
+      matched = true;
+    } else if (
+      (bNorm.includes('hochiminh') || bNorm.includes('hcm')) && (rNorm.includes('hcm') || rNorm.includes('hochiminh') || rNorm.includes('saigon'))
+    ) {
+      matched = true;
+    } else if (
+      (bNorm.includes('vietkieu') || bNorm.includes('vk')) && (rNorm.includes('vietkieu') || rNorm.includes('vk'))
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('quynhon') && rNorm.includes('quynhon')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('tayninh') && rNorm.includes('tayninh')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('danang') && rNorm.includes('danang')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('dalat') && rNorm.includes('dalat')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('binhphuoc') && rNorm.includes('binhphuoc')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('dian') && rNorm.includes('dian')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('giakiem') && rNorm.includes('giakiem')
+    ) {
+      matched = true;
+    } else if (
+      bNorm.includes('phanthiet') && rNorm.includes('phanthiet')
+    ) {
+      matched = true;
+    }
+
+    if (matched) {
+      totalCost += (r.costVAT || 0);
+    }
   });
 
-  return found ? (found.costVAT || 0) : 0;
+  return totalCost;
 }
 
 function monthDataExists(m: MonthDataset | undefined): m is MonthDataset {
@@ -446,8 +509,20 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     const totalReducedExtra30 = activeItems.reduce((s, i) => s + i.reducedExtra30Budget, 0);
     const totalReducedExtra30Vat = activeItems.reduce((s, i) => s + i.reducedExtra30Vat, 0);
 
-    // Dynamic total spent for the active selected month
-    const totalSpent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, selectedMonth), 0);
+    // Dynamic total spent for the active selected month directly aligned with Tab Doanh Thu
+    let totalSpent = 0;
+    if (selectedMonth === 'all') {
+      const datasetSum = (monthlyDatasets || []).reduce((acc, m) => acc + (m.regions || []).reduce((rAcc, r) => rAcc + (r.costVAT || 0), 0), 0);
+      totalSpent = datasetSum > 0 ? datasetSum : activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, 'all'), 0);
+    } else {
+      const tab = MONTH_TABS.find((t) => t.id === selectedMonth);
+      const targetDataset = (monthlyDatasets || []).find((m) => m.month === tab?.monthNum);
+      if (targetDataset && targetDataset.regions && targetDataset.regions.length > 0) {
+        totalSpent = targetDataset.regions.reduce((acc, r) => acc + (r.costVAT || 0), 0);
+      } else {
+        totalSpent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, selectedMonth), 0);
+      }
+    }
 
     // Calculate dynamic effective total budget under selected reduction scenario
     let activeScenarioTotalBudget = totalMonthlyVat > 0 ? totalMonthlyVat : totalMonthly;
@@ -503,9 +578,15 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       const planForTab = multiMonthPlan.monthPlans[mNum];
 
       if (tab.id === 'all') {
-        spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, 'all'), 0);
+        const datasetSum = (monthlyDatasets || []).reduce((sum, m) => sum + (m.regions || []).reduce((rSum, r) => rSum + (r.costVAT || 0), 0), 0);
+        spent = datasetSum > 0 ? datasetSum : activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, 'all'), 0);
       } else {
-        spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, tab.id), 0);
+        const targetDataset = (monthlyDatasets || []).find((m) => m.month === tab.monthNum);
+        if (targetDataset && targetDataset.regions && targetDataset.regions.length > 0) {
+          spent = targetDataset.regions.reduce((acc, r) => acc + (r.costVAT || 0), 0);
+        } else {
+          spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, tab.id), 0);
+        }
       }
 
       const planVatBudget = planForTab?.totalMonthlyVat || 0;
@@ -522,7 +603,7 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
         planTitle: planForTab?.title,
       };
     });
-  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget, multiMonthPlan]);
+  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget, multiMonthPlan, monthlyDatasets]);
 
   // Filtered branch items based on effective limit & active month's spent
   const filteredBranchItems = useMemo(() => {
