@@ -104,6 +104,27 @@ export const FALLBACK_PLAN_T8_ITEMS: BranchPlanItem[] = [
   { id: 't8_bp', name: 'Bình Phước', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
 ];
 
+// EMPTY TEMPLATE FOR MONTHS WITHOUT PLAN DATA YET (T1-T5, T9, etc. waiting for update)
+export const EMPTY_BRANCH_PLAN_ITEMS: BranchPlanItem[] = [
+  { id: 'empty_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_cm', name: 'Cà Mau', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_dt', name: 'Đồng Tháp', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_bl', name: 'Bạc Liêu', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_st', name: 'Sóc Trăng', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_bd', name: 'Bình Dương', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_vt', name: 'Phước Tỉnh+Xuyên Mộc + Bacu + Bà Rịa', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_bh', name: 'Biên Hòa + Đại Phước', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_hcm', name: 'HỒ CHÍ MINH lân cận', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_vk', name: 'Việt Kiều', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_qn', name: 'Quy Nhơn', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_tn', name: 'Tây Ninh', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_dn', name: 'Đà Nẵng', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_dl', name: 'Đà Lạt', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_da', name: 'Dĩ An', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_gk', name: 'Gia Kiệm', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 'empty_bp', name: 'Bình Phước', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+];
+
 export const FALLBACK_BUDGET_PLAN_ITEMS = FALLBACK_PLAN_T8_ITEMS;
 
 export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
@@ -252,16 +273,23 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
     const col1 = r[1] || '';
     const fullRowText = r.join(' ').toLowerCase();
 
-    // Check for Section Header (e.g. 07/2026 Ngân Sách Dự Kiến T7)
-    if (fullRowText.includes('dự kiến') || col0.includes('/2026') || col0.includes('/2025') || fullRowText.includes('ngân sách dự kiến')) {
+    // Check for Section Header (e.g. 07/2026 Ngân Sách Dự Kiến T7, T1, T2...)
+    if (fullRowText.includes('dự kiến') || col0.includes('/2026') || col0.includes('/2025') || fullRowText.includes('ngân sách dự kiến') || fullRowText.includes('kế hoạch')) {
       let monthNum = 0;
-      if (fullRowText.includes('t6') || col0.includes('06/') || fullRowText.includes('tháng 6')) monthNum = 6;
-      else if (fullRowText.includes('t7') || col0.includes('07/') || fullRowText.includes('tháng 7')) monthNum = 7;
-      else if (fullRowText.includes('t8') || col0.includes('08/') || fullRowText.includes('tháng 8')) monthNum = 8;
-      else if (fullRowText.includes('t9') || col0.includes('09/') || fullRowText.includes('tháng 9')) monthNum = 9;
-      else if (fullRowText.includes('t10') || col0.includes('10/') || fullRowText.includes('tháng 10')) monthNum = 10;
-      else if (fullRowText.includes('t11') || col0.includes('11/') || fullRowText.includes('tháng 11')) monthNum = 11;
-      else if (fullRowText.includes('t12') || col0.includes('12/') || fullRowText.includes('tháng 12')) monthNum = 12;
+      for (let m = 12; m >= 1; m--) {
+        const pad = m < 10 ? `0${m}` : `${m}`;
+        // Match explicit patterns like "t1", "tháng 1", "01/2026", "01/"
+        const patterns = [
+          `t${m} `, `t${m}:`, `t${m})`, `t${m}-`, `(t${m})`, ` t${m}`,
+          `tháng ${m}`, `thang ${m}`,
+          `${pad}/`, `${pad}/2026`, `${pad}/2025`,
+          `/${pad}/`, `/${m}/`
+        ];
+        if (patterns.some(p => fullRowText.includes(p) || col0.toLowerCase().includes(p)) || fullRowText.endsWith(`t${m}`) || fullRowText.startsWith(`t${m}`)) {
+          monthNum = m;
+          break;
+        }
+      }
 
       if (monthNum > 0) {
         currentSection = {

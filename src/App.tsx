@@ -535,48 +535,6 @@ export default function App() {
               ) : currentMonthData ? (
                 /* Individual Month View (Tháng 1 - Tháng 9) */
                 <div className="space-y-6">
-                  {/* Empty Month Notice Banner */}
-                  {currentMonthData.regions.every((r) => (r.costVAT || 0) === 0 && (r.revenue || 0) === 0 && (r.totalData || 0) === 0) && (
-                    <div className="p-4.5 rounded-2xl bg-gradient-to-r from-amber-950/50 via-slate-900 to-amber-950/50 border border-amber-500/40 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
-                          <Clock className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-black text-amber-200 uppercase tracking-wide flex items-center gap-2">
-                            <span>{currentMonthData.label}: Chưa có dữ liệu báo cáo</span>
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                              Đang để trống chờ cập nhật
-                            </span>
-                          </h4>
-                          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                            Dữ liệu của <strong>{currentMonthData.label}</strong> hiện chưa được cập nhật và được để trống theo yêu cầu. Bạn có thể xem tháng đã có dữ liệu hoặc bấm Tổng Quan để xem báo cáo 6 tháng.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                        <button
-                          onClick={() => setActiveTab(6)}
-                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 transition-all cursor-pointer"
-                        >
-                          Xem Tháng 6
-                        </button>
-                        <button
-                          onClick={() => setActiveTab(7)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:brightness-110 transition-all cursor-pointer shadow-md"
-                        >
-                          Xem Tháng 7 (Đầy Đủ)
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('overview')}
-                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 transition-all cursor-pointer"
-                        >
-                          Xem Tổng Quan
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Top KPI Cards */}
                   <KPISummary
                     monthData={currentMonthData}

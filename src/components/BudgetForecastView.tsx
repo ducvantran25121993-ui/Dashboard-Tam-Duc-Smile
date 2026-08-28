@@ -64,6 +64,7 @@ import {
   FALLBACK_PLAN_T7_ITEMS,
   FALLBACK_PLAN_T8_ITEMS,
   FALLBACK_BUDGET_PLAN_ITEMS,
+  EMPTY_BRANCH_PLAN_ITEMS,
 } from '../services/budgetPlanSheetService';
 
 interface BudgetForecastViewProps {
@@ -376,11 +377,23 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
 
   const hasPlanDataForSelectedMonth = useMemo(() => {
     if (selectedMonthNum === 0) return true;
-    return multiMonthPlan.availableMonths.includes(selectedMonthNum);
-  }, [selectedMonthNum, multiMonthPlan.availableMonths]);
+    const plan = multiMonthPlan.monthPlans[selectedMonthNum];
+    if (plan && (plan.totalMonthlyVat > 0 || plan.totalMonthly > 0)) return true;
+    return (multiMonthPlan.availableMonths || []).includes(selectedMonthNum);
+  }, [selectedMonthNum, multiMonthPlan]);
 
-  // Active items strictly from the active month's plan in the Google Sheet (T6, T7, T8)
+  // Active items dynamically resolved:
+  // - If sheet has plan data for selected month, use that month's parsed items
+  // - For T6, T7, T8 with built-in fallbacks if sheet not yet loaded
+  // - For months without plan data in sheet yet (T1-T5, T9, etc.), returns EMPTY_BRANCH_PLAN_ITEMS (all 0s waiting for sheet update)
   const activeItems = useMemo(() => {
+    if (selectedMonthNum === 0) {
+      return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+    }
+    const monthPlan = multiMonthPlan.monthPlans[selectedMonthNum];
+    if (monthPlan && monthPlan.items && monthPlan.items.length > 0 && (monthPlan.totalMonthlyVat > 0 || monthPlan.totalMonthly > 0)) {
+      return monthPlan.items;
+    }
     if (selectedMonthNum === 6) {
       return multiMonthPlan.monthPlans[6]?.items || FALLBACK_PLAN_T6_ITEMS;
     }
@@ -390,11 +403,8 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     if (selectedMonthNum === 8) {
       return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
     }
-    if (selectedMonthNum === 0) {
-      return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
-    }
-    // For months 1 to 5, no budget plan exists in this sheet
-    return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+    // For months 1 to 5 (or any month without plan data), return empty items with 0s waiting for update
+    return EMPTY_BRANCH_PLAN_ITEMS;
   }, [selectedMonthNum, multiMonthPlan]);
 
   // Save custom branch data for active month
@@ -798,45 +808,6 @@ ${activeItems
         </div>
       </div>
 
-      {/* WARNING BANNER IF SELECTED MONTH HAS NO DATA IN GOOGLE SHEET */}
-      {!hasPlanDataForSelectedMonth && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-amber-950/60 border border-amber-500/50 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-amber-200 uppercase tracking-wide flex items-center gap-2">
-                <span>Tháng {selectedMonthNum}: Chưa Có Kế Hoạch Ngân Sách Trên File Google Sheets</span>
-              </h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                File Google Sheets <span className="text-amber-300 font-bold underline">Ngân Sách Dự Kiến</span> được phân bổ hạn mức chi tiết cho các tháng: <strong>Tháng 6, Tháng 7 và Tháng 8 (T6, T7, T8)</strong>. Tháng 1 đến Tháng 5 chưa có bảng phân bổ dự kiến trong file này.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <button
-              onClick={() => setSelectedMonth('t6')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 hover:border-amber-400 transition-all cursor-pointer shadow-sm"
-            >
-              Xem Kế Hoạch T6 (1.230 Tỷ)
-            </button>
-            <button
-              onClick={() => setSelectedMonth('t7')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer shadow-sm"
-            >
-              Xem Kế Hoạch T7 (860M - 1.230 Tỷ)
-            </button>
-            <button
-              onClick={() => setSelectedMonth('t8')}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:brightness-110 transition-all cursor-pointer shadow-md"
-            >
-              Xem Kế Hoạch T8 (Mới Nhất)
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 1. TOP KPI METRIC ROW - DYNAMICALLY COMPUTED FOR SELECTED MONTH */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng Hạn Mức Kịch Bản */}
@@ -852,25 +823,35 @@ ${activeItems
                 ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                 : 'bg-purple-500/10 text-purple-300 border-purple-500/30'
             }`}>
-              {budgetScenario === 'base_100' ? '17 Chi Nhánh (100%)' : currentSummary.scenarioLabel}
+              {currentSummary.activeScenarioTotalBudget > 0
+                ? (budgetScenario === 'base_100' ? '17 Chi Nhánh (100%)' : currentSummary.scenarioLabel)
+                : 'Chờ cập nhật'}
             </span>
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight font-mono">
-              {formatVND(currentSummary.activeScenarioTotalBudget, 'full')}
+              {currentSummary.activeScenarioTotalBudget > 0
+                ? formatVND(currentSummary.activeScenarioTotalBudget, 'full')
+                : '--'}
             </div>
             <div className="text-xs text-slate-400 mt-1.5 flex flex-col gap-0.5">
-              {budgetScenario === 'base_100' ? (
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Gốc (Chưa VAT):</span>
-                  <span className="font-mono text-cyan-300 font-bold">{formatVND(currentSummary.totalMonthly, 'full')}</span>
-                </div>
+              {currentSummary.activeScenarioTotalBudget > 0 ? (
+                budgetScenario === 'base_100' ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Gốc (Chưa VAT):</span>
+                    <span className="font-mono text-cyan-300 font-bold">{formatVND(currentSummary.totalMonthly, 'full')}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span>{currentSummary.scenarioLabel}</span>
+                    <span className="text-slate-500 line-through font-mono text-[11px]">
+                      VAT Gốc: {formatVND(currentSummary.totalMonthlyVat, 'million')}
+                    </span>
+                  </div>
+                )
               ) : (
-                <div className="flex items-center justify-between">
-                  <span>{currentSummary.scenarioLabel}</span>
-                  <span className="text-slate-500 line-through font-mono text-[11px]">
-                    VAT Gốc: {formatVND(currentSummary.totalMonthlyVat, 'million')}
-                  </span>
+                <div className="flex items-center justify-between text-slate-500">
+                  <span>Chờ cập nhật kế hoạch từ file</span>
                 </div>
               )}
             </div>
@@ -885,22 +866,30 @@ ${activeItems
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-black text-cyan-400 tracking-tight font-mono">
-              {formatVND(
-                budgetScenario === 'reduced_30'
-                  ? Math.round(currentSummary.totalDaily * 0.7)
-                  : budgetScenario === 'reduced_extra_30'
-                  ? Math.round(currentSummary.totalDaily * 0.49)
-                  : budgetScenario === 'custom'
-                  ? Math.round(currentSummary.totalDaily * ((100 - customReductionPct) / 100))
-                  : currentSummary.totalDaily,
-                'full'
-              )}
+              {currentSummary.totalDaily > 0
+                ? formatVND(
+                    budgetScenario === 'reduced_30'
+                      ? Math.round(currentSummary.totalDaily * 0.7)
+                      : budgetScenario === 'reduced_extra_30'
+                      ? Math.round(currentSummary.totalDaily * 0.49)
+                      : budgetScenario === 'custom'
+                      ? Math.round(currentSummary.totalDaily * ((100 - customReductionPct) / 100))
+                      : currentSummary.totalDaily,
+                    'full'
+                  )
+                : '--'}
             </div>
             <div className="text-xs text-slate-400 mt-1.5 flex items-center justify-between">
-              <span>31 ngày = {formatVND(currentSummary.totalMonthly, 'million')}</span>
-              <span className="text-slate-400 font-mono text-[11px]">
-                TB: ~{formatVND(currentSummary.avgDailyPerLocation, 'million')}/cơ sở
-              </span>
+              {currentSummary.totalDaily > 0 ? (
+                <>
+                  <span>31 ngày = {formatVND(currentSummary.totalMonthly, 'million')}</span>
+                  <span className="text-slate-400 font-mono text-[11px]">
+                    TB: ~{formatVND(currentSummary.avgDailyPerLocation, 'million')}/cơ sở
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-500">Chờ cập nhật từ file</span>
+              )}
             </div>
           </div>
         </div>
@@ -915,14 +904,20 @@ ${activeItems
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-mono">
-              {formatVND(currentSummary.totalSpent, 'full')}
+              {currentSummary.totalSpent > 0 ? formatVND(currentSummary.totalSpent, 'full') : (hasPlanDataForSelectedMonth ? '0 đ' : '--')}
             </div>
             <div className="text-xs text-slate-400 mt-1.5 flex items-center justify-between">
-              <span>Chênh lệch (+VAT):</span>
-              <span className={`font-bold font-mono ${currentSummary.remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                {currentSummary.remainingBudget < 0 ? '-' : '+'}
-                {formatVND(Math.abs(currentSummary.remainingBudget), 'full')}
-              </span>
+              {currentSummary.activeScenarioTotalBudget > 0 ? (
+                <>
+                  <span>Chênh lệch (+VAT):</span>
+                  <span className={`font-bold font-mono ${currentSummary.remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                    {currentSummary.remainingBudget < 0 ? '-' : '+'}
+                    {formatVND(Math.abs(currentSummary.remainingBudget), 'full')}
+                  </span>
+                </>
+              ) : (
+                <span className="text-slate-500">Chờ kế hoạch đối soát</span>
+              )}
             </div>
           </div>
         </div>
@@ -931,14 +926,26 @@ ${activeItems
         <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Trạng Thái Burn-Rate</span>
-            <ShieldCheck className={`w-4 h-4 ${currentSummary.burnRatePercent > 100 ? 'text-rose-400' : 'text-emerald-400'}`} />
+            <ShieldCheck className={`w-4 h-4 ${
+              currentSummary.activeScenarioTotalBudget === 0
+                ? 'text-slate-500'
+                : currentSummary.burnRatePercent > 100
+                ? 'text-rose-400'
+                : 'text-emerald-400'
+            }`} />
           </div>
           <div className="mt-2 space-y-2">
             <div className={`text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5 ${
-              currentSummary.burnRatePercent > 100 ? 'text-rose-400' : 'text-emerald-400'
+              currentSummary.activeScenarioTotalBudget === 0
+                ? 'text-slate-400'
+                : currentSummary.burnRatePercent > 100
+                ? 'text-rose-400'
+                : 'text-emerald-400'
             }`}>
               <span>
-                {currentSummary.burnRatePercent > 100
+                {currentSummary.activeScenarioTotalBudget === 0
+                  ? '⏳ Chờ Cập Nhật'
+                  : currentSummary.burnRatePercent > 100
                   ? `⚠️ Vượt Trần (${currentSummary.burnRatePercent.toFixed(1)}%)`
                   : `✅ An Toàn (${currentSummary.burnRatePercent.toFixed(1)}%)`}
               </span>
@@ -947,16 +954,18 @@ ${activeItems
             <div className="h-2.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div
                 className={`h-full rounded-full transition-all ${
-                  currentSummary.burnRatePercent > 100
+                  currentSummary.activeScenarioTotalBudget === 0
+                    ? 'bg-slate-800'
+                    : currentSummary.burnRatePercent > 100
                     ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500'
                     : 'bg-gradient-to-r from-teal-500 to-emerald-500'
                 }`}
-                style={{ width: `${Math.min(100, currentSummary.burnRatePercent)}%` }}
+                style={{ width: `${currentSummary.activeScenarioTotalBudget === 0 ? 0 : Math.min(100, currentSummary.burnRatePercent)}%` }}
               />
             </div>
             <div className="text-[11px] text-slate-400 flex items-center justify-between">
-              <span>Đã chi: {formatVND(currentSummary.totalSpent, 'million')}</span>
-              <span>Hạn mức: {formatVND(currentSummary.activeScenarioTotalBudget, 'million')}</span>
+              <span>Đã chi: {currentSummary.totalSpent > 0 ? formatVND(currentSummary.totalSpent, 'million') : '0 đ'}</span>
+              <span>Hạn mức: {currentSummary.activeScenarioTotalBudget > 0 ? formatVND(currentSummary.activeScenarioTotalBudget, 'million') : '--'}</span>
             </div>
           </div>
         </div>
@@ -1000,11 +1009,15 @@ ${activeItems
               </span>
             </div>
             <div className="mt-2 font-mono font-black text-sm text-amber-300">
-              {formatVND(currentSummary.totalMonthlyVat || currentSummary.totalMonthly, 'full')}
+              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? formatVND(currentSummary.totalMonthlyVat || currentSummary.totalMonthly, 'full')
+                : '--'}
             </div>
             <div className="text-[10px] text-slate-400 mt-0.5 flex items-center justify-between">
               <span>Gốc (Chưa VAT):</span>
-              <span className="font-mono text-cyan-300">{formatVND(currentSummary.totalMonthly, 'million')}</span>
+              <span className="font-mono text-cyan-300">
+                {currentSummary.totalMonthly > 0 ? formatVND(currentSummary.totalMonthly, 'million') : '--'}
+              </span>
             </div>
           </button>
 
@@ -1027,10 +1040,14 @@ ${activeItems
               </span>
             </div>
             <div className="mt-2 font-mono font-black text-sm text-cyan-300">
-              {formatVND(currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7), 'full')}
+              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? formatVND(currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7), 'full')
+                : '--'}
             </div>
             <div className="text-[10px] text-slate-400 mt-0.5">
-              Tiết kiệm {formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7)), 'million')} (+VAT)
+              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7)), 'million')} (+VAT)`
+                : 'Chờ cập nhật'}
             </div>
           </button>
 
@@ -1053,10 +1070,14 @@ ${activeItems
               </span>
             </div>
             <div className="mt-2 font-mono font-black text-sm text-emerald-300">
-              {formatVND(currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49), 'full')}
+              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? formatVND(currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49), 'full')
+                : '--'}
             </div>
             <div className="text-[10px] text-slate-400 mt-0.5">
-              Tiết kiệm {formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49)), 'million')} (+VAT)
+              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49)), 'million')} (+VAT)`
+                : 'Chờ cập nhật'}
             </div>
           </button>
 
@@ -1095,7 +1116,9 @@ ${activeItems
               </span>
             </div>
             <div className="text-[10px] text-slate-400 mt-1 font-mono">
-              Hạn mức: {formatVND(Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * ((100 - customReductionPct) / 100)), 'million')}
+              Hạn mức: {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
+                ? formatVND(Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * ((100 - customReductionPct) / 100)), 'million')
+                : '--'}
             </div>
           </div>
         </div>
@@ -1348,7 +1371,7 @@ ${activeItems
                             isOverBudget ? 'text-rose-400' : 'text-teal-400'
                           }`}
                         >
-                          {formatVND(spent, 'full')}
+                          {spent > 0 ? formatVND(spent, 'full') : (effectiveLimit > 0 ? '0 đ' : '--')}
                         </span>
                       </div>
 
@@ -1356,8 +1379,8 @@ ${activeItems
                         <span className="text-slate-400">
                           {budgetScenario === 'base_100' ? 'Hạn mức:' : 'Hạn mức mục tiêu:'}
                         </span>
-                        <span className={`font-mono font-bold ${budgetScenario !== 'base_100' ? 'text-cyan-300' : 'text-amber-400'}`}>
-                          {formatVND(effectiveLimit, 'full')}
+                        <span className={`font-mono font-bold ${effectiveLimit > 0 ? (budgetScenario !== 'base_100' ? 'text-cyan-300' : 'text-amber-400') : 'text-slate-500'}`}>
+                          {effectiveLimit > 0 ? formatVND(effectiveLimit, 'full') : '--'}
                         </span>
                       </div>
                     </div>
@@ -1367,52 +1390,62 @@ ${activeItems
                       <div>
                         <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
                         <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                          {formatVND(item.dailyBudget, 'full')}
+                          {item.dailyBudget > 0 ? formatVND(item.dailyBudget, 'full') : '--'}
                         </div>
                       </div>
 
                       <div>
                         <div className="text-[11px] text-slate-400 flex items-center justify-between">
                           <span>Kế Hoạch (+VAT):</span>
-                          {budgetScenario === 'base_100' && (
+                          {budgetScenario === 'base_100' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
                             <span className="text-[9px] px-1 bg-amber-500/20 text-amber-300 rounded font-bold">Đang xem</span>
                           )}
                         </div>
                         <div className="font-mono font-bold text-amber-400 text-xs sm:text-[13px] mt-0.5">
-                          {formatVND(item.monthlyBudgetVat || item.monthlyBudget, 'full')}
+                          {(item.monthlyBudgetVat || item.monthlyBudget) > 0
+                            ? formatVND(item.monthlyBudgetVat || item.monthlyBudget, 'full')
+                            : '--'}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          Gốc: {formatVND(item.monthlyBudget, 'million')}
+                          {item.monthlyBudget > 0 ? `Gốc: ${formatVND(item.monthlyBudget, 'million')}` : 'Chờ cập nhật'}
                         </div>
                       </div>
 
                       <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
                         <div className="text-[11px] text-slate-400 flex items-center justify-between">
                           <span>Giảm 30% (+VAT):</span>
-                          {budgetScenario === 'reduced_30' && (
+                          {budgetScenario === 'reduced_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
                             <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
                           )}
                         </div>
                         <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                          {formatVND(item.reduced30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.7), 'full')}
+                          {(item.monthlyBudgetVat || item.monthlyBudget) > 0
+                            ? formatVND(item.reduced30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.7), 'full')
+                            : '--'}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          Gốc: {formatVND(item.reduced30Budget || Math.round(item.monthlyBudget * 0.7), 'million')}
+                          {(item.reduced30Budget || item.monthlyBudget) > 0
+                            ? `Gốc: ${formatVND(item.reduced30Budget || Math.round(item.monthlyBudget * 0.7), 'million')}`
+                            : 'Chờ cập nhật'}
                         </div>
                       </div>
 
                       <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
                         <div className="text-[11px] text-slate-400 flex items-center justify-between">
                           <span>Giảm Thêm 30% (-51%):</span>
-                          {budgetScenario === 'reduced_extra_30' && (
+                          {budgetScenario === 'reduced_extra_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
                             <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
                           )}
                         </div>
                         <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
-                          {formatVND(item.reducedExtra30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.49), 'full')}
+                          {(item.monthlyBudgetVat || item.monthlyBudget) > 0
+                            ? formatVND(item.reducedExtra30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.49), 'full')
+                            : '--'}
                         </div>
                         <div className="text-[10px] text-slate-500 font-mono">
-                          Gốc: {formatVND(item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49), 'million')}
+                          {(item.reducedExtra30Budget || item.monthlyBudget) > 0
+                            ? `Gốc: ${formatVND(item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49), 'million')}`
+                            : 'Chờ cập nhật'}
                         </div>
                       </div>
                     </div>
@@ -1433,9 +1466,9 @@ ${activeItems
                           ? 'text-purple-300'
                           : 'text-amber-400'
                       }`}>
-                        {formatVND(effectiveLimit, 'full')}
+                        {effectiveLimit > 0 ? formatVND(effectiveLimit, 'full') : '--'}
                       </span>
-                      {budgetScenario !== 'base_100' && (
+                      {budgetScenario !== 'base_100' && baseLimit > 0 && (
                         <span className="text-[10px] text-slate-500 line-through font-mono">
                           ({formatVND(baseLimit, 'million')})
                         </span>
@@ -1541,22 +1574,22 @@ ${activeItems
                           <span>{item.name}</span>
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-slate-300">
-                          {formatVND(item.dailyBudget, 'million')}
+                          {item.dailyBudget > 0 ? formatVND(item.dailyBudget, 'million') : '--'}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-slate-400">
-                          {formatVND(item.monthlyBudget, 'million')}
+                          {item.monthlyBudget > 0 ? formatVND(item.monthlyBudget, 'million') : '--'}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
-                          {formatVND(item.monthlyBudgetVat, 'million')}
+                          {item.monthlyBudgetVat > 0 ? formatVND(item.monthlyBudgetVat, 'million') : '--'}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-cyan-300">
-                          {formatVND(item.reduced30Vat, 'million')}
+                          {item.reduced30Vat > 0 ? formatVND(item.reduced30Vat, 'million') : '--'}
                         </td>
                         <td className="py-3 px-3 text-right font-mono text-emerald-300">
-                          {formatVND(item.reducedExtra30Vat, 'million')}
+                          {item.reducedExtra30Vat > 0 ? formatVND(item.reducedExtra30Vat, 'million') : '--'}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-purple-300">
-                          {formatVND(spent, 'million')}
+                          {spent > 0 ? formatVND(spent, 'million') : (effectiveLimit > 0 ? '0' : '--')}
                         </td>
                         <td className="py-3 px-3 text-center font-mono">
                           {effectiveLimit > 0 ? (
@@ -1593,25 +1626,25 @@ ${activeItems
                     <td className="py-3.5 px-3"></td>
                     <td className="py-3.5 px-3">TỔNG CỘNG</td>
                     <td className="py-3.5 px-3 text-right font-mono text-cyan-400">
-                      {formatVND(currentSummary.totalDaily, 'million')}
+                      {currentSummary.totalDaily > 0 ? formatVND(currentSummary.totalDaily, 'million') : '--'}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono text-amber-400">
-                      {formatVND(currentSummary.totalMonthly, 'million')}
+                      {currentSummary.totalMonthly > 0 ? formatVND(currentSummary.totalMonthly, 'million') : '--'}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono text-amber-300">
-                      {formatVND(currentSummary.totalMonthlyVat, 'million')}
+                      {currentSummary.totalMonthlyVat > 0 ? formatVND(currentSummary.totalMonthlyVat, 'million') : '--'}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
-                      {formatVND(currentSummary.totalReduced30Vat, 'million')}
+                      {currentSummary.totalReduced30Vat > 0 ? formatVND(currentSummary.totalReduced30Vat, 'million') : '--'}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono text-emerald-300">
-                      {formatVND(currentSummary.totalReducedExtra30Vat, 'million')}
+                      {currentSummary.totalReducedExtra30Vat > 0 ? formatVND(currentSummary.totalReducedExtra30Vat, 'million') : '--'}
                     </td>
                     <td className="py-3.5 px-3 text-right font-mono text-purple-300">
-                      {formatVND(currentSummary.totalSpent, 'million')}
+                      {currentSummary.totalSpent > 0 ? formatVND(currentSummary.totalSpent, 'million') : (currentSummary.totalMonthly > 0 ? '0' : '--')}
                     </td>
                     <td className="py-3.5 px-3 text-center font-mono text-rose-400">
-                      {currentSummary.burnRatePercent.toFixed(1)}%
+                      {currentSummary.activeScenarioTotalBudget > 0 ? `${currentSummary.burnRatePercent.toFixed(1)}%` : '--'}
                     </td>
                     <td></td>
                   </tr>
