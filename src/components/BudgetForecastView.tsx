@@ -132,18 +132,62 @@ const CHANNELS = [
   { name: 'Google Maps Local & SEO Referral', percent: 5, color: '#10b981' },
 ];
 
-const MONTH_OPTIONS = [
-  { id: 't1', label: 'Tháng 1', short: 'T1' },
-  { id: 't2', label: 'Tháng 2', short: 'T2' },
-  { id: 't3', label: 'Tháng 3', short: 'T3' },
-  { id: 't4', label: 'Tháng 4', short: 'T4' },
-  { id: 't5', label: 'Tháng 5', short: 'T5' },
-  { id: 't6', label: 'Tháng 6', short: 'T6' },
-  { id: 't7', label: 'Tháng 7', short: 'T7' },
-  { id: 't8', label: 'Tháng 8', short: 'T8' },
-  { id: 't9', label: 'Tháng 9', short: 'T9' },
-  { id: 't10', label: 'Tháng 10', short: 'T10' },
+const MONTH_TABS = [
+  { id: 't1', monthNum: 1, label: 'Tháng 1', short: 'T1' },
+  { id: 't2', monthNum: 2, label: 'Tháng 2', short: 'T2' },
+  { id: 't3', monthNum: 3, label: 'Tháng 3', short: 'T3' },
+  { id: 't4', monthNum: 4, label: 'Tháng 4', short: 'T4' },
+  { id: 't5', monthNum: 5, label: 'Tháng 5', short: 'T5' },
+  { id: 't6', monthNum: 6, label: 'Tháng 6', short: 'T6' },
+  { id: 't7', monthNum: 7, label: 'Tháng 7', short: 'T7' },
+  { id: 't8', monthNum: 8, label: 'Tháng 8', short: 'T8' },
+  { id: 't9', monthNum: 9, label: 'Tháng 9', short: 'T9' },
+  { id: 'all', monthNum: 0, label: 'Cả Năm / Tổng Hợp', short: 'Cả Năm' },
 ];
+
+function normalizeBranchName(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function getBranchCostFromMonthDataset(branchName: string, monthDataset: MonthDataset): number {
+  if (!monthDataExists(monthDataset)) return 0;
+  const bNorm = normalizeBranchName(branchName);
+
+  const found = monthDataset.regions.find((r) => {
+    const rNorm = normalizeBranchName(r.name);
+    if (rNorm === bNorm) return true;
+    if (bNorm.includes(rNorm) || rNorm.includes(bNorm)) return true;
+    if (bNorm.includes('cantho') && rNorm.includes('cantho')) return true;
+    if (bNorm.includes('camau') && rNorm.includes('camau')) return true;
+    if (bNorm.includes('dongthap') && rNorm.includes('dongthap')) return true;
+    if (bNorm.includes('baclieu') && rNorm.includes('baclieu')) return true;
+    if (bNorm.includes('soctrang') && rNorm.includes('soctrang')) return true;
+    if (bNorm.includes('binhduong') && rNorm.includes('binhduong')) return true;
+    if (bNorm.includes('vungtau') && rNorm.includes('vungtau')) return true;
+    if (bNorm.includes('bienhoa') && rNorm.includes('bienhoa')) return true;
+    if ((bNorm.includes('hochiminh') || bNorm.includes('hcm')) && (rNorm.includes('hcm') || rNorm.includes('hochiminh'))) return true;
+    if (bNorm.includes('vietkieu') && rNorm.includes('vietkieu')) return true;
+    if (bNorm.includes('quynhon') && rNorm.includes('quynhon')) return true;
+    if (bNorm.includes('tayninh') && rNorm.includes('tayninh')) return true;
+    if (bNorm.includes('danang') && rNorm.includes('danang')) return true;
+    if (bNorm.includes('dalat') && rNorm.includes('dalat')) return true;
+    if (bNorm.includes('binhphuoc') && rNorm.includes('binhphuoc')) return true;
+    if (bNorm.includes('dian') && rNorm.includes('dian')) return true;
+    if (bNorm.includes('giakiem') && rNorm.includes('giakiem')) return true;
+    if (bNorm.includes('phanthiet') && rNorm.includes('phanthiet')) return true;
+    return false;
+  });
+
+  return found ? (found.costVAT || 0) : 0;
+}
+
+function monthDataExists(m: MonthDataset | undefined): m is MonthDataset {
+  return !!(m && Array.isArray(m.regions) && m.regions.length > 0);
+}
 
 export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   monthlyDatasets,
@@ -158,6 +202,7 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
 
   // Selected Month for comparison
   const [selectedMonth, setSelectedMonth] = useState<string>('t1');
+  const [tableSubMode, setTableSubMode] = useState<'single_month' | 'all_months_matrix'>('single_month');
 
   // Status Filter: 'all', 'over_budget', 'within_budget'
   const [statusFilter, setStatusFilter] = useState<'all' | 'over_budget' | 'within_budget'>('all');
@@ -202,6 +247,20 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
   const [aiReport, setAiReport] = useState<string | null>(null);
+
+  const applyScenario = (type: 'conservative' | 'balanced' | 'aggressive') => {
+    setActiveScenario(type);
+    if (type === 'conservative') {
+      setTotalBudget(650000000);
+      setTargetRoas(7.5);
+    } else if (type === 'balanced') {
+      setTotalBudget(850000000);
+      setTargetRoas(8.0);
+    } else if (type === 'aggressive') {
+      setTotalBudget(1250000000);
+      setTargetRoas(8.5);
+    }
+  };
 
   // Load Google Sheet Budget Plan
   const loadBudgetSheet = useCallback(async (url: string = sheetUrl) => {
@@ -258,11 +317,43 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     setEditingBranch(null);
   };
 
+  // Helper to resolve a branch's spent amount for any selected month
+  const getBranchSpentForMonth = useCallback(
+    (branch: BranchPlanItem, monthKey: string): number => {
+      if (monthKey === 'all') {
+        let sum = 0;
+        let foundAny = false;
+        (monthlyDatasets || []).forEach((m) => {
+          const cost = getBranchCostFromMonthDataset(branch.name, m);
+          if (cost > 0) {
+            sum += cost;
+            foundAny = true;
+          }
+        });
+        return foundAny ? sum : (branch.spentThisMonth || 0);
+      }
+
+      const tab = MONTH_TABS.find((t) => t.id === monthKey);
+      if (!tab || tab.monthNum === 0) {
+        return branch.spentThisMonth || 0;
+      }
+
+      const targetDataset = (monthlyDatasets || []).find((m) => m.month === tab.monthNum);
+      if (!targetDataset) {
+        return tab.monthNum === 1 ? (branch.spentThisMonth || 0) : 0;
+      }
+
+      const datasetCost = getBranchCostFromMonthDataset(branch.name, targetDataset);
+      return datasetCost > 0 ? datasetCost : (tab.monthNum === 1 ? (branch.spentThisMonth || 0) : 0);
+    },
+    [monthlyDatasets]
+  );
+
   const handleOpenEditModal = (branch: BranchPlanItem) => {
     setEditingBranch(branch);
     setEditDailyBudget(branch.dailyBudget);
     setEditMonthlyBudget(branch.monthlyBudget);
-    setEditSpent(branch.spentThisMonth || 0);
+    setEditSpent(getBranchSpentForMonth(branch, selectedMonth));
   };
 
   // Helper to compute effective limit for a branch under active scenario
@@ -290,7 +381,9 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     const totalReduced30Vat = activeItems.reduce((s, i) => s + i.reduced30Vat, 0);
     const totalReducedExtra30 = activeItems.reduce((s, i) => s + i.reducedExtra30Budget, 0);
     const totalReducedExtra30Vat = activeItems.reduce((s, i) => s + i.reducedExtra30Vat, 0);
-    const totalSpent = activeItems.reduce((s, i) => s + (i.spentThisMonth || 0), 0);
+
+    // Dynamic total spent for the active selected month
+    const totalSpent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, selectedMonth), 0);
 
     // Calculate dynamic effective total budget under selected reduction scenario
     let activeScenarioTotalBudget = totalMonthly;
@@ -305,6 +398,12 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       const factor = Math.max(0, (100 - customReductionPct) / 100);
       activeScenarioTotalBudget = Math.round(totalMonthly * factor);
       scenarioLabel = `Kịch Bản Giảm ${customReductionPct}%`;
+    }
+
+    if (selectedMonth === 'all') {
+      const activeMonthsCount = (monthlyDatasets || []).filter((m) => m.regions && m.regions.some((r) => r.costVAT > 0)).length || 7;
+      activeScenarioTotalBudget = activeScenarioTotalBudget * activeMonthsCount;
+      scenarioLabel = `${scenarioLabel} (Lũy kế ${activeMonthsCount} Tháng)`;
     }
 
     const activeLocationsCount = activeItems.filter((i) => i.dailyBudget > 0).length || 15;
@@ -329,9 +428,29 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       burnRatePercent,
       items: activeItems,
     };
-  }, [activeItems, budgetScenario, customReductionPct]);
+  }, [activeItems, budgetScenario, customReductionPct, selectedMonth, getBranchSpentForMonth, monthlyDatasets]);
 
-  // Filtered branch items based on effective limit
+  // Month pills summary stats (Total spent per month)
+  const monthTabSummaries = useMemo(() => {
+    return MONTH_TABS.map((tab) => {
+      let spent = 0;
+      if (tab.id === 'all') {
+        spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, 'all'), 0);
+      } else {
+        spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, tab.id), 0);
+      }
+      const limit = currentSummary.activeScenarioTotalBudget;
+      const isOver = spent > limit && limit > 0;
+      return {
+        ...tab,
+        spent,
+        isOver,
+        hasData: spent > 0,
+      };
+    });
+  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget]);
+
+  // Filtered branch items based on effective limit & active month's spent
   const filteredBranchItems = useMemo(() => {
     let list = activeItems;
 
@@ -342,20 +461,20 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
 
     if (statusFilter === 'over_budget') {
       list = list.filter((item) => {
-        const spent = item.spentThisMonth || 0;
+        const spent = getBranchSpentForMonth(item, selectedMonth);
         const limit = getBranchEffectiveLimit(item);
         return limit > 0 && spent > limit;
       });
     } else if (statusFilter === 'within_budget') {
       list = list.filter((item) => {
-        const spent = item.spentThisMonth || 0;
+        const spent = getBranchSpentForMonth(item, selectedMonth);
         const limit = getBranchEffectiveLimit(item);
         return limit === 0 || spent <= limit;
       });
     }
 
     return list;
-  }, [activeItems, sheetSearchTerm, statusFilter, getBranchEffectiveLimit]);
+  }, [activeItems, sheetSearchTerm, statusFilter, getBranchEffectiveLimit, getBranchSpentForMonth, selectedMonth]);
 
   // Simulation calculations
   const targetRevenue = useMemo(() => totalBudget * targetRoas, [totalBudget, targetRoas]);
@@ -435,7 +554,80 @@ ${activeItems
 
   return (
     <div className="space-y-6">
-      {/* 1. TOP KPI METRIC ROW - EXACTLY MATCHING USER'S SCREENSHOT & RESPONSIVE TO REDUCTION SCENARIOS */}
+      {/* 0. BỘ CHỌN & CHIA THEO TỪNG THÁNG (MONTH SELECTOR BAR) */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0a0f1d] via-[#0e172a] to-[#0a0f1d] border border-slate-800 shadow-xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800/80">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+              Chia & Theo Dõi Ngân Sách Từng Tháng
+            </span>
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-bold border border-cyan-500/30">
+              {selectedMonth === 'all'
+                ? 'Tổng Hợp Cả Năm (Lũy kế)'
+                : `Đang Xem: ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label || 'Tháng 1'}`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" /> An toàn
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]" /> Vượt hạn mức
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-slate-600" /> Chưa có dữ liệu
+            </span>
+          </div>
+        </div>
+
+        {/* 10 Month Selector Buttons */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+          {monthTabSummaries.map((tab) => {
+            const isSelected = selectedMonth === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedMonth(tab.id)}
+                className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                  isSelected
+                    ? 'bg-gradient-to-b from-amber-500/20 to-amber-950/40 border-amber-400 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50 scale-[1.02]'
+                    : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-900 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-slate-200'}`}>
+                    {tab.short}
+                  </span>
+                  <span
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      !tab.hasData
+                        ? 'bg-slate-600'
+                        : tab.isOver
+                        ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+                        : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                    }`}
+                  />
+                </div>
+                <div className="mt-1 font-mono text-[11px] font-bold truncate">
+                  {tab.hasData ? (
+                    <span className={isSelected ? 'text-white' : tab.isOver ? 'text-rose-300' : 'text-slate-400'}>
+                      {formatVND(tab.spent, 'million')}
+                    </span>
+                  ) : (
+                    <span className="text-slate-600 font-normal">--</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 1. TOP KPI METRIC ROW - DYNAMICALLY COMPUTED FOR SELECTED MONTH */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng Hạn Mức Kịch Bản */}
         <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[135px]">
@@ -506,12 +698,12 @@ ${activeItems
           </div>
         </div>
 
-        {/* Card 3: Chi Phí (VAT) Tháng 1 */}
+        {/* Card 3: Chi Phí (VAT) */}
         <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-purple-500/40 transition-all flex flex-col justify-between min-h-[135px]">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300">Chi Phí (VAT) Tháng 1</span>
+            <span className="text-xs font-semibold text-slate-300">Chi Phí (VAT)</span>
             <span className="px-2 py-0.5 rounded text-[11px] font-bold text-rose-400 bg-rose-950/40 border border-rose-500/30">
-              Thực Chi
+              {selectedMonth === 'all' ? 'Lũy Kế Cả Năm' : `Thực Chi ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label || ''}`}
             </span>
           </div>
           <div className="mt-2">
@@ -832,169 +1024,191 @@ ${activeItems
 
       {/* VIEW MODE 1: BRANCH PROGRESS CARDS GRID (WITH FULL REDUCTION SCENARIOS) */}
       {activeViewMode === 'cards_grid' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
-          {filteredBranchItems.map((item) => {
-            const spent = item.spentThisMonth || 0;
-            const effectiveLimit = getBranchEffectiveLimit(item);
-            const baseLimit = item.monthlyBudget;
-            const usedPct = effectiveLimit > 0 ? (spent / effectiveLimit) * 100 : (spent > 0 ? 999 : 0);
-            const isOverBudget = effectiveLimit > 0 && spent > effectiveLimit;
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-300">
+                Tiến độ chi tiêu:{' '}
+                <span className="text-amber-400 font-mono">
+                  {selectedMonth === 'all'
+                    ? 'Tổng Hợp Lũy Kế 9 Tháng'
+                    : MONTH_TABS.find((t) => t.id === selectedMonth)?.label || 'Tháng 1'}
+                </span>
+              </span>
+              <span className="text-[11px] text-slate-500">
+                ({filteredBranchItems.length} chi nhánh)
+              </span>
+            </div>
 
-            return (
-              <div
-                key={item.id}
-                className={`rounded-2xl bg-[#0b1120] border p-5 shadow-lg flex flex-col justify-between transition-all group ${
-                  isOverBudget
-                    ? 'border-rose-500/40 hover:border-rose-500/70 shadow-rose-950/20'
-                    : 'border-slate-800/90 hover:border-slate-700/90'
-                }`}
-              >
-                <div>
-                  {/* Card Header: Dot + Name (Left), Badge (Right) */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 truncate">
-                      <span className={`w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px] ${
-                        isOverBudget
-                          ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
-                          : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]'
-                      }`} />
-                      <h4 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
-                        {item.name}
-                      </h4>
+            <div className="text-xs text-slate-400">
+              Mẹo: Nhấp vào các tab tháng ở trên để xem tiến độ từng tháng
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+            {filteredBranchItems.map((item) => {
+              const spent = getBranchSpentForMonth(item, selectedMonth);
+              const effectiveLimit = getBranchEffectiveLimit(item);
+              const baseLimit = item.monthlyBudget;
+              const usedPct = effectiveLimit > 0 ? (spent / effectiveLimit) * 100 : (spent > 0 ? 999 : 0);
+              const isOverBudget = effectiveLimit > 0 && spent > effectiveLimit;
+
+              return (
+                <div
+                  key={item.id}
+                  className={`rounded-2xl bg-[#0b1120] border p-5 shadow-lg flex flex-col justify-between transition-all group ${
+                    isOverBudget
+                      ? 'border-rose-500/40 hover:border-rose-500/70 shadow-rose-950/20'
+                      : 'border-slate-800/90 hover:border-slate-700/90'
+                  }`}
+                >
+                  <div>
+                    {/* Card Header: Dot + Name (Left), Badge (Right) */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className={`w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px] ${
+                          isOverBudget
+                            ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
+                            : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]'
+                        }`} />
+                        <h4 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
+                          {item.name}
+                        </h4>
+                      </div>
+
+                      {isOverBudget ? (
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#3b0d1e] text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                          ✕ Vượt {Math.round(usedPct - 100)}%
+                        </span>
+                      ) : effectiveLimit > 0 ? (
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#042f2e] text-teal-300 border border-teal-500/30">
+                          Đã dùng {Math.round(usedPct)}%
+                        </span>
+                      ) : (
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-900 text-slate-400 border border-slate-800">
+                          Chưa phân bổ
+                        </span>
+                      )}
                     </div>
 
-                    {isOverBudget ? (
-                      <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#3b0d1e] text-rose-300 border border-rose-500/40 flex items-center gap-1">
-                        ✕ Vượt {Math.round(usedPct - 100)}%
-                      </span>
-                    ) : effectiveLimit > 0 ? (
-                      <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#042f2e] text-teal-300 border border-teal-500/30">
-                        Đã dùng {Math.round(usedPct)}%
-                      </span>
-                    ) : (
-                      <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-900 text-slate-400 border border-slate-800">
-                        Chưa phân bổ
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Progress Bar (Teal or Rose) */}
-                  <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden mt-3 mb-2 border border-slate-900">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        isOverBudget
-                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
-                          : 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.7)]'
-                      }`}
-                      style={{ width: `${Math.min(100, usedPct)}%` }}
-                    />
-                  </div>
-
-                  {/* Under Progress Bar Row: Spent (Left) vs Effective Limit (Right) */}
-                  <div className="flex items-center justify-between text-xs mb-3 font-sans">
-                    <div className="flex items-center gap-1">
-                      <span className="text-slate-400">Chi Phí (VAT) T1:</span>
-                      <span
-                        className={`font-mono font-bold ${
-                          isOverBudget ? 'text-rose-400' : 'text-teal-400'
+                    {/* Progress Bar (Teal or Rose) */}
+                    <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden mt-3 mb-2 border border-slate-900">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${
+                          isOverBudget
+                            ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
+                            : 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.7)]'
                         }`}
-                      >
-                        {formatVND(spent, 'full')}
-                      </span>
+                        style={{ width: `${Math.min(100, usedPct)}%` }}
+                      />
                     </div>
 
-                    <div className="flex items-center gap-1">
-                      <span className="text-slate-400">
-                        {budgetScenario === 'base_100' ? 'Hạn mức:' : 'Hạn mức mục tiêu:'}
+                    {/* Under Progress Bar Row: Spent (Left) vs Effective Limit (Right) */}
+                    <div className="flex items-center justify-between text-xs mb-3 font-sans">
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400">Chi Phí (VAT):</span>
+                        <span
+                          className={`font-mono font-bold ${
+                            isOverBudget ? 'text-rose-400' : 'text-teal-400'
+                          }`}
+                        >
+                          {formatVND(spent, 'full')}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400">
+                          {budgetScenario === 'base_100' ? 'Hạn mức:' : 'Hạn mức mục tiêu:'}
+                        </span>
+                        <span className={`font-mono font-bold ${budgetScenario !== 'base_100' ? 'text-cyan-300' : 'text-amber-400'}`}>
+                          {formatVND(effectiveLimit, 'full')}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Comprehensive 4-Block Scenario Details Box */}
+                    <div className="bg-[#060913] rounded-xl p-3 border border-slate-850 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
+                      <div>
+                        <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
+                        <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
+                          {formatVND(item.dailyBudget, 'full')}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                          <span>Kế Hoạch Gốc:</span>
+                          {budgetScenario === 'base_100' && (
+                            <span className="text-[9px] px-1 bg-amber-500/20 text-amber-300 rounded font-bold">Đang xem</span>
+                          )}
+                        </div>
+                        <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
+                          {formatVND(item.monthlyBudget, 'full')}
+                        </div>
+                      </div>
+
+                      <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
+                        <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                          <span>Giảm 30%:</span>
+                          {budgetScenario === 'reduced_30' && (
+                            <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
+                          )}
+                        </div>
+                        <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
+                          {formatVND(item.reduced30Budget, 'full')}
+                        </div>
+                      </div>
+
+                      <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
+                        <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                          <span>Giảm Thêm 30% (-51%):</span>
+                          {budgetScenario === 'reduced_extra_30' && (
+                            <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
+                          )}
+                        </div>
+                        <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
+                          {formatVND(item.reducedExtra30Budget, 'full')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Card Footer Row: Scenario Limit info (Left), Button Edit (Right) */}
+                  <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80">
+                    <div className="text-xs flex items-center gap-1.5 truncate">
+                      <span className="text-slate-400 shrink-0">
+                        {budgetScenario === 'base_100' ? 'Hạn mức gốc:' : 'Hạn mức kịch bản:'}
                       </span>
-                      <span className={`font-mono font-bold ${budgetScenario !== 'base_100' ? 'text-cyan-300' : 'text-amber-400'}`}>
+                      <span className={`font-mono font-bold ${
+                        budgetScenario === 'reduced_30'
+                          ? 'text-cyan-300'
+                          : budgetScenario === 'reduced_extra_30'
+                          ? 'text-emerald-300'
+                          : budgetScenario === 'custom'
+                          ? 'text-purple-300'
+                          : 'text-amber-400'
+                      }`}>
                         {formatVND(effectiveLimit, 'full')}
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Comprehensive 4-Block Scenario Details Box */}
-                  <div className="bg-[#060913] rounded-xl p-3 border border-slate-850 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
-                    <div>
-                      <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
-                      <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.dailyBudget, 'full')}
-                      </div>
+                      {budgetScenario !== 'base_100' && (
+                        <span className="text-[10px] text-slate-500 line-through font-mono">
+                          ({formatVND(baseLimit, 'million')})
+                        </span>
+                      )}
                     </div>
 
-                    <div>
-                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                        <span>Kế Hoạch Gốc:</span>
-                        {budgetScenario === 'base_100' && (
-                          <span className="text-[9px] px-1 bg-amber-500/20 text-amber-300 rounded font-bold">Đang xem</span>
-                        )}
-                      </div>
-                      <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.monthlyBudget, 'full')}
-                      </div>
-                    </div>
-
-                    <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
-                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                        <span>Giảm 30%:</span>
-                        {budgetScenario === 'reduced_30' && (
-                          <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
-                        )}
-                      </div>
-                      <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.reduced30Budget, 'full')}
-                      </div>
-                    </div>
-
-                    <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
-                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                        <span>Giảm Thêm 30% (-51%):</span>
-                        {budgetScenario === 'reduced_extra_30' && (
-                          <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
-                        )}
-                      </div>
-                      <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.reducedExtra30Budget, 'full')}
-                      </div>
-                    </div>
+                    <button
+                      onClick={() => handleOpenEditModal(item)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm shrink-0"
+                    >
+                      <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-amber-400" />
+                      <span>Sửa Ngân Sách</span>
+                    </button>
                   </div>
                 </div>
-
-                {/* Card Footer Row: Scenario Limit info (Left), Button Edit (Right) */}
-                <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80">
-                  <div className="text-xs flex items-center gap-1.5 truncate">
-                    <span className="text-slate-400 shrink-0">
-                      {budgetScenario === 'base_100' ? 'Hạn mức gốc:' : 'Hạn mức kịch bản:'}
-                    </span>
-                    <span className={`font-mono font-bold ${
-                      budgetScenario === 'reduced_30'
-                        ? 'text-cyan-300'
-                        : budgetScenario === 'reduced_extra_30'
-                        ? 'text-emerald-300'
-                        : budgetScenario === 'custom'
-                        ? 'text-purple-300'
-                        : 'text-amber-400'
-                    }`}>
-                      {formatVND(effectiveLimit, 'full')}
-                    </span>
-                    {budgetScenario !== 'base_100' && (
-                      <span className="text-[10px] text-slate-500 line-through font-mono">
-                        ({formatVND(baseLimit, 'million')})
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenEditModal(item)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm shrink-0"
-                  >
-                    <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-amber-400" />
-                    <span>Sửa Ngân Sách</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -1008,126 +1222,230 @@ ${activeItems
                 Bảng Phân Bổ Ngân Sách & Đối Soát 17 Chi Nhánh
               </h3>
               <p className="text-xs text-slate-400 mt-1">
-                Kèm 2 kịch bản tối ưu chi phí (Giảm 30% và Giảm thêm 30%) và tỷ lệ giải ngân thực tế so với định mức.
+                Xem chi tiết từng tháng hoặc bảng ma trận toàn diện 9 tháng đối chiếu với định mức kế hoạch.
               </p>
             </div>
 
-            <a
-              href={sheetUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1.5 font-medium underline underline-offset-4"
-            >
-              <span>Mở Google Sheets Kế Hoạch Gốc</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+            <div className="flex items-center gap-3">
+              {/* Sub Mode Toggle */}
+              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                <button
+                  onClick={() => setTableSubMode('single_month')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    tableSubMode === 'single_month'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Đối Soát {selectedMonth === 'all' ? 'Tất Cả' : MONTH_TABS.find((t) => t.id === selectedMonth)?.short || 'T1'}
+                </button>
+                <button
+                  onClick={() => setTableSubMode('all_months_matrix')}
+                  className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
+                    tableSubMode === 'all_months_matrix'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Ma Trận 9 Tháng (T1 - T9)
+                </button>
+              </div>
+
+              <a
+                href={sheetUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-amber-300 hover:text-amber-200 flex items-center gap-1.5 font-medium underline underline-offset-4"
+              >
+                <span>Google Sheets</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/60 font-bold">
-                  <th className="py-3.5 px-3">STT</th>
-                  <th className="py-3.5 px-3">Chi Nhánh / Thị Trường</th>
-                  <th className="py-3.5 px-3 text-right">Ngân Sách Ngày</th>
-                  <th className="py-3.5 px-3 text-right">Kế Hoạch Tháng (Gốc)</th>
-                  <th className="py-3.5 px-3 text-right text-amber-400">Kế Hoạch Tháng (+VAT)</th>
-                  <th className="py-3.5 px-3 text-right text-cyan-400">Giảm 30% (+VAT)</th>
-                  <th className="py-3.5 px-3 text-right text-emerald-400">Giảm Thêm 30% (+VAT)</th>
-                  <th className="py-3.5 px-3 text-right text-purple-300">Thực Chi Tháng</th>
-                  <th className="py-3.5 px-3 text-center">Tiến Độ Giải Ngân</th>
-                  <th className="py-3.5 px-3 text-center">Hành Động</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-sans">
-                {filteredBranchItems.map((item, idx) => {
-                  const spent = item.spentThisMonth || 0;
-                  const pacing = item.monthlyBudget > 0 ? (spent / item.monthlyBudget) * 100 : 0;
-                  return (
-                    <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 px-3 text-slate-500 font-mono">{idx + 1}</td>
-                      <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                        <span>{item.name}</span>
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-slate-300">
-                        {formatVND(item.dailyBudget, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-slate-400">
-                        {formatVND(item.monthlyBudget, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
-                        {formatVND(item.monthlyBudgetVat, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-cyan-300">
-                        {formatVND(item.reduced30Vat, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono text-emerald-300">
-                        {formatVND(item.reducedExtra30Vat, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-right font-mono font-bold text-purple-300">
-                        {formatVND(spent, 'million')}
-                      </td>
-                      <td className="py-3 px-3 text-center font-mono">
-                        {item.monthlyBudget > 0 ? (
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              pacing > 100
-                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                : pacing >= 70
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            }`}
+          {/* TABLE SUB-MODE 1: SINGLE MONTH DETAILED BREAKDOWN */}
+          {tableSubMode === 'single_month' ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/60 font-bold">
+                    <th className="py-3.5 px-3">STT</th>
+                    <th className="py-3.5 px-3">Chi Nhánh / Thị Trường</th>
+                    <th className="py-3.5 px-3 text-right">Ngân Sách Ngày</th>
+                    <th className="py-3.5 px-3 text-right">Kế Hoạch Tháng (Gốc)</th>
+                    <th className="py-3.5 px-3 text-right text-amber-400">Kế Hoạch (+VAT)</th>
+                    <th className="py-3.5 px-3 text-right text-cyan-400">Giảm 30% (+VAT)</th>
+                    <th className="py-3.5 px-3 text-right text-emerald-400">Giảm Thêm 30% (+VAT)</th>
+                    <th className="py-3.5 px-3 text-right text-purple-300">
+                      Thực Chi ({selectedMonth === 'all' ? 'Cả Năm' : MONTH_TABS.find((t) => t.id === selectedMonth)?.short})
+                    </th>
+                    <th className="py-3.5 px-3 text-center">Tiến Độ Giải Ngân</th>
+                    <th className="py-3.5 px-3 text-center">Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-sans">
+                  {filteredBranchItems.map((item, idx) => {
+                    const spent = getBranchSpentForMonth(item, selectedMonth);
+                    const effectiveLimit = getBranchEffectiveLimit(item);
+                    const pacing = effectiveLimit > 0 ? (spent / effectiveLimit) * 100 : 0;
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 text-slate-500 font-mono">{idx + 1}</td>
+                        <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                          <span>{item.name}</span>
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-slate-300">
+                          {formatVND(item.dailyBudget, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-slate-400">
+                          {formatVND(item.monthlyBudget, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
+                          {formatVND(item.monthlyBudgetVat, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-cyan-300">
+                          {formatVND(item.reduced30Vat, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-emerald-300">
+                          {formatVND(item.reducedExtra30Vat, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-purple-300">
+                          {formatVND(spent, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-center font-mono">
+                          {effectiveLimit > 0 ? (
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                pacing > 100
+                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                  : pacing >= 70
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              }`}
+                            >
+                              {pacing.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-slate-600 text-[10px]">--</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            onClick={() => handleOpenEditModal(item)}
+                            className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+                            title="Sửa ngân sách chi nhánh"
                           >
-                            {pacing.toFixed(1)}%
-                          </span>
-                        ) : (
-                          <span className="text-slate-600 text-[10px]">--</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-3 text-center">
-                        <button
-                          onClick={() => handleOpenEditModal(item)}
-                          className="p-1 rounded hover:bg-slate-700 text-slate-400 hover:text-amber-400 transition-colors"
-                          title="Sửa ngân sách chi nhánh"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-slate-700 bg-slate-950/90 font-black text-white">
-                  <td className="py-3.5 px-3"></td>
-                  <td className="py-3.5 px-3">TỔNG CỘNG</td>
-                  <td className="py-3.5 px-3 text-right font-mono text-cyan-400">
-                    {formatVND(currentSummary.totalDaily, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-amber-400">
-                    {formatVND(currentSummary.totalMonthly, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-amber-300">
-                    {formatVND(currentSummary.totalMonthlyVat, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
-                    {formatVND(currentSummary.totalReduced30Vat, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-emerald-300">
-                    {formatVND(currentSummary.totalReducedExtra30Vat, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-right font-mono text-purple-300">
-                    {formatVND(currentSummary.totalSpent, 'million')}
-                  </td>
-                  <td className="py-3.5 px-3 text-center font-mono text-rose-400">
-                    {currentSummary.burnRatePercent.toFixed(1)}%
-                  </td>
-                  <td></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-slate-700 bg-slate-950/90 font-black text-white">
+                    <td className="py-3.5 px-3"></td>
+                    <td className="py-3.5 px-3">TỔNG CỘNG</td>
+                    <td className="py-3.5 px-3 text-right font-mono text-cyan-400">
+                      {formatVND(currentSummary.totalDaily, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-amber-400">
+                      {formatVND(currentSummary.totalMonthly, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-amber-300">
+                      {formatVND(currentSummary.totalMonthlyVat, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
+                      {formatVND(currentSummary.totalReduced30Vat, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-emerald-300">
+                      {formatVND(currentSummary.totalReducedExtra30Vat, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-right font-mono text-purple-300">
+                      {formatVND(currentSummary.totalSpent, 'million')}
+                    </td>
+                    <td className="py-3.5 px-3 text-center font-mono text-rose-400">
+                      {currentSummary.burnRatePercent.toFixed(1)}%
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          ) : (
+            /* TABLE SUB-MODE 2: 9-MONTH MULTI-MONTH MATRIX VIEW */
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/60 font-bold">
+                    <th className="py-3.5 px-3 sticky left-0 bg-slate-950 z-10">STT</th>
+                    <th className="py-3.5 px-3 sticky left-8 bg-slate-950 z-10">Chi Nhánh</th>
+                    <th className="py-3.5 px-3 text-right text-amber-400">Hạn Mức/Tháng</th>
+                    <th className="py-3.5 px-3 text-right">T1</th>
+                    <th className="py-3.5 px-3 text-right">T2</th>
+                    <th className="py-3.5 px-3 text-right">T3</th>
+                    <th className="py-3.5 px-3 text-right">T4</th>
+                    <th className="py-3.5 px-3 text-right">T5</th>
+                    <th className="py-3.5 px-3 text-right">T6</th>
+                    <th className="py-3.5 px-3 text-right">T7</th>
+                    <th className="py-3.5 px-3 text-right">T8</th>
+                    <th className="py-3.5 px-3 text-right">T9</th>
+                    <th className="py-3.5 px-3 text-right text-purple-300 font-bold">Tổng Lũy Kế</th>
+                    <th className="py-3.5 px-3 text-right text-cyan-300">TB Tháng</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 font-sans">
+                  {filteredBranchItems.map((item, idx) => {
+                    const mCosts = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((mNum) =>
+                      getBranchSpentForMonth(item, `t${mNum}`)
+                    );
+                    const totalCumulative = mCosts.reduce((s, c) => s + c, 0);
+                    const monthsWithData = mCosts.filter((c) => c > 0).length || 1;
+                    const avgMonthly = Math.round(totalCumulative / monthsWithData);
+                    const effectiveLimit = getBranchEffectiveLimit(item);
+
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 text-slate-500 font-mono sticky left-0 bg-[#0a0f1d]">
+                          {idx + 1}
+                        </td>
+                        <td className="py-3 px-3 font-bold text-white sticky left-8 bg-[#0a0f1d]">
+                          {item.name}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
+                          {formatVND(effectiveLimit, 'million')}
+                        </td>
+                        {mCosts.map((cost, mIdx) => {
+                          const isOver = effectiveLimit > 0 && cost > effectiveLimit;
+                          return (
+                            <td
+                              key={mIdx}
+                              className={`py-3 px-3 text-right font-mono ${
+                                cost === 0
+                                  ? 'text-slate-600'
+                                  : isOver
+                                  ? 'text-rose-400 font-bold bg-rose-950/20'
+                                  : 'text-slate-300'
+                              }`}
+                            >
+                              {cost > 0 ? formatVND(cost, 'million') : '--'}
+                            </td>
+                          );
+                        })}
+                        <td className="py-3 px-3 text-right font-mono font-bold text-purple-300">
+                          {formatVND(totalCumulative, 'million')}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono text-cyan-300">
+                          {formatVND(avgMonthly, 'million')}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

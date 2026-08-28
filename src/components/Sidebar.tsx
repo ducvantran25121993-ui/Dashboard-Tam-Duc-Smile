@@ -93,8 +93,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'budget_forecast',
       label: 'Ngân Sách Dự Kiến',
       icon: Wallet,
-      badge: 'Kế Hoạch',
-      badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     },
     {
       id: 'leads_funnel',
