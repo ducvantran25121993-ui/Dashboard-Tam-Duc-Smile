@@ -2015,9 +2015,9 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
 
         let aiText = '';
         const targetModels = [
-          'gemini-3.7-flash',
           'gemini-flash-latest',
-          'gemini-3.1-flash-lite'
+          'gemini-3.1-flash-lite',
+          'gemini-3.7-flash'
         ];
         for (const m of targetModels) {
           try {
@@ -2033,7 +2033,12 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
               break;
             }
           } catch (modelErr: any) {
-            console.warn(`[Crawl4AI] Model ${m} hit error:`, modelErr.message);
+            const isHighDemand = modelErr?.message?.includes('503') || modelErr?.message?.includes('429') || modelErr?.message?.includes('high demand') || modelErr?.message?.includes('UNAVAILABLE');
+            if (isHighDemand) {
+              console.warn(`[Crawl4AI] Model ${m} đang quá tải, tự động chuyển sang model dự phòng...`);
+            } else {
+              console.warn(`[Crawl4AI] Model ${m} gặp lỗi:`, modelErr?.message || modelErr);
+            }
           }
         }
 

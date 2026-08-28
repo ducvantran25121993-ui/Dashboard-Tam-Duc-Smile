@@ -13,11 +13,11 @@ function getGeminiAI() {
   });
 }
 
-// Danh sách các model Gemini thế hệ mới hỗ trợ chính thức
+// Danh sách các model Gemini thế hệ mới hỗ trợ chính thức (ưu tiên các model có độ sẵn sàng cao nhất)
 const FALLBACK_MODELS = [
-  'gemini-3.7-flash',
   'gemini-flash-latest',
-  'gemini-3.1-flash-lite'
+  'gemini-3.1-flash-lite',
+  'gemini-3.7-flash'
 ];
 
 async function callGeminiWithFallback(
@@ -26,29 +26,25 @@ async function callGeminiWithFallback(
   options: { responseMimeType?: string; temperature?: number } = {}
 ): Promise<string> {
   for (const model of FALLBACK_MODELS) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const resp = await ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: options.responseMimeType,
-            temperature: options.temperature ?? 0.2
-          }
-        });
-        if (resp && resp.text) {
-          return resp.text;
+    try {
+      const resp = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          responseMimeType: options.responseMimeType,
+          temperature: options.temperature ?? 0.2
         }
-      } catch (err: any) {
-        const isTransient = err?.message?.includes('503') || err?.message?.includes('429') || err?.message?.includes('UNAVAILABLE') || err?.message?.includes('HIGH_DEMAND');
-        console.warn(`[Gemini SDK] Model ${model} (lần thử ${attempt + 1}) gặp lỗi: ${err?.message || err}`);
-        if (isTransient && attempt === 0) {
-          // Chờ 600ms trước khi thử lại
-          await new Promise((r) => setTimeout(r, 600));
-        } else {
-          // Bỏ qua sang model tiếp theo
-          break;
-        }
+      });
+      if (resp && resp.text) {
+        return resp.text;
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      const isHighDemand = errMsg.includes('503') || errMsg.includes('429') || errMsg.includes('UNAVAILABLE') || errMsg.includes('high demand');
+      if (isHighDemand) {
+        console.warn(`[Gemini SDK] Model ${model} đang bận (503/high demand), tự động chuyển sang model tiếp theo...`);
+      } else {
+        console.warn(`[Gemini SDK] Model ${model} gặp sự cố:`, errMsg);
       }
     }
   }
