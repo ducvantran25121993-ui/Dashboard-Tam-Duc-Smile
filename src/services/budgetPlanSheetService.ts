@@ -250,18 +250,18 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
   rows.forEach((r, idx) => {
     const col0 = r[0] || '';
     const col1 = r[1] || '';
-    const rowStr = (col0 + ' ' + col1).toLowerCase();
+    const fullRowText = r.join(' ').toLowerCase();
 
-    // Check for Section Header (e.g. 06/2026 Ngân Sách Dự Kiến T6)
-    if (rowStr.includes('dự kiến') || col0.includes('/2026') || col0.includes('/2025') || rowStr.includes('ngân sách dự kiến')) {
+    // Check for Section Header (e.g. 07/2026 Ngân Sách Dự Kiến T7)
+    if (fullRowText.includes('dự kiến') || col0.includes('/2026') || col0.includes('/2025') || fullRowText.includes('ngân sách dự kiến')) {
       let monthNum = 0;
-      if (rowStr.includes('t6') || col0.includes('06/')) monthNum = 6;
-      else if (rowStr.includes('t7') || col0.includes('07/')) monthNum = 7;
-      else if (rowStr.includes('t8') || col0.includes('08/')) monthNum = 8;
-      else if (rowStr.includes('t9') || col0.includes('09/')) monthNum = 9;
-      else if (rowStr.includes('t10') || col0.includes('10/')) monthNum = 10;
-      else if (rowStr.includes('t11') || col0.includes('11/')) monthNum = 11;
-      else if (rowStr.includes('t12') || col0.includes('12/')) monthNum = 12;
+      if (fullRowText.includes('t6') || col0.includes('06/') || fullRowText.includes('tháng 6')) monthNum = 6;
+      else if (fullRowText.includes('t7') || col0.includes('07/') || fullRowText.includes('tháng 7')) monthNum = 7;
+      else if (fullRowText.includes('t8') || col0.includes('08/') || fullRowText.includes('tháng 8')) monthNum = 8;
+      else if (fullRowText.includes('t9') || col0.includes('09/') || fullRowText.includes('tháng 9')) monthNum = 9;
+      else if (fullRowText.includes('t10') || col0.includes('10/') || fullRowText.includes('tháng 10')) monthNum = 10;
+      else if (fullRowText.includes('t11') || col0.includes('11/') || fullRowText.includes('tháng 11')) monthNum = 11;
+      else if (fullRowText.includes('t12') || col0.includes('12/') || fullRowText.includes('tháng 12')) monthNum = 12;
 
       if (monthNum > 0) {
         currentSection = {
@@ -277,11 +277,13 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
     if (!currentSection) return;
 
     // Skip empty or header rows
-    if (col1.toLowerCase().includes('phòng') || col1.toLowerCase().includes('chi nhánh') || col1 === '') {
+    if (fullRowText.includes('phòng') || fullRowText.includes('chi nhánh') || (col1 === '' && col0 === '')) {
       return;
     }
 
-    const name = col1.trim();
+    const name = (col1 || col0).trim();
+    if (!name) return;
+
     const daily = parseNumber(r[2]);
     const monthly = parseNumber(r[3]);
     const monthlyVat = parseNumber(r[4]);
