@@ -13,6 +13,7 @@ export const DEFAULT_SUPER_ADMIN_USER: AdminUser = {
   allowedTabs: [
     'overview',
     'google_ads',
+    'budget_forecast',
     'leads_funnel',
     'campaigns',
     'competitor',

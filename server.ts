@@ -36,9 +36,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', hasGeminiKey: !!process.env.GEMINI_API_KEY });
 });
 
-// In-memory permissions store with default 6 allowed tabs
+// In-memory permissions store with default allowed tabs including budget_forecast
 let staffPermissionsStore = {
-  allowedTabs: ['overview', 'google_ads', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
+  allowedTabs: ['overview', 'google_ads', 'budget_forecast', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
   updatedAt: new Date().toISOString(),
 };
 
@@ -56,6 +56,7 @@ let adminUsersStore = [
     allowedTabs: [
       'overview',
       'google_ads',
+      'budget_forecast',
       'leads_funnel',
       'campaigns',
       'competitor',
@@ -85,6 +86,18 @@ app.post('/api/admin/users', (req, res) => {
 // Permissions endpoints
 app.get('/api/permissions', (req, res) => {
   res.json(staffPermissionsStore);
+});
+
+app.post('/api/permissions', (req, res) => {
+  const { allowedTabs } = req.body;
+  if (Array.isArray(allowedTabs) && allowedTabs.length > 0) {
+    staffPermissionsStore = {
+      allowedTabs,
+      updatedAt: new Date().toISOString(),
+    };
+    return res.json({ success: true, permissions: staffPermissionsStore });
+  }
+  return res.status(400).json({ error: 'Invalid allowedTabs array' });
 });
 
 // Competitor Monitor Settings & Links Store for Cross-Device Synchronization

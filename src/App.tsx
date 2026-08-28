@@ -158,18 +158,53 @@ export default function App() {
     }
   };
 
-  // Sync staff tab permissions from Cloud on app startup (supports all devices, mobile & incognito)
+  // Sync staff tab permissions from Cloud on startup and auto-sync in background
   useEffect(() => {
     let isMounted = true;
     async function syncCloudPermissions() {
       const cloudTabs = await fetchPermissionsFromCloud();
       if (isMounted && cloudTabs && Array.isArray(cloudTabs) && cloudTabs.length > 0) {
-        setAllowedStaffTabs(cloudTabs);
+        setAllowedStaffTabs((prev) => {
+          if (JSON.stringify(prev) !== JSON.stringify(cloudTabs)) {
+            return cloudTabs;
+          }
+          return prev;
+        });
       }
     }
+
+    // Initial fetch
     syncCloudPermissions();
+
+    // Listen to localStorage changes across browser tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'dashboard_staff_allowed_tabs' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setAllowedStaffTabs(parsed);
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Periodic cloud poll every 15 seconds so staff devices update dynamically when Admin updates permissions
+    const syncInterval = setInterval(syncCloudPermissions, 15000);
+
+    // Also sync on window focus
+    const handleFocus = () => {
+      syncCloudPermissions();
+    };
+    window.addEventListener('focus', handleFocus);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(syncInterval);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
