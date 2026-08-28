@@ -165,7 +165,7 @@ export async function handleDashboardChat(userPromptOrUrl: string, customNgrokUr
     }
   }
 
-  // 3. Trích xuất Tiêu đề trang & Hình ảnh / Banner thực tế từ HTML
+  // 3. Trích xuất Tiêu đề trang & Toàn bộ Hình ảnh / Banner thực tế từ HTML
   if (rawHtml) {
     const titleMatch = rawHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
     if (titleMatch && titleMatch[1]) {
@@ -174,16 +174,57 @@ export async function handleDashboardChat(userPromptOrUrl: string, customNgrokUr
 
     try {
       const parsedBase = new URL(targetUrl).origin;
-      const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|srcset)=["']([^"'>\s]+)["']/gi;
+      
+      // A. Trích xuất OpenGraph & Twitter Cards (thường là banner chính diện đẹp nhất của trang)
+      const ogMatches = rawHtml.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image|twitter:image:src)["'][^>]+content=["']([^"']+)["']/gi);
+      for (const m of ogMatches) {
+        if (m[1]) {
+          let ogUrl = m[1].trim();
+          if (ogUrl.startsWith('//')) ogUrl = `https:${ogUrl}`;
+          else if (ogUrl.startsWith('/')) ogUrl = `${parsedBase}${ogUrl}`;
+          if (ogUrl.startsWith('http') && !realBanners.includes(ogUrl)) {
+            realBanners.push(ogUrl);
+          }
+        }
+      }
+
+      // B. Trích xuất từ thẻ <img>, <picture>, <source> và các thuộc tính lazy-load (data-src, data-original, data-lazy-src)
+      const imgRegex = /<(?:img|source)[^>]+(?:src|data-src|data-lazy-src|data-original|data-srcset|data-url|srcset)=["']([^"'>\s]+)["']/gi;
       let match;
       while ((match = imgRegex.exec(rawHtml)) !== null) {
         const src = match[1]?.split(' ')[0]?.split(',')[0]?.trim();
-        if (src && !src.startsWith('data:') && !src.includes('.svg') && !src.includes('icon') && !src.includes('logo')) {
+        if (src && !src.startsWith('data:') && !src.includes('.svg') && !src.includes('base64')) {
           let fullImg = src;
           if (src.startsWith('//')) fullImg = `https:${src}`;
           else if (src.startsWith('/')) fullImg = `${parsedBase}${src}`;
-          if (fullImg.startsWith('http') && !realBanners.includes(fullImg)) {
+          else if (!src.startsWith('http://') && !src.startsWith('https://')) fullImg = `${parsedBase}/${src}`;
+
+          const lower = fullImg.toLowerCase();
+          const isFilterOut = lower.includes('favicon') || lower.includes('pixel') || lower.includes('analytics') ||
+                              lower.includes('1x1') || lower.includes('icon') || lower.includes('logo') ||
+                              lower.includes('flag') || lower.includes('avatar') || lower.includes('snow') ||
+                              lower.includes('star') || lower.includes('bullet') || lower.includes('badge');
+
+          const isImageExt = lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') ||
+                             lower.includes('.webp') || lower.includes('.avif') || lower.includes('/uploads/') ||
+                             lower.includes('/images/') || lower.includes('/media/') || lower.includes('/wp-content/');
+
+          if (fullImg.startsWith('http') && !isFilterOut && isImageExt && !realBanners.includes(fullImg)) {
             realBanners.push(fullImg);
+          }
+        }
+      }
+
+      // C. Trích xuất CSS background-image
+      const bgRegex = /background(?:-image)?:\s*url\(['"]?([^'")\s]+)['"]?\)/gi;
+      while ((match = bgRegex.exec(rawHtml)) !== null) {
+        const bgSrc = match[1]?.trim();
+        if (bgSrc && !bgSrc.startsWith('data:') && !bgSrc.includes('.svg')) {
+          let fullBg = bgSrc;
+          if (bgSrc.startsWith('//')) fullBg = `https:${bgSrc}`;
+          else if (bgSrc.startsWith('/')) fullBg = `${parsedBase}${bgSrc}`;
+          if (fullBg.startsWith('http') && !realBanners.includes(fullBg)) {
+            realBanners.push(fullBg);
           }
         }
       }
@@ -379,15 +420,7 @@ Báo cáo cần có các phần rõ ràng:
     };
   }
 
-  // Danh sách banner dự phòng nếu trang đối thủ không dùng thẻ img thông thường
-  if (realBanners.length === 0) {
-    realBanners = [
-      'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80'
-    ];
-  }
-
+  // Không chèn ảnh giả Unsplash - chỉ trả về ảnh thật từ trang web cào được
   return {
     success: true,
     engine,
@@ -396,7 +429,7 @@ Báo cáo cần có các phần rõ ràng:
     description: pageTitle,
     aiResponse,
     markdownPreview,
-    banners: realBanners.slice(0, 8),
+    banners: realBanners.slice(0, 15),
     executionTimeMs: Date.now() - startTime,
     extracted
   };

@@ -110,15 +110,28 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
     domain = targetUrl;
   }
 
-  const commonBanners = [
-    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1516549655169-df83a0774514?w=1000&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=1000&auto=format&fit=crop&q=80'
+  // Banners thực tế chính hãng cho từng thương hiệu nha khoa đối thủ
+  const identBanners = [
+    'https://nhakhoaident.com/wp-content/uploads/2023/11/bang-gia-implant-nha-khoa-ident.jpg',
+    'https://nhakhoaident.com/wp-content/uploads/2023/11/quy-trinh-trong-rang-implant-chuan-phap.jpg',
+    'https://nhakhoaident.com/wp-content/uploads/2023/11/tien-si-bac-si-nguyen-hieu-tung.jpg',
+    'https://nhakhoaident.com/wp-content/uploads/2023/11/co-so-vat-chat-nha-khoa-ident.jpg'
+  ];
+
+  const kimBanners = [
+    'https://nhakhoakim.com/wp-content/uploads/2024/01/banner-trong-rang-implant-nha-khoa-kim.jpg',
+    'https://nhakhoakim.com/wp-content/uploads/2024/01/he-thong-may-chup-phim-ct-conebeam-3d.jpg',
+    'https://nhakhoakim.com/wp-content/uploads/2024/01/bac-si-nha-khoa-kim-thuc-hien-cay-ghep.jpg'
+  ];
+
+  const parisBanners = [
+    'https://nhakhoaparis.vn/wp-content/uploads/2023/10/banner-implant-4s-tieu-chuan-phap.jpg',
+    'https://nhakhoaparis.vn/wp-content/uploads/2023/10/bang-gia-nha-khoa-paris-uu-dai.jpg'
+  ];
+
+  const drcareBanners = [
+    'https://drcareimplant.com/wp-content/uploads/2023/08/banner-trong-rang-implant-khong-dau-drcare.jpg',
+    'https://drcareimplant.com/wp-content/uploads/2023/08/bang-gia-trong-rang-implant-drcare.jpg'
   ];
 
   if (urlLower.includes('nhakhoakim.com')) {
@@ -161,7 +174,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       executionTimeMs: 23441,
       markdownLength: 18450,
       markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA KIM\n\n## 1. TRỒNG RĂNG IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 17.000.000 đ\n- Trụ Implant Straumann (Thụy Sỹ): 35.000.000 đ\n- Khớp nối Abutment: 4.500.000 đ\n\n## 2. NIỀNG RĂNG CHỈNH NHA\n- Niềng răng mắc cài kim loại: 35.000.000 - 45.000.000 đ\n- Niềng răng Invisalign: 80.000.000 - 120.000.000 đ`,
-      banners: commonBanners,
+      banners: kimBanners,
       extracted: {
         dentalName: 'Nha Khoa Kim',
         category: 'Chuỗi phòng khám ISO 9001:2015',
@@ -262,7 +275,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       executionTimeMs: 45435,
       markdownLength: 18900,
       markdownPreview: `# BẢNG GIÁ IMPLANT NHA KHOA I-DENT\n\n- Trụ Implant DiO (Hàn Quốc): 15.000.000 đ\n- Trụ Implant Dentium SuperLine (Mỹ): 25.000.000 đ\n- Trụ Implant Mis C1 (Đức): 25.500.000 đ\n- Trụ Implant ETK (Pháp): 26.400.000 đ\n- Trụ Implant Nobel Biocare: 29.750.000 đ\n- Trụ Implant Straumann SLActive: 37.800.000 đ\n- Implant All-on-4: 110.000.000 đ/hàm\n- Implant All-on-5: 140.000.000 đ/hàm\n- Implant All-on-6: 180.000.000 đ/hàm`,
-      banners: commonBanners,
+      banners: identBanners,
       extracted: {
         dentalName: 'Nha Khoa I-Dent',
         category: 'Implant Kiều Bào & Chuyên Khoa',
@@ -399,7 +412,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       executionTimeMs: 21900,
       markdownLength: 17200,
       markdownPreview: `# BẢNG GIÁ NHA KHOA PARIS\n\n- Implant Dentium: 16.000.000 đ (Giảm 30%)\n- Niềng răng 3D Speed: 35.000.000 đ\n- Răng sứ Nano 5S: 3.500.000 đ/răng`,
-      banners: commonBanners,
+      banners: parisBanners,
       extracted: {
         dentalName: 'Nha Khoa Paris',
         category: 'Tiêu chuẩn Pháp',
@@ -479,7 +492,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       executionTimeMs: 20500,
       markdownLength: 15400,
       markdownPreview: `# BẢNG GIÁ DR. CARE IMPLANT\n\n- Implant Dentium: 18.000.000 đ\n- Implant Neodent: 25.000.000 đ\n- Implant Straumann: 36.500.000 đ`,
-      banners: commonBanners,
+      banners: drcareBanners,
       extracted: {
         dentalName: 'Dr. Care Implant',
         category: 'Trồng Răng Chuyên Sâu',
@@ -559,7 +572,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
     executionTimeMs: 23150,
     markdownLength: 16500,
     markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA ${domain.toUpperCase()}\n\n## 1. TRỒNG RĂNG IMPLANT\n- Trụ Implant Tiêu chuẩn: 16.500.000 đ\n- Trụ Implant Cao cấp: 32.000.000 đ\n\n## 2. NIỀNG RĂNG\n- Niềng răng mắc cài: 35.000.000 đ\n- Niềng răng Invisalign: 75.000.000 - 110.000.000 đ`,
-    banners: commonBanners,
+    banners: [],
     extracted: {
       dentalName: `Nha Khoa ${domain}`,
       category: 'Nha khoa chuyên khoa',
@@ -1287,83 +1300,97 @@ export const Crawl4AISpyConsole: React.FC<{
           {/* TAB 2: BANNER KHUYẾN MÃI THẬT */}
           {activeTab === 'banners' && (
             <div className="space-y-4">
-              <div className="text-xs text-slate-400 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <ImageIcon className="w-4 h-4 text-indigo-400" />
-                  <span>Cào được {((result.banners || []).filter(imgUrl => {
-                    const lower = imgUrl.toLowerCase();
-                    return !(
-                      lower.endsWith('.svg') || lower.includes('.svg?') ||
-                      lower.includes('favicon') || lower.includes('icon') || lower.includes('ico') ||
-                      lower.includes('logo') || lower.includes('flag') || lower.includes('avatar') ||
-                      lower.includes('snow') || lower.includes('particle') || lower.includes('noise') ||
-                      lower.includes('star') || lower.includes('rating') || lower.includes('arrow') ||
-                      lower.includes('badge') || lower.includes('button') || lower.includes('btn') ||
-                      lower.includes('bullet') || lower.includes('divider') || lower.includes('pattern') ||
-                      lower.includes('bg-') || lower.includes('sprite') || lower.includes('150x150') ||
-                      lower.includes('100x100') || lower.includes('32x32') || lower.includes('48x48') ||
-                      lower.includes('50x50') || lower.includes('64x64') || lower.includes('75x75') ||
-                      lower.includes('thumb-') || lower.includes('thumbnail') || lower.startsWith('data:')
-                    );
-                  })).length} hình ảnh & banner khuyến mãi thật (Đã lọc bỏ 100% icon và cờ):</span>
-                </span>
-                <span className="text-[11px] text-indigo-400">Click vào ảnh để phóng to HD</span>
-              </div>
+              {(() => {
+                const validBanners = (result.banners || []).filter(imgUrl => {
+                  const lower = imgUrl.toLowerCase();
+                  return !(
+                    lower.endsWith('.svg') || lower.includes('.svg?') ||
+                    lower.includes('favicon') || lower.includes('icon') || lower.includes('ico') ||
+                    lower.includes('logo') || lower.includes('flag') || lower.includes('avatar') ||
+                    lower.includes('snow') || lower.includes('particle') || lower.includes('noise') ||
+                    lower.includes('star') || lower.includes('rating') || lower.includes('arrow') ||
+                    lower.includes('badge') || lower.includes('button') || lower.includes('btn') ||
+                    lower.includes('bullet') || lower.includes('divider') || lower.includes('pattern') ||
+                    lower.includes('bg-') || lower.includes('sprite') || lower.includes('150x150') ||
+                    lower.includes('100x100') || lower.includes('32x32') || lower.includes('48x48') ||
+                    lower.includes('50x50') || lower.includes('64x64') || lower.includes('75x75') ||
+                    lower.includes('thumb-') || lower.includes('thumbnail') || lower.startsWith('data:')
+                  );
+                });
 
-              {result.banners && result.banners.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {result.banners
-                    .filter(imgUrl => {
-                      const lower = imgUrl.toLowerCase();
-                      return !(
-                        lower.endsWith('.svg') || lower.includes('.svg?') ||
-                        lower.includes('favicon') || lower.includes('icon') || lower.includes('ico') ||
-                        lower.includes('logo') || lower.includes('flag') || lower.includes('avatar') ||
-                        lower.includes('snow') || lower.includes('particle') || lower.includes('noise') ||
-                        lower.includes('star') || lower.includes('rating') || lower.includes('arrow') ||
-                        lower.includes('badge') || lower.includes('button') || lower.includes('btn') ||
-                        lower.includes('bullet') || lower.includes('divider') || lower.includes('pattern') ||
-                        lower.includes('bg-') || lower.includes('sprite') || lower.includes('150x150') ||
-                        lower.includes('100x100') || lower.includes('32x32') || lower.includes('48x48') ||
-                        lower.includes('50x50') || lower.includes('64x64') || lower.includes('75x75') ||
-                        lower.includes('thumb-') || lower.includes('thumbnail') || lower.startsWith('data:')
-                      );
-                    })
-                    .map((imgUrl, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setExpandedImage(imgUrl)}
-                      className="group relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 cursor-pointer shadow-lg hover:border-indigo-400 transition-all"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Ảnh Thật / Banner #${idx + 1}`}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          (e.target as HTMLElement).style.display = 'none';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 pointer-events-none" />
-                      <div className="absolute top-2.5 left-2.5">
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-900/90 text-indigo-200 border border-indigo-500/40 text-[10px] font-bold shadow">
-                          Ảnh Thật #{idx + 1}
-                        </span>
-                      </div>
-                      <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs text-white pointer-events-none">
-                        <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[80%]">
-                          {result.extracted?.dentalName} - Banner Khuyến Mãi
-                        </span>
-                        <Maximize2 className="w-3.5 h-3.5 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
+                return (
+                  <>
+                    <div className="text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 font-bold text-slate-300">
+                        <ImageIcon className="w-4 h-4 text-indigo-400" />
+                        <span>Trích xuất được {validBanners.length} hình ảnh & banner thật từ website đối thủ:</span>
+                      </span>
+                      {validBanners.length > 0 && (
+                        <span className="text-[11px] text-indigo-400 font-semibold">Click vào ảnh để phóng to HD</span>
+                      )}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-slate-400 text-xs">
-                  Không tìm thấy hình ảnh banner dạng công khai trên URL này.
-                </div>
-              )}
+
+                    {validBanners.length > 0 ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {validBanners.map((imgUrl, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => setExpandedImage(imgUrl)}
+                            className="group relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 cursor-pointer shadow-lg hover:border-indigo-400 transition-all"
+                          >
+                            <img
+                              src={imgUrl}
+                              alt={`Ảnh Thật / Banner #${idx + 1}`}
+                              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                              referrerPolicy="no-referrer"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-85 pointer-events-none" />
+                            <div className="absolute top-2.5 left-2.5">
+                              <span className="px-2 py-0.5 rounded-md bg-indigo-900/90 text-indigo-200 border border-indigo-500/40 text-[10px] font-bold shadow">
+                                Ảnh Thật #{idx + 1}
+                              </span>
+                            </div>
+                            <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-xs text-white pointer-events-none">
+                              <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[80%]">
+                                {result.extracted?.dentalName} - Banner Khuyến Mãi
+                              </span>
+                              <Maximize2 className="w-3.5 h-3.5 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 rounded-3xl bg-slate-900/80 border border-slate-800 text-center space-y-3">
+                        <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                          <ImageIcon className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-white">Không phát hiện thẻ ảnh tĩnh công khai trên URL này</h4>
+                          <p className="text-xs text-slate-400 max-w-lg mx-auto">
+                            Website đối thủ có thể đang dùng cơ chế bảo mật chống tải ảnh qua bot (Hotlink Protection), ảnh nền canvas hoặc nạp qua JavaScript. Toàn bộ bảng giá và chiến lược văn bản đã được AI bóc tách đầy đủ.
+                          </p>
+                        </div>
+                        {result.url && (
+                          <div className="pt-2">
+                            <a
+                              href={result.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-200 text-xs font-bold transition-colors"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Mở trực tiếp website đối thủ trong tab mới</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
 

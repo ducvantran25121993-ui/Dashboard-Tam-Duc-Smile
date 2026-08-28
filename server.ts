@@ -1857,30 +1857,55 @@ app.all(['/api/crawl4ai', '/api/crawl4ai/'], async (req, res) => {
     const pageDescription = descMatch ? descMatch[1].trim() : `Tổng hợp bảng giá niêm yết, chương trình ưu đãi và khuyến mãi mới nhất từ ${hostname}.`;
 
     // B. Trích xuất Media / Banner thật từ web
-    const imgRegex = /<img[^>]+(?:src|data-src|data-lazy-src|srcset)=["']([^"'>\s]+)["']/gi;
-    let match;
-    const rawImages: string[] = [];
-    while ((match = imgRegex.exec(html)) !== null) {
-      if (match[1]) {
-        const rawSrc = match[1].split(' ')[0].split(',')[0].trim();
-        rawImages.push(rawSrc);
+    const realBanners: string[] = [];
+
+    // B1. OpenGraph & Twitter Cards
+    const ogMatches = html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image|og:image:secure_url|twitter:image|twitter:image:src)["'][^>]+content=["']([^"']+)["']/gi);
+    for (const m of ogMatches) {
+      if (m[1]) {
+        let ogUrl = m[1].trim();
+        if (ogUrl.startsWith('//')) ogUrl = 'https:' + ogUrl;
+        else if (ogUrl.startsWith('/')) ogUrl = parsedBaseUrl + ogUrl;
+        else if (!ogUrl.startsWith('http://') && !ogUrl.startsWith('https://')) ogUrl = parsedBaseUrl + '/' + ogUrl;
+        if (ogUrl.startsWith('http') && !realBanners.includes(ogUrl)) {
+          realBanners.push(ogUrl);
+        }
       }
     }
 
-    const realBanners: string[] = [];
-    for (const src of rawImages) {
-      if (!src || src.startsWith('data:') || src.includes('.svg') || src.includes('base64')) continue;
-      let finalUrl = src;
-      if (src.startsWith('//')) finalUrl = 'https:' + src;
-      else if (src.startsWith('/')) finalUrl = parsedBaseUrl + src;
-      else if (!src.startsWith('http://') && !src.startsWith('https://')) finalUrl = parsedBaseUrl + '/' + src;
+    // B2. Trích xuất từ thẻ <img>, <picture>, <source> và các thuộc tính lazy-load
+    const imgRegex = /<(?:img|source)[^>]+(?:src|data-src|data-lazy-src|data-original|data-srcset|data-url|srcset)=["']([^"'>\s]+)["']/gi;
+    let match;
+    while ((match = imgRegex.exec(html)) !== null) {
+      if (match[1]) {
+        const rawSrc = match[1].split(' ')[0].split(',')[0].trim();
+        if (!rawSrc || rawSrc.startsWith('data:') || rawSrc.includes('.svg') || rawSrc.includes('base64')) continue;
+        let finalUrl = rawSrc;
+        if (rawSrc.startsWith('//')) finalUrl = 'https:' + rawSrc;
+        else if (rawSrc.startsWith('/')) finalUrl = parsedBaseUrl + rawSrc;
+        else if (!rawSrc.startsWith('http://') && !rawSrc.startsWith('https://')) finalUrl = parsedBaseUrl + '/' + rawSrc;
 
-      const lower = finalUrl.toLowerCase();
-      const isExcluded = lower.includes('favicon') || lower.includes('pixel') || lower.includes('analytics') || lower.includes('1x1') || lower.includes('icon');
-      const isPhoto = lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') || lower.includes('.webp') || lower.includes('/uploads/') || lower.includes('/images/');
+        const lower = finalUrl.toLowerCase();
+        const isExcluded = lower.includes('favicon') || lower.includes('pixel') || lower.includes('analytics') || lower.includes('1x1') || lower.includes('icon') || lower.includes('logo');
+        const isPhoto = lower.includes('.jpg') || lower.includes('.jpeg') || lower.includes('.png') || lower.includes('.webp') || lower.includes('.avif') || lower.includes('/uploads/') || lower.includes('/images/') || lower.includes('/wp-content/');
 
-      if (!isExcluded && isPhoto && !realBanners.includes(finalUrl)) {
-        realBanners.push(finalUrl);
+        if (!isExcluded && isPhoto && !realBanners.includes(finalUrl)) {
+          realBanners.push(finalUrl);
+        }
+      }
+    }
+
+    // B3. Background images
+    const bgRegex = /background(?:-image)?:\s*url\(['"]?([^'")\s]+)['"]?\)/gi;
+    while ((match = bgRegex.exec(html)) !== null) {
+      const bgSrc = match[1]?.trim();
+      if (bgSrc && !bgSrc.startsWith('data:') && !bgSrc.includes('.svg')) {
+        let fullBg = bgSrc;
+        if (bgSrc.startsWith('//')) fullBg = 'https:' + bgSrc;
+        else if (bgSrc.startsWith('/')) fullBg = parsedBaseUrl + bgSrc;
+        if (fullBg.startsWith('http') && !realBanners.includes(fullBg)) {
+          realBanners.push(fullBg);
+        }
       }
     }
 
@@ -2077,10 +2102,7 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
       executionTimeMs: Date.now() - startTime,
       markdownLength: cleanMarkdown.length,
       markdownPreview: cleanMarkdown.substring(0, 1500),
-      banners: realBanners.length > 0 ? realBanners.slice(0, 8) : [
-        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
-      ],
+      banners: realBanners.slice(0, 15),
       extracted: structuredResult
     });
 
@@ -2098,10 +2120,7 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
       executionTimeMs: Date.now() - startTime,
       markdownLength: 500,
       markdownPreview: `# Bảng Giá Dịch Vụ ${domainName}\n\n- Trồng răng Implant chuẩn quốc tế\n- Niềng răng thẩm mỹ trả góp 0%\n- Bọc răng sứ chính hãng`,
-      banners: [
-        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
-      ],
+      banners: [],
       extracted: {
         dentalName: `Nha Khoa ${domainName}`,
         category: 'implant',
