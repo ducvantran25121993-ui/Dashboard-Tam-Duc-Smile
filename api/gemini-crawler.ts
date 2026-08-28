@@ -1,4 +1,4 @@
-import { handleDashboardChat } from '../geminiCrawler';
+import { handleDashboardChat } from '../src/geminiCrawler';
 
 export const maxDuration = 60; // Hỗ trợ Vercel Serverless Function chạy tối đa 60 giây
 

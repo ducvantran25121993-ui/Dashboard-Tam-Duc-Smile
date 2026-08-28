@@ -1,4 +1,4 @@
-import { handleDashboardChat } from '../geminiCrawler';
+import { handleDashboardChat } from '../src/geminiCrawler';
 
 export const maxDuration = 60;
 
