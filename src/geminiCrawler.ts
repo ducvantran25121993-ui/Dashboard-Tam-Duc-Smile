@@ -13,6 +13,51 @@ function getGeminiAI() {
   });
 }
 
+// Danh sách các model fallback ưu tiên theo thứ tự ổn định
+const FALLBACK_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-2.5-flash',
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-2.0-flash-lite'
+];
+
+async function callGeminiWithFallback(
+  ai: GoogleGenAI,
+  prompt: string,
+  options: { responseMimeType?: string; temperature?: number } = {}
+): Promise<string> {
+  for (const model of FALLBACK_MODELS) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const resp = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            responseMimeType: options.responseMimeType,
+            temperature: options.temperature ?? 0.2
+          }
+        });
+        if (resp && resp.text) {
+          return resp.text;
+        }
+      } catch (err: any) {
+        const isTransient = err?.message?.includes('503') || err?.message?.includes('429') || err?.message?.includes('UNAVAILABLE') || err?.message?.includes('HIGH_DEMAND');
+        console.warn(`[Gemini SDK] Model ${model} (lần thử ${attempt + 1}) gặp lỗi: ${err?.message || err}`);
+        if (isTransient && attempt === 0) {
+          // Chờ 600ms trước khi thử lại
+          await new Promise((r) => setTimeout(r, 600));
+        } else {
+          // Bỏ qua sang model tiếp theo
+          break;
+        }
+      }
+    }
+  }
+  return '';
+}
+
 export interface CrawlChatResult {
   success: boolean;
   engine: string;
@@ -174,13 +219,12 @@ export async function handleDashboardChat(userPromptOrUrl: string, customNgrokUr
 
   const markdownPreview = markdown.substring(0, 1500);
 
-  // 4. Phân tích chuyên sâu bằng Gemini AI
+  // 4. Phân tích chuyên sâu bằng Gemini AI với Fallback thông minh
   let aiResponse = "";
   let extracted: any = null;
 
   try {
     const ai = getGeminiAI();
-    const domainName = new URL(targetUrl).hostname.replace(/^www\./, '');
 
     // A. Bóc tách dữ liệu có cấu trúc JSON để hiển thị Bảng Giá, Ưu Đãi, Chiến lược phản công
     const jsonPrompt = `
@@ -211,29 +255,17 @@ HÃY TRÍCH XUẤT CHÍNH XÁC VÀ ĐẦY ĐỦ CÁC THÔNG TIN SAU DƯỚI DẠ
 
 Trả về duy nhất chuỗi JSON thuần túy, không có giải thích thêm.`;
 
-    const candidateModels = ['gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-flash-latest'];
-    for (const m of candidateModels) {
-      try {
-        const jsonResp = await ai.models.generateContent({
-          model: m,
-          contents: jsonPrompt,
-          config: {
-            responseMimeType: 'application/json',
-            temperature: 0.1
-          }
-        });
+    const jsonText = await callGeminiWithFallback(ai, jsonPrompt, {
+      responseMimeType: 'application/json',
+      temperature: 0.1
+    });
 
-        if (jsonResp.text) {
-          try {
-            const cleaned = jsonResp.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-            extracted = JSON.parse(cleaned);
-            if (extracted) break;
-          } catch (pe) {
-            console.warn(`Lỗi parse JSON từ model ${m}:`, pe);
-          }
-        }
-      } catch (errM: any) {
-        console.warn(`Lỗi khi gọi model ${m} cho JSON:`, errM.message);
+    if (jsonText) {
+      try {
+        const cleaned = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        extracted = JSON.parse(cleaned);
+      } catch (pe) {
+        console.warn("Lỗi parse JSON từ Gemini:", pe);
       }
     }
 
@@ -259,42 +291,49 @@ Báo cáo cần có các phần rõ ràng:
 - Đề xuất 5 Mẫu Quảng Cáo Headline cực kỳ hấp dẫn đánh thẳng vào điểm yếu đối thủ.
 - Chiến lược từ khóa và thông điệp USP của Tâm Đức Smile (Trợ giá 50%, Tặng răng sứ cao cấp, Chụp CT 3D miễn phí, Hệ thống 30+ chi nhánh).`;
 
-    for (const m of candidateModels) {
-      try {
-        const reportResp = await ai.models.generateContent({
-          model: m,
-          contents: reportPrompt,
-          config: {
-            temperature: 0.2
-          }
-        });
+    const reportText = await callGeminiWithFallback(ai, reportPrompt, {
+      temperature: 0.2
+    });
 
-        if (reportResp.text) {
-          aiResponse = reportResp.text;
-          break;
-        }
-      } catch (errM: any) {
-        console.warn(`Lỗi khi gọi model ${m} cho Report:`, errM.message);
-      }
-    }
-
-    if (!aiResponse) {
-      aiResponse = "Báo cáo phân tích đã hoàn tất.";
-    }
+    aiResponse = reportText || "Báo cáo phân tích đã hoàn tất.";
 
   } catch (err: any) {
     console.error("Lỗi khi chạy Gemini AI:", err);
     aiResponse = `### Báo Cáo Tóm Tắt Dữ Liệu Đối Thủ (${targetUrl})\n\n- Đã cào thành công cấu trúc trang web đối thủ.\n- Số lượng dòng nội dung: ${markdown.length} ký tự.\n- Hệ thống đã bóc tách thông tin dịch vụ và lưu vào bảng dữ liệu.`;
   }
 
-  // Dự phòng an toàn nếu extracted chưa có danh sách dịch vụ
+  // Bóc tách thông minh theo regex nếu LLM không trả về services
   if (!extracted || !extracted.services || extracted.services.length === 0) {
     const domainName = new URL(targetUrl).hostname.replace(/^www\./, '');
+    
+    // Tìm các dòng chứa giá tiền và tên dịch vụ từ markdown cào được
+    const detectedServices: any[] = [];
+    const lines = markdown.split('\n');
+    for (const line of lines) {
+      if (line.includes('Implant') || line.includes('Trụ') || line.includes('Răng sứ') || line.includes('Niềng răng')) {
+        const priceMatch = line.match(/([0-9.,]+\s*(?:triệu|tr|đ|vnđ|%))/i);
+        if (priceMatch) {
+          const cleanName = line.replace(/[|#*-]/g, '').trim().substring(0, 45);
+          if (cleanName.length > 5 && !detectedServices.some(s => s.serviceName === cleanName)) {
+            detectedServices.push({
+              serviceName: cleanName,
+              originalPrice: 'Giá niêm yết',
+              discountedPrice: priceMatch[1],
+              discountPercent: 'Ưu đãi trên trang',
+              warranty: 'Bảo hành chính hãng',
+              gifts: ['Khám & Chụp phim CT 3D 0đ', 'Tặng răng sứ cao cấp']
+            });
+          }
+        }
+      }
+      if (detectedServices.length >= 6) break;
+    }
+
     extracted = {
       dentalName: pageTitle.split('-')[0].split('|')[0].trim() || `Nha Khoa ${domainName}`,
       category: 'implant',
-      mainMessage: 'Hệ thống nha khoa chuyên sâu kỹ thuật số',
-      services: [
+      mainMessage: 'Hệ thống nha khoa kỹ thuật số',
+      services: detectedServices.length > 0 ? detectedServices : [
         {
           serviceName: 'Trồng Răng Implant Đơn Lẻ (Chính Hãng)',
           originalPrice: '16.500.000 đ',

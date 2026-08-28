@@ -1989,7 +1989,14 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
 }`;
 
         let aiText = '';
-        const targetModels = ['gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+        const targetModels = [
+          'gemini-2.0-flash',
+          'gemini-1.5-flash',
+          'gemini-2.5-flash',
+          'gemini-3.6-flash',
+          'gemini-3.7-flash',
+          'gemini-2.0-flash-lite'
+        ];
         for (const m of targetModels) {
           try {
             const aiResponse = await gemini.models.generateContent({
