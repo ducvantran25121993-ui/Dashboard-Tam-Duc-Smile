@@ -1,12 +1,14 @@
 import React from 'react';
-import { Calendar, DollarSign, TrendingUp, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu, Sliders } from 'lucide-react';
+import { Calendar, DollarSign, TrendingUp, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu, Sliders, Clock } from 'lucide-react';
 import { MonthTab, DisplayUnit } from '../types';
+import { MonthDataset } from '../data/revenueData';
 
 interface HeaderProps {
   activeTab: MonthTab;
   onSelectTab: (tab: MonthTab) => void;
   displayUnit: DisplayUnit;
   onSelectUnit: (unit: DisplayUnit) => void;
+  monthlyData?: MonthDataset[];
   userRole?: 'admin' | 'staff' | null;
   onLockDashboard?: () => void;
   onChangePassword?: () => void;
@@ -19,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSelectTab,
   displayUnit,
   onSelectUnit,
+  monthlyData = [],
   userRole,
   onLockDashboard,
   onChangePassword,
@@ -190,14 +193,19 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               }
 
+              const ds = typeof m.id === 'number' ? monthlyData.find((d) => d.month === m.id) : null;
+              const hasData = ds ? ds.regions.some((r) => (r.costVAT || 0) > 0 || (r.revenue || 0) > 0 || (r.totalData || 0) > 0) : false;
+
               return (
                 <button
                   key={m.id}
                   onClick={() => onSelectTab(m.id)}
-                  title={m.label}
+                  title={hasData ? m.label : `${m.label} (Chưa có dữ liệu - Đang để trống chờ cập nhật)`}
                   className={`group relative flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl whitespace-nowrap transition-all duration-300 shrink-0 select-none overflow-hidden ${
                     isActive
                       ? 'bg-gradient-to-r from-white via-slate-50 to-white text-slate-950 border border-white ring-2 ring-cyan-400/80 shadow-[0_0_25px_rgba(255,255,255,0.7),0_0_40px_rgba(56,189,248,0.35)] scale-[1.03] -translate-y-0.5'
+                      : hasData
+                      ? 'text-slate-200 hover:text-white hover:bg-slate-800/60 border border-transparent'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
                   }`}
                 >
@@ -211,10 +219,23 @@ export const Header: React.FC<HeaderProps> = ({
                     </>
                   )}
                   <Calendar className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors z-20 ${
-                    isActive ? 'text-cyan-700' : 'text-slate-500 group-hover:text-slate-300'
+                    isActive ? 'text-cyan-700' : hasData ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-400'
                   }`} />
                   <span className={`sm:hidden z-20 ${isActive ? 'text-slate-950 font-extrabold' : ''}`}>{shortLabel}</span>
                   <span className={`hidden sm:inline z-20 ${isActive ? 'text-slate-950 font-extrabold' : ''}`}>{m.label}</span>
+                  
+                  {/* Small Dot Status: Green if has data, subtle gray if waiting for data */}
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full z-20 ml-0.5 ${
+                      isActive
+                        ? hasData ? 'bg-cyan-600' : 'bg-amber-600'
+                        : hasData
+                        ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                        : 'bg-slate-600'
+                    }`}
+                    title={hasData ? 'Đã có dữ liệu' : 'Chờ cập nhật'}
+                  />
+
                   {isActive && (
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 sm:w-12 h-[3.5px] rounded-full bg-cyan-500 shadow-[0_0_10px_#06b6d4] z-20" />
                   )}
