@@ -57,7 +57,12 @@ import {
   DEFAULT_BUDGET_PLAN_SHEET_URL,
   BudgetPlanSummary,
   BranchPlanItem,
-  fetchBudgetPlanSheetData,
+  MultiMonthBudgetPlan,
+  DEFAULT_MULTI_MONTH_PLAN,
+  fetchMultiMonthBudgetPlan,
+  FALLBACK_PLAN_T6_ITEMS,
+  FALLBACK_PLAN_T7_ITEMS,
+  FALLBACK_PLAN_T8_ITEMS,
   FALLBACK_BUDGET_PLAN_ITEMS,
 } from '../services/budgetPlanSheetService';
 
@@ -200,29 +205,18 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [budgetScenario, setBudgetScenario] = useState<'base_100' | 'reduced_30' | 'reduced_extra_30' | 'custom'>('base_100');
   const [customReductionPct, setCustomReductionPct] = useState<number>(20); // % giảm tùy chỉnh
 
-  // Selected Month for comparison
-  const [selectedMonth, setSelectedMonth] = useState<string>('t1');
+  // Selected Month for comparison (Default T8 as current plan in Google Sheet)
+  const [selectedMonth, setSelectedMonth] = useState<string>('t8');
   const [tableSubMode, setTableSubMode] = useState<'single_month' | 'all_months_matrix'>('single_month');
 
   // Status Filter: 'all', 'over_budget', 'within_budget'
   const [statusFilter, setStatusFilter] = useState<'all' | 'over_budget' | 'within_budget'>('all');
 
-  // Budget Plan Google Sheets Live State & Local Edits
+  // Multi-Month Budget Plan Google Sheets Live State
   const [sheetUrl, setSheetUrl] = useState<string>(DEFAULT_BUDGET_PLAN_SHEET_URL);
-  const [budgetPlan, setBudgetPlan] = useState<BudgetPlanSummary | null>(null);
+  const [multiMonthPlan, setMultiMonthPlan] = useState<MultiMonthBudgetPlan>(DEFAULT_MULTI_MONTH_PLAN);
   const [isFetchingSheet, setIsFetchingSheet] = useState<boolean>(false);
   const [sheetSearchTerm, setSheetSearchTerm] = useState<string>('');
-
-  // Custom Local Branch Data (Overrides)
-  const [customBranchData, setCustomBranchData] = useState<BranchPlanItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('custom_branch_budget_items');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return FALLBACK_BUDGET_PLAN_ITEMS;
-  });
 
   // Edit Modal State
   const [editingBranch, setEditingBranch] = useState<BranchPlanItem | null>(null);
@@ -262,17 +256,16 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
   };
 
-  // Load Google Sheet Budget Plan
+  // Load Google Sheet Budget Plan (Reads multi-month T6, T7, T8)
   const loadBudgetSheet = useCallback(async (url: string = sheetUrl) => {
     setIsFetchingSheet(true);
     try {
-      const data = await fetchBudgetPlanSheetData(url);
-      setBudgetPlan(data);
-      if (data?.items && data.items.length > 0) {
-        setCustomBranchData(data.items);
+      const data = await fetchMultiMonthBudgetPlan(url);
+      if (data && data.availableMonths.length > 0) {
+        setMultiMonthPlan(data);
       }
     } catch (err) {
-      console.error('Error fetching budget plan sheet:', err);
+      console.error('Error fetching multi-month budget plan sheet:', err);
     } finally {
       setIsFetchingSheet(false);
     }
@@ -282,7 +275,37 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     loadBudgetSheet(sheetUrl);
   }, [sheetUrl, loadBudgetSheet]);
 
-  // Save custom branch data
+  // Selected Month Number Helper
+  const selectedMonthNum = useMemo(() => {
+    if (selectedMonth === 'all') return 0;
+    const tab = MONTH_TABS.find((t) => t.id === selectedMonth);
+    return tab ? tab.monthNum : 8;
+  }, [selectedMonth]);
+
+  const hasPlanDataForSelectedMonth = useMemo(() => {
+    if (selectedMonthNum === 0) return true;
+    return multiMonthPlan.availableMonths.includes(selectedMonthNum);
+  }, [selectedMonthNum, multiMonthPlan.availableMonths]);
+
+  // Active items strictly from the active month's plan in the Google Sheet (T6, T7, T8)
+  const activeItems = useMemo(() => {
+    if (selectedMonthNum === 6) {
+      return multiMonthPlan.monthPlans[6]?.items || FALLBACK_PLAN_T6_ITEMS;
+    }
+    if (selectedMonthNum === 7) {
+      return multiMonthPlan.monthPlans[7]?.items || FALLBACK_PLAN_T7_ITEMS;
+    }
+    if (selectedMonthNum === 8) {
+      return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+    }
+    if (selectedMonthNum === 0) {
+      return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+    }
+    // For months 1 to 5, no budget plan exists in this sheet
+    return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+  }, [selectedMonthNum, multiMonthPlan]);
+
+  // Save custom branch data for active month
   const handleSaveBranchEdit = () => {
     if (!editingBranch) return;
 
@@ -291,8 +314,12 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     const reduced30 = Math.round(editMonthlyBudget * 0.7 * vatMultiplier);
     const reducedExtra30 = Math.round(editMonthlyBudget * 0.49 * vatMultiplier);
 
-    const updatedItems = customBranchData.map((item) => {
-      if (item.id === editingBranch.id) {
+    const mNum = selectedMonthNum > 0 ? selectedMonthNum : 8;
+    const currentMonthPlan = multiMonthPlan.monthPlans[mNum] || multiMonthPlan.monthPlans[8];
+    if (!currentMonthPlan) return;
+
+    const updatedItems = currentMonthPlan.items.map((item) => {
+      if (item.id === editingBranch.id || item.name === editingBranch.name) {
         return {
           ...item,
           dailyBudget: editDailyBudget,
@@ -308,9 +335,20 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       return item;
     });
 
-    setCustomBranchData(updatedItems);
+    const updatedPlan: MultiMonthBudgetPlan = {
+      ...multiMonthPlan,
+      monthPlans: {
+        ...multiMonthPlan.monthPlans,
+        [mNum]: {
+          ...currentMonthPlan,
+          items: updatedItems,
+        },
+      },
+    };
+
+    setMultiMonthPlan(updatedPlan);
     try {
-      localStorage.setItem('custom_branch_budget_items', JSON.stringify(updatedItems));
+      localStorage.setItem('tamduc_multi_month_plan_cache', JSON.stringify(updatedPlan));
     } catch {
       // ignore
     }
@@ -359,19 +397,16 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   // Helper to compute effective limit for a branch under active scenario
   const getBranchEffectiveLimit = useCallback((item: BranchPlanItem) => {
     if (budgetScenario === 'base_100') {
-      return item.monthlyBudget;
+      return item.monthlyBudgetVat || item.monthlyBudget;
     } else if (budgetScenario === 'reduced_30') {
-      return item.reduced30Budget || Math.round(item.monthlyBudget * 0.7);
+      return item.reduced30Vat || item.reduced30Budget || Math.round(item.monthlyBudget * 0.7 * 1.1664);
     } else if (budgetScenario === 'reduced_extra_30') {
-      return item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49);
+      return item.reducedExtra30Vat || item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49 * 1.1664);
     } else {
       const factor = Math.max(0, (100 - customReductionPct) / 100);
-      return Math.round(item.monthlyBudget * factor);
+      return Math.round((item.monthlyBudgetVat || item.monthlyBudget) * factor);
     }
   }, [budgetScenario, customReductionPct]);
-
-  // Aggregated totals from current items
-  const activeItems = customBranchData.length > 0 ? customBranchData : FALLBACK_BUDGET_PLAN_ITEMS;
 
   const currentSummary = useMemo(() => {
     const totalDaily = activeItems.reduce((s, i) => s + i.dailyBudget, 0);
@@ -386,17 +421,17 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     const totalSpent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, selectedMonth), 0);
 
     // Calculate dynamic effective total budget under selected reduction scenario
-    let activeScenarioTotalBudget = totalMonthly;
-    let scenarioLabel = 'Chuẩn 100% Gốc';
+    let activeScenarioTotalBudget = totalMonthlyVat > 0 ? totalMonthlyVat : totalMonthly;
+    let scenarioLabel = 'Chuẩn Kế Hoạch (+VAT)';
     if (budgetScenario === 'reduced_30') {
-      activeScenarioTotalBudget = totalReduced30;
-      scenarioLabel = 'Kịch Bản Giảm 30%';
+      activeScenarioTotalBudget = totalReduced30Vat > 0 ? totalReduced30Vat : (totalReduced30 || Math.round(totalMonthlyVat * 0.7));
+      scenarioLabel = 'Kịch Bản Giảm 30% (+VAT)';
     } else if (budgetScenario === 'reduced_extra_30') {
-      activeScenarioTotalBudget = totalReducedExtra30;
-      scenarioLabel = 'Kịch Bản Giảm Thêm 30% (-51%)';
+      activeScenarioTotalBudget = totalReducedExtra30Vat > 0 ? totalReducedExtra30Vat : (totalReducedExtra30 || Math.round(totalMonthlyVat * 0.49));
+      scenarioLabel = 'Kịch Bản Giảm Thêm 30% (-51% +VAT)';
     } else if (budgetScenario === 'custom') {
       const factor = Math.max(0, (100 - customReductionPct) / 100);
-      activeScenarioTotalBudget = Math.round(totalMonthly * factor);
+      activeScenarioTotalBudget = Math.round(totalMonthlyVat * factor);
       scenarioLabel = `Kịch Bản Giảm ${customReductionPct}%`;
     }
 
@@ -434,21 +469,31 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const monthTabSummaries = useMemo(() => {
     return MONTH_TABS.map((tab) => {
       let spent = 0;
+      const mNum = tab.monthNum;
+      const isAvailableInSheet = mNum === 6 || mNum === 7 || mNum === 8;
+      const planForTab = multiMonthPlan.monthPlans[mNum];
+
       if (tab.id === 'all') {
         spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, 'all'), 0);
       } else {
         spent = activeItems.reduce((s, i) => s + getBranchSpentForMonth(i, tab.id), 0);
       }
-      const limit = currentSummary.activeScenarioTotalBudget;
+
+      const planVatBudget = planForTab?.totalMonthlyVat || 0;
+      const limit = planVatBudget || currentSummary.activeScenarioTotalBudget;
       const isOver = spent > limit && limit > 0;
+
       return {
         ...tab,
         spent,
         isOver,
         hasData: spent > 0,
+        hasSheetPlan: isAvailableInSheet,
+        sheetPlanBudget: planVatBudget,
+        planTitle: planForTab?.title,
       };
     });
-  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget]);
+  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget, multiMonthPlan]);
 
   // Filtered branch items based on effective limit & active month's spent
   const filteredBranchItems = useMemo(() => {
@@ -602,15 +647,22 @@ ${activeItems
                   <span className={`text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-slate-200'}`}>
                     {tab.short}
                   </span>
-                  <span
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      !tab.hasData
-                        ? 'bg-slate-600'
-                        : tab.isOver
-                        ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
-                        : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
-                    }`}
-                  />
+                  <div className="flex items-center gap-1">
+                    {tab.hasSheetPlan && (
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+                        KH
+                      </span>
+                    )}
+                    <span
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        !tab.hasData
+                          ? 'bg-slate-600'
+                          : tab.isOver
+                          ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+                          : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                      }`}
+                    />
+                  </div>
                 </div>
                 <div className="mt-1 font-mono text-[11px] font-bold truncate">
                   {tab.hasData ? (
@@ -621,11 +673,59 @@ ${activeItems
                     <span className="text-slate-600 font-normal">--</span>
                   )}
                 </div>
+                <div className="mt-0.5 text-[9px] text-slate-500 truncate">
+                  {tab.hasSheetPlan ? (
+                    <span className="text-amber-400/80 font-mono">Plan {formatVND(tab.sheetPlanBudget, 'million')}</span>
+                  ) : tab.id === 'all' ? (
+                    <span className="text-cyan-400/80">Cả năm</span>
+                  ) : (
+                    <span className="text-slate-600">Chưa có KH</span>
+                  )}
+                </div>
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* WARNING BANNER IF SELECTED MONTH HAS NO DATA IN GOOGLE SHEET */}
+      {!hasPlanDataForSelectedMonth && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/60 via-amber-900/30 to-amber-950/60 border border-amber-500/50 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-amber-200 uppercase tracking-wide flex items-center gap-2">
+                <span>Tháng {selectedMonthNum}: Chưa Có Kế Hoạch Ngân Sách Trên File Google Sheets</span>
+              </h4>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                File Google Sheets <span className="text-amber-300 font-bold underline">Ngân Sách Dự Kiến</span> được phân bổ hạn mức chi tiết cho các tháng: <strong>Tháng 6, Tháng 7 và Tháng 8 (T6, T7, T8)</strong>. Tháng 1 đến Tháng 5 chưa có bảng phân bổ dự kiến trong file này.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <button
+              onClick={() => setSelectedMonth('t6')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 hover:border-amber-400 transition-all cursor-pointer shadow-sm"
+            >
+              Xem Kế Hoạch T6 (1.230 Tỷ)
+            </button>
+            <button
+              onClick={() => setSelectedMonth('t7')}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 transition-all cursor-pointer shadow-sm"
+            >
+              Xem Kế Hoạch T7 (860M - 1.230 Tỷ)
+            </button>
+            <button
+              onClick={() => setSelectedMonth('t8')}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 hover:brightness-110 transition-all cursor-pointer shadow-md"
+            >
+              Xem Kế Hoạch T8 (Mới Nhất)
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 1. TOP KPI METRIC ROW - DYNAMICALLY COMPUTED FOR SELECTED MONTH */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -1414,10 +1514,15 @@ ${activeItems
                           {item.name}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
-                          {formatVND(effectiveLimit, 'million')}
+                          {hasPlanDataForSelectedMonth ? formatVND(effectiveLimit, 'million') : '--'}
                         </td>
                         {mCosts.map((cost, mIdx) => {
-                          const isOver = effectiveLimit > 0 && cost > effectiveLimit;
+                          const mNum = mIdx + 1;
+                          const mPlan = multiMonthPlan.monthPlans[mNum];
+                          const mBranch = mPlan?.items.find((b) => b.name === item.name || b.id === item.id);
+                          const mLimit = mBranch ? getBranchEffectiveLimit(mBranch) : 0;
+                          const isOver = mLimit > 0 && cost > mLimit;
+
                           return (
                             <td
                               key={mIdx}
