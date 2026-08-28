@@ -152,6 +152,10 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   // Main view mode: 'cards_grid' (Dạng Thẻ Tiến Độ theo ảnh), 'sheet_plan' (Dạng Bảng), 'simulation' (Mô Phỏng Doanh Thu & ROI)
   const [activeViewMode, setActiveViewMode] = useState<'cards_grid' | 'sheet_plan' | 'simulation'>('cards_grid');
 
+  // Budget Scenario for Progress Cards: 'base_100' (Kế hoạch 100%), 'reduced_30' (Giảm 30%), 'reduced_extra_30' (Giảm thêm 30%), 'custom' (Tùy chỉnh)
+  const [budgetScenario, setBudgetScenario] = useState<'base_100' | 'reduced_30' | 'reduced_extra_30' | 'custom'>('base_100');
+  const [customReductionPct, setCustomReductionPct] = useState<number>(20); // % giảm tùy chỉnh
+
   // Selected Month for comparison
   const [selectedMonth, setSelectedMonth] = useState<string>('t1');
 
@@ -261,20 +265,19 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     setEditSpent(branch.spentThisMonth || 0);
   };
 
-  // Handle Scenario Quick Apply
-  const applyScenario = (type: 'conservative' | 'balanced' | 'aggressive') => {
-    setActiveScenario(type);
-    if (type === 'conservative') {
-      setTotalBudget(650000000);
-      setTargetRoas(7.5);
-    } else if (type === 'balanced') {
-      setTotalBudget(850000000);
-      setTargetRoas(8.0);
-    } else if (type === 'aggressive') {
-      setTotalBudget(1250000000);
-      setTargetRoas(8.5);
+  // Helper to compute effective limit for a branch under active scenario
+  const getBranchEffectiveLimit = useCallback((item: BranchPlanItem) => {
+    if (budgetScenario === 'base_100') {
+      return item.monthlyBudget;
+    } else if (budgetScenario === 'reduced_30') {
+      return item.reduced30Budget || Math.round(item.monthlyBudget * 0.7);
+    } else if (budgetScenario === 'reduced_extra_30') {
+      return item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49);
+    } else {
+      const factor = Math.max(0, (100 - customReductionPct) / 100);
+      return Math.round(item.monthlyBudget * factor);
     }
-  };
+  }, [budgetScenario, customReductionPct]);
 
   // Aggregated totals from current items
   const activeItems = customBranchData.length > 0 ? customBranchData : FALLBACK_BUDGET_PLAN_ITEMS;
@@ -289,10 +292,25 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     const totalReducedExtra30Vat = activeItems.reduce((s, i) => s + i.reducedExtra30Vat, 0);
     const totalSpent = activeItems.reduce((s, i) => s + (i.spentThisMonth || 0), 0);
 
+    // Calculate dynamic effective total budget under selected reduction scenario
+    let activeScenarioTotalBudget = totalMonthly;
+    let scenarioLabel = 'Chuẩn 100% Gốc';
+    if (budgetScenario === 'reduced_30') {
+      activeScenarioTotalBudget = totalReduced30;
+      scenarioLabel = 'Kịch Bản Giảm 30%';
+    } else if (budgetScenario === 'reduced_extra_30') {
+      activeScenarioTotalBudget = totalReducedExtra30;
+      scenarioLabel = 'Kịch Bản Giảm Thêm 30% (-51%)';
+    } else if (budgetScenario === 'custom') {
+      const factor = Math.max(0, (100 - customReductionPct) / 100);
+      activeScenarioTotalBudget = Math.round(totalMonthly * factor);
+      scenarioLabel = `Kịch Bản Giảm ${customReductionPct}%`;
+    }
+
     const activeLocationsCount = activeItems.filter((i) => i.dailyBudget > 0).length || 15;
     const avgDailyPerLocation = activeLocationsCount > 0 ? Math.round(totalDaily / activeLocationsCount) : 0;
-    const remainingBudget = totalMonthly - totalSpent;
-    const burnRatePercent = totalMonthly > 0 ? (totalSpent / totalMonthly) * 100 : 0;
+    const remainingBudget = activeScenarioTotalBudget - totalSpent;
+    const burnRatePercent = activeScenarioTotalBudget > 0 ? (totalSpent / activeScenarioTotalBudget) * 100 : 0;
 
     return {
       totalDaily,
@@ -302,6 +320,8 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       totalReduced30Vat,
       totalReducedExtra30,
       totalReducedExtra30Vat,
+      activeScenarioTotalBudget,
+      scenarioLabel,
       totalSpent,
       activeLocationsCount,
       avgDailyPerLocation,
@@ -309,9 +329,9 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       burnRatePercent,
       items: activeItems,
     };
-  }, [activeItems]);
+  }, [activeItems, budgetScenario, customReductionPct]);
 
-  // Filtered branch items
+  // Filtered branch items based on effective limit
   const filteredBranchItems = useMemo(() => {
     let list = activeItems;
 
@@ -323,19 +343,19 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     if (statusFilter === 'over_budget') {
       list = list.filter((item) => {
         const spent = item.spentThisMonth || 0;
-        const limit = item.monthlyBudget;
+        const limit = getBranchEffectiveLimit(item);
         return limit > 0 && spent > limit;
       });
     } else if (statusFilter === 'within_budget') {
       list = list.filter((item) => {
         const spent = item.spentThisMonth || 0;
-        const limit = item.monthlyBudget;
+        const limit = getBranchEffectiveLimit(item);
         return limit === 0 || spent <= limit;
       });
     }
 
     return list;
-  }, [activeItems, sheetSearchTerm, statusFilter]);
+  }, [activeItems, sheetSearchTerm, statusFilter, getBranchEffectiveLimit]);
 
   // Simulation calculations
   const targetRevenue = useMemo(() => totalBudget * targetRoas, [totalBudget, targetRoas]);
@@ -415,22 +435,35 @@ ${activeItems
 
   return (
     <div className="space-y-6">
-      {/* 1. TOP KPI METRIC ROW - EXACTLY MATCHING USER'S SCREENSHOT */}
+      {/* 1. TOP KPI METRIC ROW - EXACTLY MATCHING USER'S SCREENSHOT & RESPONSIVE TO REDUCTION SCENARIOS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng Hạn Mức Kịch Bản */}
         <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[135px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Tổng Hạn Mức Kịch Bản</span>
-            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
-              17 Chi Nhánh
+            <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${
+              budgetScenario === 'base_100'
+                ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                : budgetScenario === 'reduced_30'
+                ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+                : budgetScenario === 'reduced_extra_30'
+                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                : 'bg-purple-500/10 text-purple-300 border-purple-500/30'
+            }`}>
+              {budgetScenario === 'base_100' ? '17 Chi Nhánh (100%)' : currentSummary.scenarioLabel}
             </span>
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-black text-amber-400 tracking-tight font-mono">
-              {formatVND(currentSummary.totalMonthly, 'full')}
+              {formatVND(currentSummary.activeScenarioTotalBudget, 'full')}
             </div>
-            <div className="text-xs text-slate-400 mt-1">
-              Kế hoạch ngân sách chuẩn 100%
+            <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+              <span>{currentSummary.scenarioLabel}</span>
+              {budgetScenario !== 'base_100' && (
+                <span className="text-slate-500 line-through font-mono text-[11px]">
+                  Gốc: {formatVND(currentSummary.totalMonthly, 'million')}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -443,10 +476,32 @@ ${activeItems
           </div>
           <div className="mt-2">
             <div className="text-2xl sm:text-3xl font-black text-cyan-400 tracking-tight font-mono">
-              {formatVND(currentSummary.totalDaily, 'full')}
+              {formatVND(
+                budgetScenario === 'reduced_30'
+                  ? Math.round(currentSummary.totalDaily * 0.7)
+                  : budgetScenario === 'reduced_extra_30'
+                  ? Math.round(currentSummary.totalDaily * 0.49)
+                  : budgetScenario === 'custom'
+                  ? Math.round(currentSummary.totalDaily * ((100 - customReductionPct) / 100))
+                  : currentSummary.totalDaily,
+                'full'
+              )}
             </div>
             <div className="text-xs text-slate-400 mt-1">
-              Trung bình {formatVND(currentSummary.avgDailyPerLocation, 'full')} / cơ sở / ngày
+              Trung bình{' '}
+              {formatVND(
+                Math.round(
+                  (budgetScenario === 'reduced_30'
+                    ? currentSummary.totalDaily * 0.7
+                    : budgetScenario === 'reduced_extra_30'
+                    ? currentSummary.totalDaily * 0.49
+                    : budgetScenario === 'custom'
+                    ? currentSummary.totalDaily * ((100 - customReductionPct) / 100)
+                    : currentSummary.totalDaily) / (currentSummary.activeLocationsCount || 1)
+                ),
+                'full'
+              )}{' '}
+              / cơ sở / ngày
             </div>
           </div>
         </div>
@@ -456,7 +511,7 @@ ${activeItems
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Chi Phí (VAT) Tháng 1</span>
             <span className="px-2 py-0.5 rounded text-[11px] font-bold text-rose-400 bg-rose-950/40 border border-rose-500/30">
-              100% Hạn Mức
+              Thực Chi
             </span>
           </div>
           <div className="mt-2">
@@ -464,9 +519,9 @@ ${activeItems
               {formatVND(currentSummary.totalSpent, 'full')}
             </div>
             <div className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-              <span>Còn lại:</span>
+              <span>Chênh lệch ({currentSummary.scenarioLabel}):</span>
               <span className={`font-bold font-mono ${currentSummary.remainingBudget < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                {currentSummary.remainingBudget < 0 ? '-' : ''}
+                {currentSummary.remainingBudget < 0 ? '-' : '+'}
                 {formatVND(Math.abs(currentSummary.remainingBudget), 'full')}
               </span>
             </div>
@@ -477,16 +532,26 @@ ${activeItems
         <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[135px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Trạng Thái Burn-Rate</span>
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className={`w-4 h-4 ${currentSummary.burnRatePercent > 100 ? 'text-rose-400' : 'text-emerald-400'}`} />
           </div>
           <div className="mt-2 space-y-2">
-            <div className="text-base sm:text-lg font-black text-amber-400 tracking-tight flex items-center gap-1.5">
-              <span>⚠️ Cảnh Báo Vượt Trần</span>
+            <div className={`text-base sm:text-lg font-black tracking-tight flex items-center gap-1.5 ${
+              currentSummary.burnRatePercent > 100 ? 'text-rose-400' : 'text-emerald-400'
+            }`}>
+              <span>
+                {currentSummary.burnRatePercent > 100
+                  ? `⚠️ Vượt Trần (${currentSummary.burnRatePercent.toFixed(1)}%)`
+                  : `✅ An Toàn (${currentSummary.burnRatePercent.toFixed(1)}%)`}
+              </span>
             </div>
             {/* Progress Bar (thick gradient) */}
             <div className="h-2.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"
+                className={`h-full rounded-full transition-all ${
+                  currentSummary.burnRatePercent > 100
+                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500'
+                    : 'bg-gradient-to-r from-teal-500 to-emerald-500'
+                }`}
                 style={{ width: `${Math.min(100, currentSummary.burnRatePercent)}%` }}
               />
             </div>
@@ -494,7 +559,145 @@ ${activeItems
         </div>
       </div>
 
-      {/* 2. TOOLBAR & VIEW CONTROLS */}
+      {/* 2. KỊCH BẢN GIẢM CHI PHÍ & ĐIỀU HƯỚNG TỐI ƯU (SCENARIO SELECTOR BAR) */}
+      <div className="p-4.5 rounded-2xl bg-gradient-to-r from-[#0d1527] via-[#09101f] to-[#0d1527] border border-slate-700/80 shadow-xl space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-slate-800">
+          <div className="flex items-center gap-2">
+            <Flame className="w-4 h-4 text-amber-400" />
+            <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+              Kịch Bản Giảm Chi Phí & Hạn Mức Tối Ưu Hệ Thống
+            </span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 font-bold border border-amber-500/30">
+              Tự Động Áp Dụng Cho Tất Cả Chi Nhánh
+            </span>
+          </div>
+          <span className="text-xs text-slate-400">
+            Chuyển nhanh hạn mức mục tiêu để kiểm tra tỷ lệ vượt trần của từng chi nhánh
+          </span>
+        </div>
+
+        {/* 4 Scenario Quick Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {/* Scenario 1: 100% Gốc */}
+          <button
+            onClick={() => setBudgetScenario('base_100')}
+            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              budgetScenario === 'base_100'
+                ? 'bg-amber-950/40 border-amber-500 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                100% Kế Hoạch Gốc
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                Chuẩn
+              </span>
+            </div>
+            <div className="mt-2 font-mono font-black text-sm text-amber-300">
+              {formatVND(currentSummary.totalMonthly, 'full')}
+            </div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Hạn mức phân bổ theo bảng kế hoạch gốc
+            </div>
+          </button>
+
+          {/* Scenario 2: Giảm 30% */}
+          <button
+            onClick={() => setBudgetScenario('reduced_30')}
+            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              budgetScenario === 'reduced_30'
+                ? 'bg-cyan-950/40 border-cyan-500 text-white shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400/50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                Kịch Bản Giảm 30%
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
+                -30%
+              </span>
+            </div>
+            <div className="mt-2 font-mono font-black text-sm text-cyan-300">
+              {formatVND(currentSummary.totalReduced30, 'full')}
+            </div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Tiết kiệm {formatVND(currentSummary.totalMonthly - currentSummary.totalReduced30, 'million')}
+            </div>
+          </button>
+
+          {/* Scenario 3: Giảm thêm 30% (tổng giảm 51%) */}
+          <button
+            onClick={() => setBudgetScenario('reduced_extra_30')}
+            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              budgetScenario === 'reduced_extra_30'
+                ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400/50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Giảm Thêm 30% (-51%)
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                -51%
+              </span>
+            </div>
+            <div className="mt-2 font-mono font-black text-sm text-emerald-300">
+              {formatVND(currentSummary.totalReducedExtra30, 'full')}
+            </div>
+            <div className="text-[10px] text-slate-400 mt-0.5">
+              Tiết kiệm {formatVND(currentSummary.totalMonthly - currentSummary.totalReducedExtra30, 'million')}
+            </div>
+          </button>
+
+          {/* Scenario 4: Tùy Chỉnh % Giảm */}
+          <div
+            className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
+              budgetScenario === 'custom'
+                ? 'bg-purple-950/40 border-purple-500 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400/50'
+                : 'bg-slate-950/70 border-slate-800 text-slate-300'
+            }`}
+          >
+            <div className="flex items-center justify-between cursor-pointer" onClick={() => setBudgetScenario('custom')}>
+              <span className="text-xs font-bold flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-purple-400" />
+                Tùy Chỉnh Giảm %
+              </span>
+              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold">
+                -{customReductionPct}%
+              </span>
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <input
+                type="range"
+                min="5"
+                max="70"
+                step="5"
+                value={customReductionPct}
+                onChange={(e) => {
+                  setCustomReductionPct(parseInt(e.target.value, 10));
+                  setBudgetScenario('custom');
+                }}
+                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-400"
+              />
+              <span className="text-xs font-bold font-mono text-purple-300 shrink-0">
+                {customReductionPct}%
+              </span>
+            </div>
+            <div className="text-[10px] text-slate-400 mt-1 font-mono">
+              Hạn mức: {formatVND(Math.round(currentSummary.totalMonthly * ((100 - customReductionPct) / 100)), 'million')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. TOOLBAR & VIEW CONTROLS */}
       <div className="p-4 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* View Mode Toggle: Cards Grid (default) vs Table View vs AI Simulation */}
         <div className="flex flex-wrap items-center gap-2">
@@ -565,7 +768,7 @@ ${activeItems
                 statusFilter === 'over_budget' ? 'bg-rose-950/80 text-rose-300 border border-rose-500/40' : 'text-slate-400 hover:text-rose-300'
               }`}
             >
-              Vượt ({overBudgetCount})
+              Vượt ({filteredBranchItems.filter((i) => (i.spentThisMonth || 0) > getBranchEffectiveLimit(i) && getBranchEffectiveLimit(i) > 0).length})
             </button>
             <button
               onClick={() => setStatusFilter('within_budget')}
@@ -573,7 +776,7 @@ ${activeItems
                 statusFilter === 'within_budget' ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/40' : 'text-slate-400 hover:text-emerald-300'
               }`}
             >
-              Chuẩn ({withinBudgetCount})
+              Chuẩn ({filteredBranchItems.filter((i) => (i.spentThisMonth || 0) <= getBranchEffectiveLimit(i) || getBranchEffectiveLimit(i) === 0).length})
             </button>
           </div>
 
@@ -627,35 +830,44 @@ ${activeItems
         </div>
       )}
 
-      {/* VIEW MODE 1: BRANCH PROGRESS CARDS GRID (EXACT LAYOUT FROM SCREENSHOT) */}
+      {/* VIEW MODE 1: BRANCH PROGRESS CARDS GRID (WITH FULL REDUCTION SCENARIOS) */}
       {activeViewMode === 'cards_grid' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
           {filteredBranchItems.map((item) => {
             const spent = item.spentThisMonth || 0;
-            const limit = item.monthlyBudget;
-            const usedPct = limit > 0 ? (spent / limit) * 100 : (spent > 0 ? 999 : 0);
-            const isOverBudget = limit > 0 && spent > limit;
+            const effectiveLimit = getBranchEffectiveLimit(item);
+            const baseLimit = item.monthlyBudget;
+            const usedPct = effectiveLimit > 0 ? (spent / effectiveLimit) * 100 : (spent > 0 ? 999 : 0);
+            const isOverBudget = effectiveLimit > 0 && spent > effectiveLimit;
 
             return (
               <div
                 key={item.id}
-                className="rounded-2xl bg-[#0b1120] border border-slate-800/90 hover:border-slate-700/90 p-5 shadow-lg flex flex-col justify-between transition-all group"
+                className={`rounded-2xl bg-[#0b1120] border p-5 shadow-lg flex flex-col justify-between transition-all group ${
+                  isOverBudget
+                    ? 'border-rose-500/40 hover:border-rose-500/70 shadow-rose-950/20'
+                    : 'border-slate-800/90 hover:border-slate-700/90'
+                }`}
               >
                 <div>
                   {/* Card Header: Dot + Name (Left), Badge (Right) */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 truncate">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+                      <span className={`w-2 h-2 rounded-full shrink-0 shadow-[0_0_8px] ${
+                        isOverBudget
+                          ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.8)]'
+                          : 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]'
+                      }`} />
                       <h4 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
                         {item.name}
                       </h4>
                     </div>
 
                     {isOverBudget ? (
-                      <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#3b0d1e] text-rose-300 border border-rose-500/30 flex items-center gap-1">
-                        ✕ Vượt Hạn Mức
+                      <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#3b0d1e] text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                        ✕ Vượt {Math.round(usedPct - 100)}%
                       </span>
-                    ) : limit > 0 ? (
+                    ) : effectiveLimit > 0 ? (
                       <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#042f2e] text-teal-300 border border-teal-500/30">
                         Đã dùng {Math.round(usedPct)}%
                       </span>
@@ -669,7 +881,7 @@ ${activeItems
                   {/* Progress Bar (Teal or Rose) */}
                   <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden mt-3 mb-2 border border-slate-900">
                     <div
-                      className={`h-full rounded-full transition-all ${
+                      className={`h-full rounded-full transition-all duration-300 ${
                         isOverBudget
                           ? 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.7)]'
                           : 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.7)]'
@@ -678,7 +890,7 @@ ${activeItems
                     />
                   </div>
 
-                  {/* Under Progress Bar Row: Spent (Left) vs Limit (Right) */}
+                  {/* Under Progress Bar Row: Spent (Left) vs Effective Limit (Right) */}
                   <div className="flex items-center justify-between text-xs mb-3 font-sans">
                     <div className="flex items-center gap-1">
                       <span className="text-slate-400">Chi Phí (VAT) T1:</span>
@@ -692,57 +904,89 @@ ${activeItems
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-400">Hạn mức:</span>
-                      <span className="font-mono font-bold text-amber-400">
-                        {formatVND(limit, 'full')}
+                      <span className="text-slate-400">
+                        {budgetScenario === 'base_100' ? 'Hạn mức:' : 'Hạn mức mục tiêu:'}
+                      </span>
+                      <span className={`font-mono font-bold ${budgetScenario !== 'base_100' ? 'text-cyan-300' : 'text-amber-400'}`}>
+                        {formatVND(effectiveLimit, 'full')}
                       </span>
                     </div>
                   </div>
 
-                  {/* 2x2 Metric Details Box */}
+                  {/* Comprehensive 4-Block Scenario Details Box */}
                   <div className="bg-[#060913] rounded-xl p-3 border border-slate-850 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
                     <div>
-                      <div className="text-[11px] text-slate-400">NS Ngày:</div>
+                      <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
                       <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
                         {formatVND(item.dailyBudget, 'full')}
                       </div>
                     </div>
 
                     <div>
-                      <div className="text-[11px] text-slate-400">NS Tháng (Gốc):</div>
+                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Kế Hoạch Gốc:</span>
+                        {budgetScenario === 'base_100' && (
+                          <span className="text-[9px] px-1 bg-amber-500/20 text-amber-300 rounded font-bold">Đang xem</span>
+                        )}
+                      </div>
                       <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
                         {formatVND(item.monthlyBudget, 'full')}
                       </div>
                     </div>
 
-                    <div>
-                      <div className="text-[11px] text-slate-400">Có VAT (+16.6%):</div>
+                    <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
+                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Giảm 30%:</span>
+                        {budgetScenario === 'reduced_30' && (
+                          <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
+                        )}
+                      </div>
                       <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.monthlyBudgetVat, 'full')}
+                        {formatVND(item.reduced30Budget, 'full')}
                       </div>
                     </div>
 
-                    <div>
-                      <div className="text-[11px] text-slate-400">Giảm 30%:</div>
-                      <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                        {formatVND(item.reduced30Budget, 'full')}
+                    <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
+                      <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Giảm Thêm 30% (-51%):</span>
+                        {budgetScenario === 'reduced_extra_30' && (
+                          <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
+                        )}
+                      </div>
+                      <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
+                        {formatVND(item.reducedExtra30Budget, 'full')}
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Footer Row: Limit (Left), Button Edit (Right) */}
-                <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-800/80">
-                  <div className="text-xs flex items-center gap-1">
-                    <span className="text-slate-400">Hạn mức:</span>
-                    <span className="font-mono font-bold text-amber-400">
-                      {formatVND(item.monthlyBudget, 'full')}
+                {/* Card Footer Row: Scenario Limit info (Left), Button Edit (Right) */}
+                <div className="flex items-center justify-between pt-3 mt-2 border-t border-slate-800/80">
+                  <div className="text-xs flex items-center gap-1.5 truncate">
+                    <span className="text-slate-400 shrink-0">
+                      {budgetScenario === 'base_100' ? 'Hạn mức gốc:' : 'Hạn mức kịch bản:'}
                     </span>
+                    <span className={`font-mono font-bold ${
+                      budgetScenario === 'reduced_30'
+                        ? 'text-cyan-300'
+                        : budgetScenario === 'reduced_extra_30'
+                        ? 'text-emerald-300'
+                        : budgetScenario === 'custom'
+                        ? 'text-purple-300'
+                        : 'text-amber-400'
+                    }`}>
+                      {formatVND(effectiveLimit, 'full')}
+                    </span>
+                    {budgetScenario !== 'base_100' && (
+                      <span className="text-[10px] text-slate-500 line-through font-mono">
+                        ({formatVND(baseLimit, 'million')})
+                      </span>
+                    )}
                   </div>
 
                   <button
                     onClick={() => handleOpenEditModal(item)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm shrink-0"
                   >
                     <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-amber-400" />
                     <span>Sửa Ngân Sách</span>
