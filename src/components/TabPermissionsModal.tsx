@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Lightbulb,
   Zap,
+  Wallet,
   Info,
   Check,
   RotateCcw,
@@ -52,6 +53,14 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     description: 'Báo cáo chi tiết doanh thu, chi phí VAT theo 17 chi nhánh và nhóm dịch vụ.',
     icon: TrendingUp,
     badge: 'Live Sheet',
+  },
+  {
+    id: 'budget_forecast',
+    label: 'Ngân Sách Dự Kiến',
+    category: 'Kế Hoạch & Tài Chính',
+    description: 'Mô phỏng 3 kịch bản tăng trưởng, phân bổ ngân sách theo dịch vụ, chi nhánh và dự báo ROI/Lead bằng AI.',
+    icon: Wallet,
+    badge: 'Kế Hoạch',
   },
   {
     id: 'leads_funnel',
@@ -122,6 +131,7 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
 export const DEFAULT_STAFF_ALLOWED_TABS: SidebarTab[] = [
   'overview',
   'google_ads',
+  'budget_forecast',
   'campaigns',
   'competitor',
   'innovation',

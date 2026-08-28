@@ -5,6 +5,7 @@ export type MonthTab = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 'overview';
 export type SidebarTab =
   | 'overview'
   | 'google_ads'
+  | 'budget_forecast'
   | 'leads_funnel'
   | 'campaigns'
   | 'competitor'

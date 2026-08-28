@@ -81,12 +81,12 @@ export interface AdminUser {
 }
 
 export const ROLE_PRESET_TABS: Record<string, SidebarTab[]> = {
-  admin: ['overview', 'google_ads', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'innovation', 'ai_agent', 'admin_hub'],
-  manager: ['overview', 'google_ads', 'leads_funnel', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
-  marketer: ['overview', 'campaigns', 'competitor', 'leads_funnel', 'innovation', 'ai_agent'],
+  admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'innovation', 'ai_agent', 'admin_hub'],
+  manager: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
+  marketer: ['overview', 'budget_forecast', 'campaigns', 'competitor', 'leads_funnel', 'innovation', 'ai_agent'],
   sales: ['overview', 'leads_funnel', 'sales_copilot', 'consultation', 'ai_agent'],
-  accountant: ['overview', 'google_ads'],
-  custom: ['overview', 'campaigns', 'leads_funnel'],
+  accountant: ['overview', 'google_ads', 'budget_forecast'],
+  custom: ['overview', 'budget_forecast', 'campaigns', 'leads_funnel'],
 };
 
 export const ROLE_LABEL_MAP: Record<string, string> = {

@@ -4,6 +4,7 @@ import { MonthTab, DisplayUnit, SidebarTab } from './types';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { WorkOverview } from './components/WorkOverview';
+import { BudgetForecastView } from './components/BudgetForecastView';
 import { InnovationView } from './components/InnovationView';
 import { AIAgentView } from './components/AIAgentView';
 import { AdminHubView } from './components/AdminHubView';
@@ -455,6 +456,13 @@ export default function App() {
               onNavigateToTab={setActiveSidebarTab}
               isLive={isLive}
               lastUpdated={lastUpdated}
+            />
+          )}
+
+          {activeSidebarTab === 'budget_forecast' && (
+            <BudgetForecastView
+              monthlyDatasets={monthlyDatasets}
+              displayUnit={displayUnit}
             />
           )}
 

@@ -15,6 +15,7 @@ import {
   Zap,
   Swords,
   Sliders,
+  Wallet,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
@@ -87,6 +88,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: TrendingUp,
       badge: 'Live Sheet',
       badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+    },
+    {
+      id: 'budget_forecast',
+      label: 'Ngân Sách Dự Kiến',
+      icon: Wallet,
+      badge: 'Kế Hoạch',
+      badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     },
     {
       id: 'leads_funnel',

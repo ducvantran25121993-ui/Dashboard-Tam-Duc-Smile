@@ -1219,12 +1219,21 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
               </p>
             </div>
           </div>
-          <button
-            onClick={() => onNavigateToTab('google_ads')}
-            className="shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-all self-start sm:self-auto cursor-pointer"
-          >
-            Xem Google Ads
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={() => onNavigateToTab('budget_forecast')}
+              className="shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Ngân Sách Dự Kiến</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onNavigateToTab('google_ads')}
+              className="shrink-0 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer"
+            >
+              Xem Google Ads
+            </button>
+          </div>
         </div>
       </div>
     </div>
