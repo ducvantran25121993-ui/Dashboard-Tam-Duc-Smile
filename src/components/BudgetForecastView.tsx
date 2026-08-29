@@ -764,11 +764,31 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const costRevenueRatio = useMemo(() => (targetRevenue > 0 ? (totalBudget / targetRevenue) * 100 : 0), [totalBudget, targetRevenue]);
 
   const serviceCalculations = useMemo(() => {
-    return services.map((svc) => {
+    // 1. Tính toán trọng số doanh thu của từng dịch vụ từ các chỉ số phễu cốt lõi
+    const rawWeights = services.map((svc) => {
+      const cpa = svc.expectedCpa > 0 ? svc.expectedCpa : 500000;
+      const weight = (svc.sharePercent / 100) * (svc.conversionRate / 100) * (svc.avgOrderValue / cpa);
+      return Math.max(0.001, weight);
+    });
+    const totalWeight = rawWeights.reduce((sum, w) => sum + w, 0) || 1;
+
+    let accumulatedRevenue = 0;
+
+    return services.map((svc, index) => {
       const budget = (totalBudget * svc.sharePercent) / 100;
       const leads = svc.expectedCpa > 0 ? Math.round(budget / svc.expectedCpa) : 0;
-      const closedDeals = Math.round((leads * svc.conversionRate) / 100);
-      const revenue = closedDeals * svc.avgOrderValue;
+      
+      // Doanh thu mục tiêu từng dịch vụ phân bổ chuẩn theo KPI Target của kịch bản
+      let revenue = 0;
+      if (index === services.length - 1) {
+        revenue = Math.max(0, targetRevenue - accumulatedRevenue);
+      } else {
+        const weightShare = rawWeights[index] / totalWeight;
+        revenue = Math.round(targetRevenue * weightShare);
+        accumulatedRevenue += revenue;
+      }
+
+      const closedDeals = svc.avgOrderValue > 0 ? Math.round(revenue / svc.avgOrderValue) : 0;
       const roas = budget > 0 ? (revenue / budget).toFixed(1) : '0.0';
       return {
         ...svc,
@@ -779,7 +799,7 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
         roas,
       };
     });
-  }, [services, totalBudget]);
+  }, [services, totalBudget, targetRevenue]);
 
   const totalProjectedLeads = useMemo(() => serviceCalculations.reduce((sum, s) => sum + s.leads, 0), [serviceCalculations]);
   const totalProjectedDeals = useMemo(() => serviceCalculations.reduce((sum, s) => sum + s.closedDeals, 0), [serviceCalculations]);
