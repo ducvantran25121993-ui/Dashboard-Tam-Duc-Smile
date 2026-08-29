@@ -17,6 +17,8 @@ export type SidebarTab =
 
 export type DisplayUnit = 'full' | 'million' | 'billion';
 
+export type ThemeMode = 'light' | 'dark' | 'auto';
+
 export type ChartType = 'bar' | 'horizontalBar' | 'area';
 
 export interface FilterState {

@@ -1720,7 +1720,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
           </div>
 
           {/* Google Sheets Sync & URL Configuration Bar */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-950/90 border border-slate-800 space-y-3 shadow-lg">
+          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-lg">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs">
                 <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0" />

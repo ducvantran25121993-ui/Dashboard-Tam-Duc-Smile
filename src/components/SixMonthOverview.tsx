@@ -456,7 +456,7 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Tổng Doanh Thu (Tổng Quan)
           </span>
@@ -468,7 +468,7 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Tổng Chi Phí VAT (Tổng Quan)
           </span>
@@ -480,7 +480,7 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Data Dịch Vụ & Data CL (Tổng Quan)
           </span>
@@ -503,7 +503,7 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-5 shadow-sm">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               KPI Chỉ Tiêu (≤15%)

@@ -507,7 +507,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
   return (
     <div className="space-y-6 font-sans">
       {/* Google Ads Header Bar */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/70 to-slate-900 border border-slate-800 p-6 shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">

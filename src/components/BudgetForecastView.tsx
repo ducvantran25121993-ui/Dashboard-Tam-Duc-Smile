@@ -870,7 +870,7 @@ ${activeItems
   return (
     <div className="space-y-6">
       {/* 0. BỘ CHỌN & CHIA THEO TỪNG THÁNG (MONTH SELECTOR BAR) */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-[#0a0f1d] via-[#0e172a] to-[#0a0f1d] border border-slate-800 shadow-xl space-y-3">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800/80">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
@@ -909,12 +909,12 @@ ${activeItems
                 onClick={() => setSelectedMonth(tab.id)}
                 className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
                   isSelected
-                    ? 'bg-gradient-to-b from-amber-500/20 to-amber-950/40 border-amber-400 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50 scale-[1.02]'
-                    : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-900 hover:border-slate-700'
+                    ? 'bg-amber-500/15 border-amber-400 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50 scale-[1.02]'
+                    : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${isSelected ? 'text-amber-300' : 'text-slate-200'}`}>
+                  <span className={`text-xs font-bold ${isSelected ? 'text-amber-400' : 'text-slate-200'}`}>
                     {tab.short}
                   </span>
                   <div className="flex items-center gap-1">
@@ -936,7 +936,7 @@ ${activeItems
                 </div>
                 <div className="mt-1 font-mono text-[11px] font-bold truncate">
                   {tab.hasData ? (
-                    <span className={isSelected ? 'text-white' : tab.isOver ? 'text-rose-300' : 'text-slate-400'}>
+                    <span className={isSelected ? 'text-amber-300 font-extrabold' : tab.isOver ? 'text-rose-400' : 'text-slate-400'}>
                       {formatVND(tab.spent, 'million')}
                     </span>
                   ) : (
@@ -961,7 +961,7 @@ ${activeItems
       {/* 1. TOP KPI METRIC ROW - DYNAMICALLY COMPUTED FOR SELECTED MONTH */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Tổng Hạn Mức Kịch Bản */}
-        <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[145px]">
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Tổng Hạn Mức Kế Hoạch (+VAT)</span>
             <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${
@@ -1009,7 +1009,7 @@ ${activeItems
         </div>
 
         {/* Card 2: Ngân Sách Ngày Toàn Hệ Thống */}
-        <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-cyan-500/40 transition-all flex flex-col justify-between min-h-[145px]">
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl relative overflow-hidden group hover:border-cyan-500/40 transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Ngân Sách Ngày Toàn Hệ Thống</span>
             <Calendar className="w-4 h-4 text-cyan-400" />
@@ -1047,7 +1047,7 @@ ${activeItems
         </div>
 
         {/* Card 3: Chi Phí (VAT) */}
-        <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-purple-500/40 transition-all flex flex-col justify-between min-h-[145px]">
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl relative overflow-hidden group hover:border-purple-500/40 transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Chi Phí (VAT)</span>
             <span className="px-2 py-0.5 rounded text-[11px] font-bold text-rose-400 bg-rose-950/40 border border-rose-500/30">
@@ -1075,7 +1075,7 @@ ${activeItems
         </div>
 
         {/* Card 4: Trạng Thái Burn-Rate */}
-        <div className="p-5 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[145px]">
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between min-h-[145px]">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Trạng Thái Burn-Rate</span>
             <ShieldCheck className={`w-4 h-4 ${
@@ -1124,7 +1124,7 @@ ${activeItems
       </div>
 
       {/* 2. KỊCH BẢN GIẢM CHI PHÍ & ĐIỀU HƯỚNG TỐI ƯU (SCENARIO SELECTOR BAR) */}
-      <div className="p-4.5 rounded-2xl bg-gradient-to-r from-[#0d1527] via-[#09101f] to-[#0d1527] border border-slate-700/80 shadow-xl space-y-3">
+      <div className="p-4.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-slate-800">
           <div className="flex items-center gap-2">
             <Flame className="w-4 h-4 text-amber-400" />
@@ -1151,10 +1151,10 @@ ${activeItems
           {/* Scenario 1: 100% Gốc */}
           <button
             onClick={() => setBudgetScenario('base_100')}
-            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
               budgetScenario === 'base_100'
-                ? 'bg-amber-950/40 border-amber-500 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+                ? 'bg-amber-500/15 border-amber-400 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50'
+                : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -1166,14 +1166,14 @@ ${activeItems
                 Chuẩn
               </span>
             </div>
-            <div className="mt-2 font-mono font-black text-sm text-amber-300">
+            <div className="mt-2 font-mono font-black text-sm text-amber-400">
               {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
                 ? formatVND(currentSummary.totalMonthlyVat || currentSummary.totalMonthly, 'full')
                 : '--'}
             </div>
             <div className="text-[10px] text-slate-400 mt-0.5 flex items-center justify-between">
               <span>Gốc (Chưa VAT):</span>
-              <span className="font-mono text-cyan-300">
+              <span className="font-mono text-cyan-300 font-bold">
                 {currentSummary.totalMonthly > 0 ? formatVND(currentSummary.totalMonthly, 'million') : '--'}
               </span>
             </div>
@@ -1183,10 +1183,10 @@ ${activeItems
           {hasReduced30 && (
             <button
               onClick={() => setBudgetScenario('reduced_30')}
-              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                 budgetScenario === 'reduced_30'
-                  ? 'bg-cyan-950/40 border-cyan-500 text-white shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400/50'
-                  : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+                  ? 'bg-cyan-500/15 border-cyan-400 text-white shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400/50'
+                  : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -1198,7 +1198,7 @@ ${activeItems
                   -30%
                 </span>
               </div>
-              <div className="mt-2 font-mono font-black text-sm text-cyan-300">
+              <div className="mt-2 font-mono font-black text-sm text-cyan-400">
                 {currentSummary.totalReduced30Vat > 0
                   ? formatVND(currentSummary.totalReduced30Vat, 'full')
                   : (currentSummary.totalReduced30 > 0 ? formatVND(currentSummary.totalReduced30, 'full') : '--')}
@@ -1215,10 +1215,10 @@ ${activeItems
           {hasReducedExtra30 && (
             <button
               onClick={() => setBudgetScenario('reduced_extra_30')}
-              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between cursor-pointer ${
                 budgetScenario === 'reduced_extra_30'
-                  ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400/50'
-                  : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+                  ? 'bg-emerald-500/15 border-emerald-400 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400/50'
+                  : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700 hover:bg-slate-800/80'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -1230,7 +1230,7 @@ ${activeItems
                   -51%
                 </span>
               </div>
-              <div className="mt-2 font-mono font-black text-sm text-emerald-300">
+              <div className="mt-2 font-mono font-black text-sm text-emerald-400">
                 {currentSummary.totalReducedExtra30Vat > 0
                   ? formatVND(currentSummary.totalReducedExtra30Vat, 'full')
                   : (currentSummary.totalReducedExtra30 > 0 ? formatVND(currentSummary.totalReducedExtra30, 'full') : '--')}
@@ -1247,8 +1247,8 @@ ${activeItems
           <div
             className={`p-3 rounded-xl border transition-all flex flex-col justify-between ${
               budgetScenario === 'custom'
-                ? 'bg-purple-950/40 border-purple-500 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400/50'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300'
+                ? 'bg-purple-500/15 border-purple-400 text-white shadow-lg shadow-purple-500/10 ring-1 ring-purple-400/50'
+                : 'bg-slate-950/60 border-slate-800/80 text-slate-300'
             }`}
           >
             <div className="flex items-center justify-between cursor-pointer" onClick={() => setBudgetScenario('custom')}>
@@ -1273,7 +1273,7 @@ ${activeItems
                 }}
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-400"
               />
-              <span className="text-xs font-bold font-mono text-purple-300 shrink-0">
+              <span className="text-xs font-bold font-mono text-purple-400 shrink-0">
                 {customReductionPct}%
               </span>
             </div>
@@ -1287,7 +1287,7 @@ ${activeItems
       </div>
 
       {/* 3. TOOLBAR & VIEW CONTROLS */}
-      <div className="p-4 rounded-2xl bg-[#0a0f1d] border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {/* View Mode Toggle: Cards Grid (default) vs Table View vs AI Simulation */}
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -1424,9 +1424,9 @@ ${activeItems
 
       {/* 3. AI GEMINI REPORT MODAL / ACCORDION */}
       {aiReport && (
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-purple-950/80 border border-indigo-500/40 shadow-2xl space-y-3 relative overflow-hidden">
+        <div className="p-6 rounded-3xl bg-slate-900 border border-indigo-500/40 shadow-2xl space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm">
+            <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
               <Bot className="w-5 h-5 text-cyan-400" />
               <span>Báo Cáo Đánh Giá Tiến Độ & Rủi Ro Ngân Sách (Gemini AI)</span>
             </div>
@@ -1477,7 +1477,7 @@ ${activeItems
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl bg-[#0b1120] border p-5 shadow-lg flex flex-col justify-between transition-all group ${
+                  className={`rounded-2xl bg-slate-900 border p-5 shadow-lg flex flex-col justify-between transition-all group ${
                     isOverBudget
                       ? 'border-rose-500/40 hover:border-rose-500/70 shadow-rose-950/20'
                       : 'border-slate-800/90 hover:border-slate-700/90'
@@ -1498,11 +1498,11 @@ ${activeItems
                       </div>
 
                       {isOverBudget ? (
-                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#3b0d1e] text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-950/50 text-rose-300 border border-rose-500/40 flex items-center gap-1">
                           ✕ Vượt {Math.round(usedPct - 100)}%
                         </span>
                       ) : effectiveLimit > 0 ? (
-                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#042f2e] text-teal-300 border border-teal-500/30">
+                        <span className="shrink-0 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/50 text-emerald-300 border border-emerald-500/30">
                           Đã dùng {Math.round(usedPct)}%
                         </span>
                       ) : (
@@ -1513,7 +1513,7 @@ ${activeItems
                     </div>
 
                     {/* Progress Bar (Teal or Rose) */}
-                    <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden mt-3 mb-2 border border-slate-900">
+                    <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden mt-3 mb-2 border border-slate-800">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${
                           isOverBudget
@@ -1548,7 +1548,7 @@ ${activeItems
                     </div>
 
                     {/* Scenario Details Box - Only render reduction blocks if present in month */}
-                    <div className="bg-[#060913] rounded-xl p-3 border border-slate-850 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
+                    <div className="bg-slate-950/80 rounded-xl p-3 border border-slate-800 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
                       <div>
                         <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
                         <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
@@ -1643,7 +1643,7 @@ ${activeItems
 
                     <button
                       onClick={() => handleOpenEditModal(item)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700/80 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm shrink-0"
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:border-amber-500/50 transition-all cursor-pointer flex items-center gap-1 shadow-sm shrink-0"
                     >
                       <Edit3 className="w-3 h-3 text-slate-400 group-hover:text-amber-400" />
                       <span>Sửa Ngân Sách</span>
@@ -1658,7 +1658,7 @@ ${activeItems
 
       {/* VIEW MODE 2: DETAILED SPREADSHEET TABLE */}
       {activeViewMode === 'sheet_plan' && (
-        <div className="rounded-2xl bg-[#0a0f1d] border border-slate-800 p-6 shadow-xl space-y-4">
+        <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -1863,10 +1863,10 @@ ${activeItems
 
                     return (
                       <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-3 text-slate-500 font-mono sticky left-0 bg-[#0a0f1d]">
+                        <td className="py-3 px-3 text-slate-500 font-mono sticky left-0 bg-slate-900">
                           {idx + 1}
                         </td>
-                        <td className="py-3 px-3 font-bold text-white sticky left-8 bg-[#0a0f1d]">
+                        <td className="py-3 px-3 font-bold text-white sticky left-8 bg-slate-900">
                           {item.name}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
@@ -1916,7 +1916,7 @@ ${activeItems
           {/* Scenario Selector & Custom Sliders */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Scenario Selector */}
-            <div className="rounded-2xl bg-[#0a0f1d] border border-slate-800 p-5 shadow-xl space-y-4">
+            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
                   <Sliders className="w-4 h-4 text-amber-400" />
@@ -2007,7 +2007,7 @@ ${activeItems
             </div>
 
             {/* Custom Interactive Sliders */}
-            <div className="lg:col-span-2 rounded-2xl bg-[#0a0f1d] border border-slate-800 p-5 shadow-xl space-y-5 flex flex-col justify-between">
+            <div className="lg:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-xl space-y-5 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
@@ -2094,7 +2094,7 @@ ${activeItems
           {/* Service Breakdown Table & Visual Share */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Table: Chi tiết từng dịch vụ */}
-            <div className="lg:col-span-2 rounded-2xl bg-[#0a0f1d] border border-slate-800 p-6 shadow-xl space-y-4">
+            <div className="lg:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                   <Layers className="w-4 h-4 text-cyan-400" />
@@ -2173,7 +2173,7 @@ ${activeItems
             </div>
 
             {/* Donut Chart: Phân Bổ Ngân Sách */}
-            <div className="rounded-2xl bg-[#0a0f1d] border border-slate-800 p-6 shadow-xl space-y-4 flex flex-col justify-between">
+            <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-4 flex flex-col justify-between">
               <div>
                 <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
                   <PieChart className="w-4 h-4 text-purple-400" />
@@ -2234,7 +2234,7 @@ ${activeItems
           </div>
 
           {/* Channel Strategy */}
-          <div className="rounded-2xl bg-[#0a0f1d] border border-slate-800 p-6 shadow-xl space-y-4">
+          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-4">
             <h3 className="text-base font-extrabold text-white flex items-center gap-2">
               <Compass className="w-4 h-4 text-emerald-400" />
               Chiến Lược Phân Bổ Theo Kênh Quảng Cáo & Định Dạng
@@ -2266,7 +2266,7 @@ ${activeItems
       {/* 4. MODAL: SỬA NGÂN SÁCH CHI NHÁNH */}
       {editingBranch && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0b1120] border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.7)]" />

@@ -29,6 +29,7 @@ import {
   TabPermissionsModal,
   DEFAULT_STAFF_ALLOWED_TABS,
 } from './components/TabPermissionsModal';
+import { ThemeToggle } from './components/ThemeToggle';
 import { fetchPermissionsFromCloud } from './services/cloudPermissionsService';
 import {
   Menu,
@@ -392,6 +393,9 @@ export default function App() {
 
               {/* Right Controls */}
               <div className="flex items-center gap-2">
+                {/* Theme Toggle (Sáng / Tối / Tự động theo thời gian) */}
+                <ThemeToggle />
+
                 {userRole === 'admin' && (
                   <button
                     onClick={() => setActiveSidebarTab('admin_hub')}

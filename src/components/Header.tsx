@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, DollarSign, TrendingUp, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu, Sliders, Clock } from 'lucide-react';
 import { MonthTab, DisplayUnit } from '../types';
 import { MonthDataset } from '../data/revenueData';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   activeTab: MonthTab;
@@ -82,8 +83,11 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Controls: Display Unit Selector & Security Lock */}
+          {/* Controls: Display Unit Selector, Theme Toggle & Security Lock */}
           <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {/* Theme Toggle (Sáng / Tối / Tự động theo giờ) */}
+            <ThemeToggle />
+
             {/* Unit Selector */}
             <div className="flex items-center gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
               <span className="text-xs text-slate-400 px-2 font-medium flex items-center gap-1">

@@ -883,7 +883,7 @@ export const Crawl4AISpyConsole: React.FC<{
   return (
     <div className="space-y-6">
       {/* HEADER BANNER CRAWL4AI & GEMINI CRAWLER */}
-      <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950/70 to-slate-950 border-2 border-indigo-500/50 shadow-2xl relative overflow-hidden">
+      <div className="p-6 rounded-3xl bg-slate-900 border-2 border-indigo-500/50 shadow-2xl relative overflow-hidden">
         <div className="absolute -top-12 -right-12 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
         
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 relative z-10">
