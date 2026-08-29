@@ -100,6 +100,28 @@ app.post('/api/permissions', (req, res) => {
   return res.status(400).json({ error: 'Invalid allowedTabs array' });
 });
 
+// Google Sheet Ngân Sách Dự Kiến store for Cross-Device Synchronization
+let budgetSheetUrlStore = {
+  url: 'https://docs.google.com/spreadsheets/d/1cUszmTk5RJLPZxkEyrs4uLm_0_yzc3NRjXPIKhA6FUs/edit?gid=0#gid=0',
+  updatedAt: new Date().toISOString(),
+};
+
+app.get('/api/config/budget-sheet', (req, res) => {
+  res.json({ success: true, ...budgetSheetUrlStore });
+});
+
+app.post('/api/config/budget-sheet', (req, res) => {
+  const { url } = req.body;
+  if (url && typeof url === 'string' && url.trim().length > 0) {
+    budgetSheetUrlStore = {
+      url: url.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+    return res.json({ success: true, ...budgetSheetUrlStore });
+  }
+  return res.status(400).json({ error: 'Invalid sheet url' });
+});
+
 // Competitor Monitor Settings & Links Store for Cross-Device Synchronization
 let monitorSettingsStore = {
   autoScanInterval: 86400, // 24 hours default in seconds

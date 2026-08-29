@@ -197,23 +197,6 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
     });
 
     if (regions.length > 0) {
-      // User directive: Months 1 to 5 have no official data yet, keep empty/0s pending update
-      if (cfg.month <= 5) {
-        regions.forEach((reg) => {
-          reg.costVAT = 0;
-          reg.revenue = 0;
-          reg.cpDichVu = 0;
-          reg.cpTong = 0;
-          reg.totalData = 0;
-          reg.dataChatLuong = 0;
-          reg.services.forEach((s) => {
-            s.cp = 0;
-            s.dataCount = 0;
-            s.dataChatLuong = 0;
-          });
-        });
-      }
-
       datasets.push({
         month: cfg.month,
         label: cfg.label,

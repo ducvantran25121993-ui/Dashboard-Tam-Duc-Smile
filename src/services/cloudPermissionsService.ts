@@ -15,13 +15,17 @@ const CLOUD_SYNC_URL = 'https://api.npoint.io/41c48bf39f37c3daaa80'; // Primary 
  * Fetch permissions from local storage first (instant), then attempt cloud synchronization
  */
 export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> {
+  const cacheBust = Date.now();
   try {
-    // 1. Try local backend API if available (Express / Node / Vercel serverless)
+    // 1. Try local backend API with cache busting
     try {
-      const apiRes = await fetch('/api/permissions', {
+      const apiRes = await fetch(`/api/permissions?_t=${cacheBust}`, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(3000),
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+        },
+        signal: AbortSignal.timeout(3500),
       });
       if (apiRes.ok) {
         const data = await apiRes.json();
@@ -32,26 +36,30 @@ export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> 
         }
       }
     } catch {
-      // Backend not accessible or static host (Netlify/Vercel static) -> continue to Cloud KV
+      // Backend not accessible -> continue
     }
 
-    // 2. Try Global Cloud KV Store (Free, works across all devices, mobile, incognito, Netlify)
-    const cloudRes = await fetch(CLOUD_SYNC_URL, {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout(4000),
-    });
+    // 2. Try Global Cloud KV Store if available
+    try {
+      const cloudRes = await fetch(`${CLOUD_SYNC_URL}?_t=${cacheBust}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(3000),
+      });
 
-    if (cloudRes.ok) {
-      const data: CloudPermissionsPayload = await cloudRes.json();
-      if (data && Array.isArray(data.allowedTabs) && data.allowedTabs.length > 0) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.allowedTabs));
-        localStorage.setItem(LAST_SYNC_KEY, data.updatedAt || new Date().toISOString());
-        return data.allowedTabs;
+      if (cloudRes.ok) {
+        const data: CloudPermissionsPayload = await cloudRes.json();
+        if (data && Array.isArray(data.allowedTabs) && data.allowedTabs.length > 0) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.allowedTabs));
+          localStorage.setItem(LAST_SYNC_KEY, data.updatedAt || new Date().toISOString());
+          return data.allowedTabs;
+        }
       }
+    } catch {
+      // ignore
     }
   } catch (err) {
-    console.warn('[CloudPermissions] Cloud fetch fallback to local/default:', err);
+    console.warn('[CloudPermissions] Cloud fetch error:', err);
   }
 
   // Fallback to local storage if available
@@ -60,6 +68,11 @@ export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> 
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        // Auto-upgrade legacy cache that might miss budget_forecast
+        if (!parsed.includes('budget_forecast')) {
+          parsed.push('budget_forecast');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        }
         return parsed as SidebarTab[];
       }
     }

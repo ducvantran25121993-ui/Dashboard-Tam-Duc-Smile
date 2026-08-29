@@ -102,7 +102,15 @@ export default function App() {
       const saved = localStorage.getItem('dashboard_staff_allowed_tabs');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (!parsed.includes('budget_forecast')) {
+            parsed.push('budget_forecast');
+            try {
+              localStorage.setItem('dashboard_staff_allowed_tabs', JSON.stringify(parsed));
+            } catch {}
+          }
+          return parsed;
+        }
       }
     } catch {
       // ignore
@@ -226,7 +234,8 @@ export default function App() {
       localStorage.removeItem('monthly_sheet_datasets_v3');
       localStorage.removeItem('monthly_sheet_datasets_v4');
       localStorage.removeItem('monthly_sheet_datasets_v5');
-      const cached = localStorage.getItem('monthly_sheet_datasets_v6');
+      localStorage.removeItem('monthly_sheet_datasets_v6');
+      const cached = localStorage.getItem('monthly_sheet_datasets_v7');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -249,7 +258,7 @@ export default function App() {
     if (result.monthlyData && result.monthlyData.length > 0) {
       setMonthlyDatasets(result.monthlyData);
       try {
-        localStorage.setItem('monthly_sheet_datasets_v6', JSON.stringify(result.monthlyData));
+        localStorage.setItem('monthly_sheet_datasets_v7', JSON.stringify(result.monthlyData));
       } catch {
         // ignore storage error
       }
