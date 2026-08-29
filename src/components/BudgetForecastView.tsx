@@ -299,24 +299,27 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
   });
 
-  const [targetRoas, setTargetRoas] = useState<number>(8.0); // 8.0x
-  const [activeScenario, setActiveScenario] = useState<'conservative' | 'balanced' | 'aggressive'>('balanced');
+  const [targetRoas, setTargetRoas] = useState<number>(8.8); // 8.8x (Chuẩn KPI 7.5 Tỷ với 850tr ngân sách)
+  const [activeScenario, setActiveScenario] = useState<'conservative' | 'balanced' | 'cir15' | 'aggressive'>('balanced');
   const [services] = useState<ServiceBudgetItem[]>(DEFAULT_SERVICES);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
   const [aiReport, setAiReport] = useState<string | null>(null);
 
-  const applyScenario = (type: 'conservative' | 'balanced' | 'aggressive') => {
+  const applyScenario = (type: 'conservative' | 'balanced' | 'cir15' | 'aggressive') => {
     setActiveScenario(type);
     if (type === 'conservative') {
       setTotalBudget(650000000);
-      setTargetRoas(7.5);
+      setTargetRoas(8.5);
     } else if (type === 'balanced') {
       setTotalBudget(850000000);
-      setTargetRoas(8.0);
+      setTargetRoas(8.8);
+    } else if (type === 'cir15') {
+      setTotalBudget(1125000000);
+      setTargetRoas(6.7);
     } else if (type === 'aggressive') {
       setTotalBudget(1250000000);
-      setTargetRoas(8.5);
+      setTargetRoas(8.8);
     }
   };
 
@@ -1840,7 +1843,59 @@ ${activeItems
               </div>
 
               <div className="space-y-2.5">
-                {/* Scenario 1: Conservative */}
+                {/* Scenario: Balanced - Chuẩn KPI 7.5 Tỷ (850tr Ngân sách) */}
+                <div
+                  onClick={() => applyScenario('balanced')}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    activeScenario === 'balanced'
+                      ? 'bg-amber-950/40 border-amber-500 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/30'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                      ⚡ Chuẩn KPI (7.5 Tỷ)
+                    </span>
+                    <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold">
+                      ROAS 8.8x (11.3%)
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-base font-black text-white">{formatVND(850000000, 'million')}</span>
+                    <span className="text-xs text-amber-300 font-bold">Target: {formatVND(7510000000, 'billion')}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Chuẩn tối ưu chuỗi nha khoa: Chi phí Ads chiếm ~11.3% Doanh thu.
+                  </p>
+                </div>
+
+                {/* Scenario: CIR 15% - Chi phí Ads 15% Doanh thu (KPI 7.5 Tỷ) */}
+                <div
+                  onClick={() => applyScenario('cir15')}
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    activeScenario === 'cir15'
+                      ? 'bg-cyan-950/40 border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/30'
+                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                      🎯 Chi Phí Ads 15% (CIR 15%)
+                    </span>
+                    <span className="text-[11px] font-mono text-cyan-300 bg-cyan-500/20 px-1.5 py-0.5 rounded border border-cyan-500/30 font-bold">
+                      ROAS 6.7x (15.0%)
+                    </span>
+                  </div>
+                  <div className="flex items-baseline justify-between mt-2">
+                    <span className="text-base font-black text-white">{formatVND(1125000000, 'billion')}</span>
+                    <span className="text-xs text-cyan-300 font-bold">Target: {formatVND(7500000000, 'billion')}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Chi phí Ads chiếm đúng 15% Doanh thu (1.125 tỷ ngân sách cho 7.5 tỷ DT).
+                  </p>
+                </div>
+
+                {/* Scenario: Conservative */}
                 <div
                   onClick={() => applyScenario('conservative')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
@@ -1864,33 +1919,7 @@ ${activeItems
                   </p>
                 </div>
 
-                {/* Scenario 2: Balanced */}
-                <div
-                  onClick={() => applyScenario('balanced')}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    activeScenario === 'balanced'
-                      ? 'bg-amber-950/40 border-amber-500 shadow-md shadow-amber-500/10'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      ⚡ Chuẩn KPI (7.5 Tỷ)
-                    </span>
-                    <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30">
-                      ROAS 8.8x
-                    </span>
-                  </div>
-                  <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(850000000, 'million')}</span>
-                    <span className="text-xs text-amber-300 font-bold">Target: {formatVND(7510000000, 'billion')}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Chuẩn mục tiêu doanh thu 7.5 tỷ/tháng từ phễu quảng cáo đa kênh.
-                  </p>
-                </div>
-
-                {/* Scenario 3: Aggressive */}
+                {/* Scenario: Aggressive */}
                 <div
                   onClick={() => applyScenario('aggressive')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
@@ -1906,7 +1935,7 @@ ${activeItems
                     <span className="text-[11px] font-mono text-slate-400">ROAS 8.8x</span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(1250000000, 'million')}</span>
+                    <span className="text-base font-black text-white">{formatVND(1250000000, 'billion')}</span>
                     <span className="text-xs text-slate-400">Target: {formatVND(11040000000, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
@@ -1965,7 +1994,7 @@ ${activeItems
                 <div className="flex justify-between text-[10px] text-slate-500 font-mono">
                   <span>200 Triệu</span>
                   <span>850 Triệu (Chuẩn)</span>
-                  <span>1.5 Tỷ</span>
+                  <span>1.125 Tỷ (15% CIR)</span>
                   <span>2.5 Tỷ</span>
                 </div>
               </div>
@@ -1973,22 +2002,28 @@ ${activeItems
               {/* Slider 2: Target ROAS */}
               <div className="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-300">Hệ Số ROAS Mục Tiêu (Doanh Thu / Chi Phí):</span>
-                  <span className="text-base font-black text-cyan-400 font-mono">{targetRoas.toFixed(1)}x</span>
+                  <span className="text-xs font-bold text-slate-300">Hệ Số ROAS Mục Tiêu & Tỷ Lệ Chi Phí:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-mono font-bold">
+                      Chi phí: {targetRoas > 0 ? (100 / targetRoas).toFixed(1) : 0}% DT
+                    </span>
+                    <span className="text-base font-black text-cyan-400 font-mono">{targetRoas.toFixed(1)}x</span>
+                  </div>
                 </div>
                 <input
                   type="range"
                   min="4.0"
-                  max="12.0"
-                  step="0.5"
+                  max="16.0"
+                  step="0.1"
                   value={targetRoas}
                   onChange={(e) => setTargetRoas(parseFloat(e.target.value))}
                   className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />
                 <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                  <span>4.0x (An toàn)</span>
-                  <span>8.0x (Chuẩn Nha Khoa)</span>
-                  <span>12.0x (Xuất sắc)</span>
+                  <span>4.0x (25% Chi phí)</span>
+                  <span>6.7x (15% Chi phí)</span>
+                  <span>8.8x (11.3% Chi phí)</span>
+                  <span>15.0x (6.7% Chi phí)</span>
                 </div>
               </div>
             </div>
