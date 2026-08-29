@@ -646,10 +646,22 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       ? currentSummary.totalReducedExtra30Vat 
       : Math.round(reduced30Budget * 0.7);
 
-    // Mức Gốc KPI: Mục tiêu Doanh thu 7.5 Tỷ VNĐ
-    const baseTargetRevenue = 7500000000;
-    const baseRoas = Math.round((baseTargetRevenue / baseBudget) * 10) / 10;
-    const baseCir = Math.round((baseBudget / baseTargetRevenue) * 1000) / 10;
+    // Mức Gốc KPI:
+    // Nếu ngân sách >= 1.25 Tỷ: KPI Doanh thu là 7.5 Tỷ (hoặc cao hơn nếu theo 15% CIR = baseBudget / 0.15)
+    // Nếu ngân sách < 1.25 Tỷ (ví dụ Tháng 9 là 867.8 Tr): Tự động tính KPI Doanh thu theo chuẩn Chi phí <= 15% DT (tức KPI DT = baseBudget / 0.15, ROAS = 6.67x)
+    let baseTargetRevenue = 7500000000;
+    let baseRoas = 6.0;
+    let baseCir = 16.7;
+
+    if (baseBudget < 1125000000) {
+      // Khi ngân sách thấp hơn ngưỡng (chi phí < 1.125 - 1.25 Tỷ), để đảm bảo chi phí <= 15% DT thì KPI DT = baseBudget / 15%
+      baseTargetRevenue = Math.round(baseBudget / 0.15);
+      baseRoas = 6.67;
+      baseCir = 15.0;
+    } else {
+      baseRoas = Math.round((baseTargetRevenue / baseBudget) * 10) / 10;
+      baseCir = Math.round((baseBudget / baseTargetRevenue) * 1000) / 10;
+    }
 
     // Kịch bản Giảm 30%: Giữ ROAS 6.67x (Chi phí <= 15% Doanh thu)
     const reduced30TargetRevenue = Math.round(reduced30Budget / 0.15);
@@ -1914,7 +1926,7 @@ ${activeItems
               </div>
 
               <div className="space-y-2.5">
-                {/* Scenario 1: Mức Gốc Theo File (KPI Doanh thu: 7.5 Tỷ) */}
+                {/* Scenario 1: Mức Gốc Theo File (KPI Doanh thu tính theo Chi phí <= 15% DT) */}
                 <div
                   onClick={() => applyScenario('kpi125_75')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
@@ -1925,7 +1937,7 @@ ${activeItems
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      🟢 Mức Gốc Theo File (KPI: 7,5 Tỷ DT)
+                      🟢 Mức Gốc Theo File
                     </span>
                     <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold">
                       ROAS {dynamicPlanBudgets.baseRoas}x ({dynamicPlanBudgets.baseCir}%)
@@ -1936,7 +1948,7 @@ ${activeItems
                     <span className="text-xs text-amber-300 font-bold">KPI Target: {formatVND(dynamicPlanBudgets.baseTargetRevenue, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Cập nhật tự động theo file ({formatVND(dynamicPlanBudgets.baseBudget, 'million')}), KPI mục tiêu 7,5 Tỷ doanh thu.
+                    Cập nhật theo file ({formatVND(dynamicPlanBudgets.baseBudget, 'million')}), KPI Doanh thu tự động tính để Chi phí Ads ≤ 15% DT.
                   </p>
                 </div>
 
