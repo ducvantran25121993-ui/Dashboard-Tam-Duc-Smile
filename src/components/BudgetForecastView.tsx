@@ -326,7 +326,22 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const loadBudgetSheet = useCallback(async (url: string = sheetUrl, isSilent: boolean = false) => {
     if (!isSilent) setIsFetchingSheet(true);
     try {
-      const data = await fetchMultiMonthBudgetPlan(url);
+      // 1. Check if backend has a configured budget sheet URL
+      let targetUrl = url;
+      try {
+        const configRes = await fetch('/api/config/budget-sheet', { signal: AbortSignal.timeout(2500) });
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          if (configData.url && typeof configData.url === 'string' && configData.url.trim().length > 0) {
+            targetUrl = configData.url.trim();
+            if (targetUrl !== sheetUrl) {
+              setSheetUrl(targetUrl);
+            }
+          }
+        }
+      } catch {}
+
+      const data = await fetchMultiMonthBudgetPlan(targetUrl);
       if (data && data.availableMonths.length > 0) {
         setMultiMonthPlan(data);
         setSyncStatusMsg(`Đã đồng bộ lúc ${data.lastUpdated || new Date().toLocaleTimeString('vi-VN')}`);

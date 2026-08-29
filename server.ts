@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
 import { handleDashboardChat } from './src/geminiCrawler';
@@ -36,11 +37,35 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', hasGeminiKey: !!process.env.GEMINI_API_KEY });
 });
 
+// Persistent Storage Helper on Disk
+const STORAGE_DIR = path.join(process.cwd(), 'data_storage');
+if (!fs.existsSync(STORAGE_DIR)) {
+  try {
+    fs.mkdirSync(STORAGE_DIR, { recursive: true });
+  } catch {}
+}
+
+const PERMISSIONS_FILE = path.join(STORAGE_DIR, 'permissions.json');
+const ADMIN_USERS_FILE = path.join(STORAGE_DIR, 'admin_users.json');
+const BUDGET_SHEET_FILE = path.join(STORAGE_DIR, 'budget_sheet.json');
+
 // In-memory permissions store with default allowed tabs including budget_forecast
 let staffPermissionsStore = {
   allowedTabs: ['overview', 'google_ads', 'budget_forecast', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
   updatedAt: new Date().toISOString(),
 };
+
+try {
+  if (fs.existsSync(PERMISSIONS_FILE)) {
+    const content = fs.readFileSync(PERMISSIONS_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (parsed && Array.isArray(parsed.allowedTabs) && parsed.allowedTabs.length > 0) {
+      staffPermissionsStore = parsed;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load permissions from disk:', e);
+}
 
 // Centralized Admin Users store (defaults strictly to Trần Đức TranDuc474@gmail.com)
 let adminUsersStore = [
@@ -69,6 +94,36 @@ let adminUsersStore = [
   },
 ];
 
+try {
+  if (fs.existsSync(ADMIN_USERS_FILE)) {
+    const content = fs.readFileSync(ADMIN_USERS_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      adminUsersStore = parsed;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load admin users from disk:', e);
+}
+
+// Google Sheet Ngân Sách Dự Kiến store for Cross-Device Synchronization
+let budgetSheetUrlStore = {
+  url: 'https://docs.google.com/spreadsheets/d/1cUszmTk5RJLPZxkEyrs4uLm_0_yzc3NRjXPIKhA6FUs/edit?gid=0#gid=0',
+  updatedAt: new Date().toISOString(),
+};
+
+try {
+  if (fs.existsSync(BUDGET_SHEET_FILE)) {
+    const content = fs.readFileSync(BUDGET_SHEET_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (parsed && parsed.url) {
+      budgetSheetUrlStore = parsed;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load budget sheet config from disk:', e);
+}
+
 // Admin Users endpoints for cross-device synchronization
 app.get('/api/admin/users', (req, res) => {
   res.json({ success: true, users: adminUsersStore, updatedAt: new Date().toISOString() });
@@ -78,6 +133,9 @@ app.post('/api/admin/users', (req, res) => {
   const { users } = req.body;
   if (Array.isArray(users) && users.length > 0) {
     adminUsersStore = users;
+    try {
+      fs.writeFileSync(ADMIN_USERS_FILE, JSON.stringify(adminUsersStore, null, 2), 'utf-8');
+    } catch {}
     return res.json({ success: true, users: adminUsersStore, updatedAt: new Date().toISOString() });
   }
   return res.status(400).json({ error: 'Invalid users array or empty users list' });
@@ -95,16 +153,13 @@ app.post('/api/permissions', (req, res) => {
       allowedTabs,
       updatedAt: new Date().toISOString(),
     };
+    try {
+      fs.writeFileSync(PERMISSIONS_FILE, JSON.stringify(staffPermissionsStore, null, 2), 'utf-8');
+    } catch {}
     return res.json({ success: true, permissions: staffPermissionsStore });
   }
   return res.status(400).json({ error: 'Invalid allowedTabs array' });
 });
-
-// Google Sheet Ngân Sách Dự Kiến store for Cross-Device Synchronization
-let budgetSheetUrlStore = {
-  url: 'https://docs.google.com/spreadsheets/d/1cUszmTk5RJLPZxkEyrs4uLm_0_yzc3NRjXPIKhA6FUs/edit?gid=0#gid=0',
-  updatedAt: new Date().toISOString(),
-};
 
 app.get('/api/config/budget-sheet', (req, res) => {
   res.json({ success: true, ...budgetSheetUrlStore });
@@ -117,6 +172,9 @@ app.post('/api/config/budget-sheet', (req, res) => {
       url: url.trim(),
       updatedAt: new Date().toISOString(),
     };
+    try {
+      fs.writeFileSync(BUDGET_SHEET_FILE, JSON.stringify(budgetSheetUrlStore, null, 2), 'utf-8');
+    } catch {}
     return res.json({ success: true, ...budgetSheetUrlStore });
   }
   return res.status(400).json({ error: 'Invalid sheet url' });

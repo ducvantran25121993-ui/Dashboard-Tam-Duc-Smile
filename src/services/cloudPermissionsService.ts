@@ -91,6 +91,7 @@ export async function savePermissionsToCloud(tabs: SidebarTab[]): Promise<{ succ
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
     localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+    window.dispatchEvent(new CustomEvent('permissions_updated', { detail: tabs }));
   } catch {
     // ignore local storage error
   }
