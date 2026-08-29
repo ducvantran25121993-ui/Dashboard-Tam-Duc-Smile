@@ -299,29 +299,12 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
   });
 
-  const [targetRoas, setTargetRoas] = useState<number>(8.8); // 8.8x (Chuẩn KPI 7.5 Tỷ với 850tr ngân sách)
-  const [activeScenario, setActiveScenario] = useState<'conservative' | 'balanced' | 'cir15' | 'aggressive'>('balanced');
+  const [targetRoas, setTargetRoas] = useState<number>(6.0); // 6.0x (Chuẩn KPI 7.5 Tỷ với ngân sách theo file)
+  const [activeScenario, setActiveScenario] = useState<'kpi125_75' | 'reduce30' | 'reduce60'>('kpi125_75');
   const [services] = useState<ServiceBudgetItem[]>(DEFAULT_SERVICES);
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
   const [aiReport, setAiReport] = useState<string | null>(null);
-
-  const applyScenario = (type: 'conservative' | 'balanced' | 'cir15' | 'aggressive') => {
-    setActiveScenario(type);
-    if (type === 'conservative') {
-      setTotalBudget(650000000);
-      setTargetRoas(8.5);
-    } else if (type === 'balanced') {
-      setTotalBudget(850000000);
-      setTargetRoas(8.8);
-    } else if (type === 'cir15') {
-      setTotalBudget(1125000000);
-      setTargetRoas(6.7);
-    } else if (type === 'aggressive') {
-      setTotalBudget(1250000000);
-      setTargetRoas(8.8);
-    }
-  };
 
   // Load Google Sheet Budget Plan (Reads multi-month T6, T7, T8 in Real-Time)
   const [syncStatusMsg, setSyncStatusMsg] = useState<string>('');
@@ -645,6 +628,74 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       items: activeItems,
     };
   }, [activeItems, budgetScenario, customReductionPct, selectedMonth, getBranchSpentForMonth, monthlyDatasets]);
+
+  // Dynamic growth / KPI scenarios calculated directly from Google Sheet / plan file data
+  const dynamicPlanBudgets = useMemo(() => {
+    // 1. Base monthly budget (+VAT) from current file/sheet data
+    const baseBudget = currentSummary.totalMonthlyVat > 0 
+      ? currentSummary.totalMonthlyVat 
+      : (currentSummary.totalMonthly > 0 ? currentSummary.totalMonthly : 1250000000);
+
+    // 2. Reduced 30% (+VAT) directly from file column or 70% of base
+    const reduced30Budget = currentSummary.totalReduced30Vat > 0 
+      ? currentSummary.totalReduced30Vat 
+      : Math.round(baseBudget * 0.7);
+
+    // 3. Reduced Extra 30% (+VAT) directly from file column or 70% of reduced 30%
+    const reduced60Budget = currentSummary.totalReducedExtra30Vat > 0 
+      ? currentSummary.totalReducedExtra30Vat 
+      : Math.round(reduced30Budget * 0.7);
+
+    // Mức Gốc KPI: Mục tiêu Doanh thu 7.5 Tỷ VNĐ
+    const baseTargetRevenue = 7500000000;
+    const baseRoas = Math.round((baseTargetRevenue / baseBudget) * 10) / 10;
+    const baseCir = Math.round((baseBudget / baseTargetRevenue) * 1000) / 10;
+
+    // Kịch bản Giảm 30%: Giữ ROAS 6.67x (Chi phí <= 15% Doanh thu)
+    const reduced30TargetRevenue = Math.round(reduced30Budget / 0.15);
+
+    // Kịch bản Giảm tiếp 30%: Giữ ROAS 6.67x (Chi phí <= 15% Doanh thu)
+    const reduced60TargetRevenue = Math.round(reduced60Budget / 0.15);
+
+    return {
+      baseBudget,
+      baseTargetRevenue,
+      baseRoas,
+      baseCir,
+      reduced30Budget,
+      reduced30TargetRevenue,
+      reduced60Budget,
+      reduced60TargetRevenue,
+    };
+  }, [currentSummary]);
+
+  const applyScenario = useCallback((type: 'kpi125_75' | 'reduce30' | 'reduce60') => {
+    setActiveScenario(type);
+    if (type === 'kpi125_75') {
+      setTotalBudget(dynamicPlanBudgets.baseBudget);
+      setTargetRoas(dynamicPlanBudgets.baseRoas);
+    } else if (type === 'reduce30') {
+      setTotalBudget(dynamicPlanBudgets.reduced30Budget);
+      setTargetRoas(6.67);
+    } else if (type === 'reduce60') {
+      setTotalBudget(dynamicPlanBudgets.reduced60Budget);
+      setTargetRoas(6.67);
+    }
+  }, [dynamicPlanBudgets]);
+
+  // Auto-sync totalBudget & targetRoas when file data changes while a preset is active
+  useEffect(() => {
+    if (activeScenario === 'kpi125_75') {
+      setTotalBudget(dynamicPlanBudgets.baseBudget);
+      setTargetRoas(dynamicPlanBudgets.baseRoas);
+    } else if (activeScenario === 'reduce30') {
+      setTotalBudget(dynamicPlanBudgets.reduced30Budget);
+      setTargetRoas(6.67);
+    } else if (activeScenario === 'reduce60') {
+      setTotalBudget(dynamicPlanBudgets.reduced60Budget);
+      setTargetRoas(6.67);
+    }
+  }, [dynamicPlanBudgets, activeScenario]);
 
   // Month pills summary stats (Total spent per month)
   const monthTabSummaries = useMemo(() => {
@@ -1843,103 +1894,81 @@ ${activeItems
               </div>
 
               <div className="space-y-2.5">
-                {/* Scenario: Balanced - Chuẩn KPI 7.5 Tỷ (850tr Ngân sách) */}
+                {/* Scenario 1: Mức Gốc Theo File (KPI Doanh thu: 7.5 Tỷ) */}
                 <div
-                  onClick={() => applyScenario('balanced')}
+                  onClick={() => applyScenario('kpi125_75')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    activeScenario === 'balanced'
+                    activeScenario === 'kpi125_75'
                       ? 'bg-amber-950/40 border-amber-500 shadow-md shadow-amber-500/10 ring-1 ring-amber-500/30'
                       : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      ⚡ Chuẩn KPI (7.5 Tỷ)
+                      🟢 Mức Gốc Theo File (KPI: 7,5 Tỷ DT)
                     </span>
                     <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30 font-bold">
-                      ROAS 8.8x (11.3%)
+                      ROAS {dynamicPlanBudgets.baseRoas}x ({dynamicPlanBudgets.baseCir}%)
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(850000000, 'million')}</span>
-                    <span className="text-xs text-amber-300 font-bold">Target: {formatVND(7510000000, 'billion')}</span>
+                    <span className="text-base font-black text-white">{formatVND(dynamicPlanBudgets.baseBudget, dynamicPlanBudgets.baseBudget >= 1000000000 ? 'billion' : 'million')}</span>
+                    <span className="text-xs text-amber-300 font-bold">KPI Target: {formatVND(dynamicPlanBudgets.baseTargetRevenue, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Chuẩn tối ưu chuỗi nha khoa: Chi phí Ads chiếm ~11.3% Doanh thu.
+                    Cập nhật tự động theo file ({formatVND(dynamicPlanBudgets.baseBudget, 'million')}), KPI mục tiêu 7,5 Tỷ doanh thu.
                   </p>
                 </div>
 
-                {/* Scenario: CIR 15% - Chi phí Ads 15% Doanh thu (KPI 7.5 Tỷ) */}
+                {/* Scenario 2: Giảm 30% Theo File (ROAS 6.67x, CIR <= 15%) */}
                 <div
-                  onClick={() => applyScenario('cir15')}
+                  onClick={() => applyScenario('reduce30')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    activeScenario === 'cir15'
-                      ? 'bg-cyan-950/40 border-cyan-500 shadow-md shadow-cyan-500/10 ring-1 ring-cyan-500/30'
+                    activeScenario === 'reduce30'
+                      ? 'bg-yellow-950/40 border-yellow-500 shadow-md shadow-yellow-500/10 ring-1 ring-yellow-500/30'
                       : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
-                      🎯 Chi Phí Ads 15% (CIR 15%)
+                    <span className="text-xs font-bold text-yellow-400 flex items-center gap-1.5">
+                      🟡 Giảm 30% Theo File
                     </span>
-                    <span className="text-[11px] font-mono text-cyan-300 bg-cyan-500/20 px-1.5 py-0.5 rounded border border-cyan-500/30 font-bold">
-                      ROAS 6.7x (15.0%)
+                    <span className="text-[11px] font-mono text-yellow-300 bg-yellow-500/20 px-1.5 py-0.5 rounded border border-yellow-500/30 font-bold">
+                      ROAS 6.67x (≤15%)
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(1125000000, 'billion')}</span>
-                    <span className="text-xs text-cyan-300 font-bold">Target: {formatVND(7500000000, 'billion')}</span>
+                    <span className="text-base font-black text-white">{formatVND(dynamicPlanBudgets.reduced30Budget, 'million')}</span>
+                    <span className="text-xs text-yellow-300 font-bold">KPI Target: {formatVND(dynamicPlanBudgets.reduced30TargetRevenue, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Chi phí Ads chiếm đúng 15% Doanh thu (1.125 tỷ ngân sách cho 7.5 tỷ DT).
+                    Giảm 30% theo file ({formatVND(dynamicPlanBudgets.reduced30Budget, 'million')}), giữ chi phí Ads ≤ 15.0% DT.
                   </p>
                 </div>
 
-                {/* Scenario: Conservative */}
+                {/* Scenario 3: Giảm tiếp 30% Theo File (ROAS 6.67x, CIR <= 15%) */}
                 <div
-                  onClick={() => applyScenario('conservative')}
+                  onClick={() => applyScenario('reduce60')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    activeScenario === 'conservative'
-                      ? 'bg-blue-950/40 border-blue-500 shadow-md shadow-blue-500/10'
+                    activeScenario === 'reduce60'
+                      ? 'bg-rose-950/40 border-rose-500 shadow-md shadow-rose-500/10 ring-1 ring-rose-500/30'
                       : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
-                      🛡️ Kịch Bản Thận Trọng
+                    <span className="text-xs font-bold text-rose-400 flex items-center gap-1.5">
+                      🔴 Giảm Tiếp 30% Theo File
                     </span>
-                    <span className="text-[11px] font-mono text-slate-400">ROAS 8.5x</span>
+                    <span className="text-[11px] font-mono text-rose-300 bg-rose-500/20 px-1.5 py-0.5 rounded border border-rose-500/30 font-bold">
+                      ROAS 6.67x (≤15%)
+                    </span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(650000000, 'million')}</span>
-                    <span className="text-xs text-slate-400">Target: {formatVND(5740000000, 'billion')}</span>
+                    <span className="text-base font-black text-white">{formatVND(dynamicPlanBudgets.reduced60Budget, 'million')}</span>
+                    <span className="text-xs text-rose-300 font-bold">KPI Target: {formatVND(dynamicPlanBudgets.reduced60TargetRevenue, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Tối ưu CPA tối đa, giảm rủi ro, tập trung khách chốt lịch cao.
-                  </p>
-                </div>
-
-                {/* Scenario: Aggressive */}
-                <div
-                  onClick={() => applyScenario('aggressive')}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
-                    activeScenario === 'aggressive'
-                      ? 'bg-emerald-950/40 border-emerald-500 shadow-md shadow-emerald-500/10'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                      🚀 Tăng Trưởng Đột Phá
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400">ROAS 8.8x</span>
-                  </div>
-                  <div className="flex items-baseline justify-between mt-2">
-                    <span className="text-base font-black text-white">{formatVND(1250000000, 'billion')}</span>
-                    <span className="text-xs text-slate-400">Target: {formatVND(11040000000, 'billion')}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Đánh mạnh Kiều Bào & PMax mùa cao điểm cuối năm.
+                    Giảm thêm 30% theo file ({formatVND(dynamicPlanBudgets.reduced60Budget, 'million')}), giữ chi phí Ads ≤ 15.0% DT.
                   </p>
                 </div>
               </div>
@@ -1954,7 +1983,7 @@ ${activeItems
                     Tùy Chỉnh Ngân Sách Dự Kiến Trực Tiếp
                   </h3>
                   <button
-                    onClick={() => applyScenario('balanced')}
+                    onClick={() => applyScenario('kpi125_75')}
                     className="text-[11px] text-slate-400 hover:text-amber-300 flex items-center gap-1 transition-colors"
                   >
                     <RotateCcw className="w-3 h-3" /> Đặt lại mặc định
@@ -1972,12 +2001,12 @@ ${activeItems
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
-                      step="10000000"
+                      step="50000000"
                       min="200000000"
-                      max="3000000000"
+                      max="10000000000"
                       value={totalBudget}
                       onChange={(e) => setTotalBudget(Math.max(10000000, parseInt(e.target.value, 10) || 0))}
-                      className="w-36 px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-right font-black text-amber-400 text-sm focus:outline-none focus:border-amber-400"
+                      className="w-40 px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-right font-black text-amber-400 text-sm focus:outline-none focus:border-amber-400"
                     />
                     <span className="text-xs text-slate-400 font-bold">VNĐ</span>
                   </div>
@@ -1985,17 +2014,18 @@ ${activeItems
                 <input
                   type="range"
                   min="200000000"
-                  max="2500000000"
-                  step="25000000"
+                  max="10000000000"
+                  step="50000000"
                   value={totalBudget}
                   onChange={(e) => setTotalBudget(parseInt(e.target.value, 10))}
                   className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />
                 <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                  <span>200 Triệu</span>
-                  <span>850 Triệu (Chuẩn)</span>
-                  <span>1.125 Tỷ (15% CIR)</span>
-                  <span>2.5 Tỷ</span>
+                  <span>200 Tr</span>
+                  <span>850 Tr (Chuẩn)</span>
+                  <span>1.25 Tỷ</span>
+                  <span>7.5 Tỷ (Max KPI)</span>
+                  <span>10 Tỷ</span>
                 </div>
               </div>
 
