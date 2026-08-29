@@ -695,6 +695,43 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
     ]
   },
   {
+    competitorName: 'Nha Khoa Việt Hàn 04',
+    domain: 'nhakhoaviethan04.com',
+    adPlatform: 'Google Search Ads & Facebook Ads',
+    category: 'porcelain',
+    campaignTitle: 'Bọc Răng Sứ Cercon HT & Dán Sứ Veneer - Giảm 50% Combo Toàn Hàm',
+    targetKeyword: 'bọc răng sứ cercon giá bao nhiêu',
+    adCopy: {
+      headline: 'Bọc Răng Sứ Cercon HT Việt Hàn 04 - Giảm 50% Chỉ 2Tr/Răng',
+      description: 'Công nghệ răng sứ thẩm mỹ chuẩn Hàn. Không mài nhỏ răng, không đau buốt. Trả góp 0% chỉ từ 500k/tháng qua CCCD.',
+      displayedUrl: 'https://nhakhoaviethan04.com/boc-rang-su',
+      sitelinks: ['Bảng Giá Răng Sứ Cercon', 'Ưu Đãi Combo 16 Răng', 'Xem Hình Ảnh Khách Hàng', 'Đặt Lịch Thăm Khám'],
+      callouts: ['Giảm 50% Toàn Hàm', 'Bảo Hành 7 Năm', 'Labo Riêng']
+    },
+    detectedPromo: 'Khuyến mãi sốc giảm 50% bọc răng sứ Cercon HT khi làm trọn gói từ 16 - 20 răng',
+    oldPromo: 'Răng sứ Cercon giá 4.000.000 đ / răng',
+    changeType: 'Khuyến mãi combo toàn hàm',
+    threatLevel: 'Cao',
+    competitorWeakness: 'Răng sứ giá rẻ khó đảm bảo độ bền và tính thẩm mỹ tự nhiên lâu dài; ít công nghệ thiết kế nụ cười DSD.',
+    counterAdTemplate: {
+      headline: 'Răng Sứ Thẩm Mỹ Chuẩn Đức Tâm Đức Smile - Labo Kỹ Thuật Số 24H',
+      description: 'Thiết kế nụ cười DSD thấy trước kết quả. Thẻ bảo hành điện tử chính hãng. 17 chi nhánh tại TP.HCM & Miền Tây.',
+      sitelinks: ['Bảng Giá Sứ Cao Cấp', 'Xem Dáng Răng Phong Thủy', 'Bác Sĩ Trưởng Khoa', 'Trả Góp 0% Lãi Suất'],
+      biddingAdvice: 'Đẩy mạnh từ khóa "răng sứ cao cấp chính hãng", "làm răng sứ đẹp tự nhiên" để hút tệp khách hàng chú trọng chất lượng.'
+    },
+    mediaAds: [
+      {
+        type: 'image',
+        title: 'Banner Răng Sứ Cercon HT Giảm 50%',
+        previewUrl: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&auto=format&fit=crop&q=80',
+        badge: 'Display Banner Vuông & Sứ Thẩm Mỹ',
+        dimensions: '1080 x 1080 px',
+        headlineOverlay: 'Bọc Răng Sứ Cercon HT - Trọn Gói Chỉ 2.000.000đ/Răng',
+        descriptionText: 'Tặng gói chăm sóc răng miệng trọn đời khi đăng ký làm từ 16 răng.'
+      }
+    ]
+  },
+  {
     competitorName: 'Nha Khoa Sài Gòn B.H',
     domain: 'nhakhoasaigon.vn',
     adPlatform: 'Google Search Ads & Display',

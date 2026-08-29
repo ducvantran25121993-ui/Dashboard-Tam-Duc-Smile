@@ -2300,6 +2300,7 @@ app.all(['/api/gemini-crawler', '/api/gemini-crawler/'], async (req, res) => {
 // API cào dữ liệu website đối thủ (Real-time Live Fetch & AI Extract 100% dữ liệu thực tế)
 app.get('/api/scrape-competitors', async (req, res) => {
   const COMPETITOR_TARGETS = [
+    { id: 'viethan04', name: 'Nha Khoa Việt Hàn 04', url: 'https://nhakhoaviethan04.com/bang-gia-implant' },
     { id: 'kim', name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html' },
     { id: 'paris', name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html' },
     { id: 'drcare', name: 'Dr. Care Implant', url: 'https://drcareimplant.com/bang-gia-trong-rang-implant-tai-nha-khoa-dr-care-13' }

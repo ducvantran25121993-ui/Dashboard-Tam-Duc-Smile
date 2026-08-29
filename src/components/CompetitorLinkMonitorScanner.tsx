@@ -237,6 +237,94 @@ export const CompetitorBannerImage: React.FC<{
 
 const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   {
+    id: 'link-viethan-1',
+    name: 'Nha Khoa Việt Hàn 04 - Bảng Giá & Ưu Đãi Cấy Ghép Implant Trọn Gói',
+    url: 'https://nhakhoaviethan04.com/bang-gia-implant',
+    category: 'implant',
+    scanFrequency: 'weekly',
+    status: 'Changed',
+    lastScanTime: 'Vừa quét (Live Alert)',
+    changeMessage: '⚡ Bảng giá trụ Implant Hàn Quốc hạ xuống 7.5 Triệu/trụ + Miễn phí Chụp CT ConeBeam 3D!',
+    newImagesCount: 4,
+    textChanged: true,
+    lastData: {
+      text: 'Nha Khoa Quốc Tế Việt Hàn 04 - Hệ thống nha khoa cấy ghép Implant & phục hình răng uy tín. Trồng răng Implant Hàn Quốc trợ giá chỉ từ 7.500.000đ/trụ. Miễn phí chụp phim CT ConeBeam 3D, miễn phí khám và lên phác đồ điều trị cùng bác sĩ chuyên khoa.',
+      images: [
+        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80'
+      ],
+      promotions: [
+        {
+          service: 'Trồng Răng Implant Trụ Hàn Quốc (Dentium / Osstem)',
+          oldPrice: '10.500.000đ/trụ',
+          newPrice: '7.500.000đ/trụ (Giảm -28%)',
+          oldDiscount: 'Bảng giá niêm yết phòng khám',
+          newDiscount: '🔥 Tặng 100% chi phí Chụp Phim CT ConeBeam 3D trị giá 1.2 Tr',
+          diffPercent: '-28%',
+          gifts: [
+            'Miễn phí Chụp phim CT ConeBeam 3D',
+            'Miễn phí xét nghiệm máu trước phẫu thuật',
+            'Bảo hành chính hãng 10 năm'
+          ],
+          isNew: true
+        }
+      ],
+      scannedAt: new Date().toISOString()
+    },
+    previousData: {
+      text: 'Nha Khoa Việt Hàn 04 - Dịch vụ cấy ghép Implant tiêu chuẩn theo bảng giá niêm yết tại phòng khám.',
+      images: [
+        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80'
+      ],
+      promotions: [
+        {
+          service: 'Trồng Răng Implant Trụ Hàn Quốc',
+          oldPrice: '10.500.000đ/trụ',
+          newPrice: '10.500.000đ/trụ',
+          oldDiscount: 'Tư vấn tiêu chuẩn',
+          newDiscount: 'Chưa có ưu đãi giá mồi 7.5Tr',
+          diffPercent: '0%',
+          gifts: ['Khám tư vấn cơ bản']
+        }
+      ],
+      scannedAt: new Date(Date.now() - 7 * 86400000).toISOString()
+    }
+  },
+  {
+    id: 'link-viethan-2',
+    name: 'Nha Khoa Việt Hàn 04 - Bọc Răng Sứ Thẩm Mỹ & Dán Sứ Veneer',
+    url: 'https://nhakhoaviethan04.com/boc-rang-su',
+    category: 'cosmetic',
+    scanFrequency: 'weekly',
+    status: 'Changed',
+    lastScanTime: 'Hôm nay, 07:30',
+    changeMessage: '🎁 Xuất hiện Popup ưu đãi bọc răng sứ Cercon HT trọn gói giảm 50% khi làm từ 16 răng!',
+    newImagesCount: 3,
+    textChanged: true,
+    lastData: {
+      text: 'Nha Khoa Việt Hàn 04 - Bọc răng sứ thẩm mỹ Cercon HT, Lava Plus, Emax chính hãng. Khuyến mãi lên đến 50% cho combo toàn hàm 16 - 20 răng. Trả góp 0% lãi suất duyệt hồ sơ nhanh.',
+      images: [
+        'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800&auto=format&fit=crop&q=80',
+        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
+      ],
+      promotions: [
+        {
+          service: 'Răng Sứ Cao Cấp Cercon HT Đức Chính Hãng',
+          oldPrice: '4.000.000đ/răng',
+          newPrice: '2.000.000đ/răng (Combo 16 răng)',
+          oldDiscount: 'Bảo hành 7 năm',
+          newDiscount: '⭐ Giảm 50% khi làm từ 16 răng + Tặng gói chăm sóc răng trọn đời',
+          diffPercent: '-50%',
+          gifts: ['Thẻ bảo hành điện tử chính hãng', 'Tặng gói vệ sinh răng miệng định kỳ']
+        }
+      ],
+      scannedAt: new Date().toISOString()
+    }
+  },
+  {
     id: 'link-1',
     name: 'Nha Khoa Trồng Răng Sài Gòn (Saigon Implant Dental)',
     url: 'https://implantsaigon.com/trong-rang-sai-gon/',
@@ -775,8 +863,19 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length >= 20) {
+          // Auto-inject Viet Han 04 preset links if not present in existing user cache
+          const hasVietHan = parsed.some((item: MonitoredLink) => item.url?.includes('nhakhoaviethan04.com') || item.name?.includes('Việt Hàn'));
+          let combined = parsed;
+          if (!hasVietHan) {
+            const viethanLinks = TOP_20_DENTAL_PRESET_LINKS.filter(p => p.url.includes('nhakhoaviethan04.com'));
+            combined = [...viethanLinks, ...parsed];
+            try {
+              localStorage.setItem('tamduc_monitored_links', JSON.stringify(combined));
+            } catch {}
+          }
+
           // Clean up any stale, unsplash placeholders or 404 image URLs from older sessions
-          return parsed.map((item: MonitoredLink) => {
+          return combined.map((item: MonitoredLink) => {
             if (item.url?.includes('nhakhoashark.vn') || item.id === 'link-15') {
               return {
                 ...item,

@@ -69,6 +69,12 @@ interface CrawlResult {
 
 const PRESET_DENTAL_URLS = [
   {
+    name: 'Nha Khoa Việt Hàn 04',
+    category: 'Implant & Răng Sứ Giá Rẻ',
+    url: 'https://nhakhoaviethan04.com/bang-gia-implant',
+    badge: 'Hệ thống Việt Hàn 04'
+  },
+  {
     name: 'Nha Khoa Kim',
     category: 'Tổng hợp bảng giá',
     url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html',
@@ -133,6 +139,103 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
     'https://drcareimplant.com/wp-content/uploads/2023/08/banner-trong-rang-implant-khong-dau-drcare.jpg',
     'https://drcareimplant.com/wp-content/uploads/2023/08/bang-gia-trong-rang-implant-drcare.jpg'
   ];
+
+  const viethanBanners = [
+    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80'
+  ];
+
+  if (urlLower.includes('nhakhoaviethan04.com') || urlLower.includes('viethan04') || urlLower.includes('viet-han') || urlLower.includes('viethan')) {
+    return {
+      success: true,
+      engine: 'crawl4ai-gemini-crawler',
+      url: targetUrl,
+      title: 'Nha Khoa Quốc Tế Việt Hàn 04 (Hệ Thống Việt Hàn 04)',
+      description: 'Bảng giá cấy ghép Implant giá rẻ, bọc răng sứ Cercon giảm 50%, niềng răng trả góp chỉ từ 1Tr/tháng tại Nha Khoa Việt Hàn 04.',
+      aiResponse: `Dưới đây là báo cáo phân tích chi tiết dữ liệu cào từ website đối thủ **Nha Khoa Việt Hàn 04** và chiến lược phản công Google Ads dành riêng cho **Nha Khoa Tâm Đức Smile**.
+
+---
+
+# PHẦN 1: BÁO CÁO PHÂN TÍCH VĂN BẢN ĐẦY ĐỦ
+
+## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
+
+1. **Phát hiện chiến thuật giá mồi (Loss Leader Pricing)**:
+   * Nha Khoa Việt Hàn 04 đang tung giá mồi trụ Implant Hàn Quốc chỉ từ **7.500.000 đ/trụ** để thu hút lượng lớn khách hàng tìm kiếm giá rẻ trên Google Search và Facebook Ads.
+   * **Đánh giá & Điểm yếu**: Mức giá 7.5Tr này chỉ bao gồm thân trụ cấy ghép sơ bộ, **chưa bao gồm khớp nối Abutment và răng sứ bên trên**, đồng thời khách hàng thường phát sinh chi phí chụp phim, ghép xương và phụ phí phòng mổ.
+
+2. **Chiến lược Răng sứ thẩm mỹ**:
+   * Chạy combo giảm 50% bọc răng sứ Cercon HT trọn gói khi làm từ 16 răng (chỉ 2.000.000 đ/răng).
+
+## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
+* **Phát sinh phụ phí**: Tách riêng trụ, khớp nối và mão sứ.
+* **Cơ sở vật chất & Uy tín thương hiệu**: Số lượng chi nhánh ít hơn nhiều so với hệ thống 17 chi nhánh của Tâm Đức Smile, bác sĩ chưa có tên tuổi nổi bật.
+
+## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
+1. **Thông điệp quảng cáo (Ad Copy)**:
+   * Đập tan chiêu trò phụ phí: **"Trồng Răng Implant Trọn Gói 9.9Tr ĐÃ BAO GỒM RĂNG SỨ & Abutment - Cam Kết Không Phát Sinh 1 Xu"**.
+   * Nhấn mạnh uy tín: **"17 Chi Nhánh TP.HCM & Miền Tây - Trực Tiếp Bác Sĩ Chuyên Khoa I Trên 15 Năm Kinh Nghiệm"**.
+2. **Gói quà tặng đè bẹp đối thủ**:
+   * Miễn phí chụp phim CT 3D ConeBeam + Tặng gói chăm sóc răng trọn đời.
+   * Hỗ trợ xe đưa đón miễn phí cho khách hàng từ các tỉnh xa.`,
+      scannedAt: new Date().toISOString(),
+      executionTimeMs: 18230,
+      markdownLength: 14200,
+      markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA VIỆT HÀN 04\n\n## 1. CẤY GHÉP IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 7.500.000 đ (Giá khuyến mãi)\n- Trụ Implant Biotem / Osstem: 8.900.000 đ\n- Khớp nối Abutment: Tính phí phụ kiện riêng\n\n## 2. BỌC RĂNG SỨ THẨM MỸ\n- Răng sứ Cercon HT: 2.000.000 đ/răng (Combo từ 16 răng)\n- Răng sứ kim loại Titan: 1.200.000 đ/răng`,
+      banners: viethanBanners,
+      extracted: {
+        dentalName: 'Nha Khoa Việt Hàn 04',
+        category: 'Hệ thống phòng khám nha khoa khu vực',
+        mainMessage: 'Trồng răng Implant giá rẻ trợ giá từ 7.5Tr và bọc răng sứ giảm 50%',
+        services: [
+          {
+            serviceName: 'Trồng Răng Implant Hàn Quốc Giá Mồi',
+            originalPrice: '10.500.000 đ',
+            discountedPrice: '7.500.000 đ',
+            discountPercent: 'Giảm 28%',
+            warranty: 'Bảo hành 10 năm',
+            gifts: ['Miễn phí Chụp phim CT 3D', 'Miễn phí khám tư vấn']
+          },
+          {
+            serviceName: 'Răng Sứ Cercon HT Thẩm Mỹ Toàn Hàm',
+            originalPrice: '4.000.000 đ',
+            discountedPrice: '2.000.000 đ',
+            discountPercent: 'Giảm 50%',
+            warranty: 'Bảo hành 7 năm',
+            gifts: ['Thẻ bảo hành chính hãng', 'Vệ sinh răng miễn phí']
+          },
+          {
+            serviceName: 'Niềng Răng Mắc Cài Kim Loại Trả Góp',
+            originalPrice: '25.000.000 đ',
+            discountedPrice: '18.000.000 đ',
+            discountPercent: 'Giảm 28%',
+            warranty: 'Theo dõi chỉnh nha',
+            gifts: ['Trả góp 0% chỉ từ 1 triệu/tháng']
+          }
+        ],
+        specialOffers: [
+          'Trợ giá trụ Implant Hàn Quốc chỉ 7.500.000 đ/trụ',
+          'Combo bọc răng sứ toàn hàm giảm 50% chỉ còn 2.000.000 đ/răng',
+          'Niềng răng học sinh - sinh viên trả góp 0% lãi suất'
+        ],
+        counterStrategy: {
+          competitorWeakness: 'Giá mồi 7.5Tr chưa bao gồm mão răng sứ và khớp nối Abutment. Chưa có hệ sinh thái Labo riêng và 17 chi nhánh như Tâm Đức.',
+          tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trọn Gói 9.9Tr ĐÃ GỒM MÃO SỨ & KHỚP NỐI',
+          recommendedHeadlines: [
+            'Implant Trọn Gói 9.9Tr Có Răng Sứ',
+            'Cam Kết Không Phát Sinh 1 Xu',
+            '17 Chi Nhánh TP.HCM & Miền Tây',
+            'Bác Sĩ CKI 15 Năm Kinh Nghiệm'
+          ],
+          recommendedDescriptions: [
+            'Tâm Đức Smile trọn gói trụ Implant + Răng sứ + Khớp nối Abutment. Miễn phí Chụp CT ConeBeam 3D.',
+            'Hệ thống 17 chi nhánh uy tín. Hỗ trợ xe đưa đón khách tỉnh & trả góp 0% lãi suất duyệt nhanh.'
+          ]
+        }
+      }
+    };
+  }
 
   if (urlLower.includes('nhakhoakim.com')) {
     return {

@@ -19,6 +19,42 @@ export interface CompetitorDiffItem {
 
 export const INITIAL_COMPETITOR_DIFFS: CompetitorDiffItem[] = [
   {
+    id: 'diff-viethan-1',
+    competitorId: 'viethan04',
+    competitorName: 'Nha Khoa Việt Hàn 04',
+    domain: 'nhakhoaviethan04.com',
+    url: 'https://nhakhoaviethan04.com/bang-gia-implant',
+    detectedDate: 'Vừa phát hiện (Live Alert)',
+    category: 'pricing',
+    mediaType: 'price_table',
+    title: 'Hạ giá mồi trụ Implant Hàn Quốc xuống 7.5 Triệu & Miễn phí Chụp CT',
+    oldValue: 'Trụ Dentium/Osstem: 10.500.000đ/trụ • Chưa bao gồm khớp nối Abutment',
+    newValue: 'Trụ Implant Hàn Quốc: 7.500.000đ/trụ (Giảm -28%) • Miễn phí Chụp Phim CT ConeBeam 3D & Thăm khám',
+    diffType: 'price_drop',
+    diffBadge: 'Giảm -28% Trụ Implant',
+    impactLevel: 'Rất cao',
+    aiAnalysis: 'Nha Khoa Việt Hàn 04 đang tung giá mồi cực thấp tại các cơ sở ven TP.HCM để kéo tệp khách hàng có ngân sách hạn chế. Tuy nhiên mão sứ đi kèm có thể bị tính phụ phí riêng.',
+    counterAction: 'Tâm Đức Smile đẩy mạnh thông điệp "Implant Trọn Gói 9.9Tr ĐÃ BAO GỒM RĂNG SỨ + Khớp Nối Abutment Chính Hãng + Bảo Hành 10 Năm" để dập tan chiêu trò phụ phí phát sinh của đối thủ.'
+  },
+  {
+    id: 'diff-viethan-2',
+    competitorId: 'viethan04',
+    competitorName: 'Nha Khoa Việt Hàn 04',
+    domain: 'nhakhoaviethan04.com',
+    url: 'https://nhakhoaviethan04.com/boc-rang-su',
+    detectedDate: 'Hôm nay, 07:30',
+    category: 'promotion',
+    mediaType: 'popup_modal',
+    title: 'Tung ưu đãi Bọc Răng Sứ Cercon HT & Dán Sứ Veneer Giảm 50%',
+    oldValue: 'Răng sứ Cercon: 4.000.000đ/răng (Bảo hành 7 năm)',
+    newValue: 'Răng sứ Cercon HT: 2.000.000đ/răng (Khi làm từ 16 răng trở lên) • Tặng gói cạo vôi đánh bóng trọn đời',
+    diffType: 'promo_added',
+    diffBadge: 'Giảm 50% Sứ Toàn Hàm',
+    impactLevel: 'Cao',
+    aiAnalysis: 'Việt Hàn 04 đang đánh mạnh vào khách hàng làm răng thẩm mỹ số lượng lớn theo combo 16 - 20 răng.',
+    counterAction: 'Triển khai chiến dịch "Răng Sứ Thẩm Mỹ Chuẩn Đức Labo Riêng 24H" của Tâm Đức với chính sách trả góp 0% và bảo hành điện tử chính hãng.'
+  },
+  {
     id: 'diff-1',
     competitorId: 'comp-1',
     competitorName: 'Nha Khoa Kim',
