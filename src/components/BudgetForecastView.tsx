@@ -89,7 +89,7 @@ const DEFAULT_SERVICES: ServiceBudgetItem[] = [
     sharePercent: 42,
     expectedCpa: 580000,
     avgOrderValue: 28000000,
-    conversionRate: 38,
+    conversionRate: 16, // % Chốt thực tế toàn phễu (Lead Online -> Đến khám -> Chốt ca) ~99 ca
     color: '#06b6d4', // cyan-500
   },
   {
@@ -98,7 +98,7 @@ const DEFAULT_SERVICES: ServiceBudgetItem[] = [
     sharePercent: 22,
     expectedCpa: 850000,
     avgOrderValue: 65000000,
-    conversionRate: 45,
+    conversionRate: 18, // ~40 ca combo toàn hàm / sứ cao cấp
     color: '#8b5cf6', // purple-500
   },
   {
@@ -107,7 +107,7 @@ const DEFAULT_SERVICES: ServiceBudgetItem[] = [
     sharePercent: 16,
     expectedCpa: 420000,
     avgOrderValue: 18000000,
-    conversionRate: 35,
+    conversionRate: 15, // ~49 ca bọc sứ / dán veneer
     color: '#3b82f6', // blue-500
   },
   {
@@ -116,7 +116,7 @@ const DEFAULT_SERVICES: ServiceBudgetItem[] = [
     sharePercent: 12,
     expectedCpa: 460000,
     avgOrderValue: 32000000,
-    conversionRate: 30,
+    conversionRate: 12, // ~27 ca niềng mắc cài / invisalign
     color: '#10b981', // emerald-500
   },
   {
@@ -125,7 +125,7 @@ const DEFAULT_SERVICES: ServiceBudgetItem[] = [
     sharePercent: 8,
     expectedCpa: 220000,
     avgOrderValue: 4500000,
-    conversionRate: 55,
+    conversionRate: 28, // ~87 ca điều trị tổng quát / nhổ răng khôn / tẩy trắng
     color: '#f59e0b', // amber-500
   },
 ];
@@ -1853,11 +1853,11 @@ ${activeItems
                     <span className="text-xs font-bold text-blue-400 flex items-center gap-1.5">
                       🛡️ Kịch Bản Thận Trọng
                     </span>
-                    <span className="text-[11px] font-mono text-slate-400">ROAS 7.5x</span>
+                    <span className="text-[11px] font-mono text-slate-400">ROAS 8.5x</span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
                     <span className="text-base font-black text-white">{formatVND(650000000, 'million')}</span>
-                    <span className="text-xs text-slate-400">Target: {formatVND(4875000000, 'billion')}</span>
+                    <span className="text-xs text-slate-400">Target: {formatVND(5740000000, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
                     Tối ưu CPA tối đa, giảm rủi ro, tập trung khách chốt lịch cao.
@@ -1875,18 +1875,18 @@ ${activeItems
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      ⚡ Tiêu Chuẩn (Khuyên Dùng)
+                      ⚡ Chuẩn KPI (7.5 Tỷ)
                     </span>
                     <span className="text-[11px] font-mono text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/30">
-                      ROAS 8.0x
+                      ROAS 8.8x
                     </span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
                     <span className="text-base font-black text-white">{formatVND(850000000, 'million')}</span>
-                    <span className="text-xs text-slate-400">Target: {formatVND(6800000000, 'billion')}</span>
+                    <span className="text-xs text-amber-300 font-bold">Target: {formatVND(7510000000, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Tỷ lệ vàng giữa tăng trưởng thị phần và biên lợi nhuận ròng.
+                    Chuẩn mục tiêu doanh thu 7.5 tỷ/tháng từ phễu quảng cáo đa kênh.
                   </p>
                 </div>
 
@@ -1903,11 +1903,11 @@ ${activeItems
                     <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                       🚀 Tăng Trưởng Đột Phá
                     </span>
-                    <span className="text-[11px] font-mono text-slate-400">ROAS 8.5x</span>
+                    <span className="text-[11px] font-mono text-slate-400">ROAS 8.8x</span>
                   </div>
                   <div className="flex items-baseline justify-between mt-2">
                     <span className="text-base font-black text-white">{formatVND(1250000000, 'million')}</span>
-                    <span className="text-xs text-slate-400">Target: {formatVND(10625000000, 'billion')}</span>
+                    <span className="text-xs text-slate-400">Target: {formatVND(11040000000, 'billion')}</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
                     Đánh mạnh Kiều Bào & PMax mùa cao điểm cuối năm.
@@ -2067,7 +2067,7 @@ ${activeItems
                         {formatVND(calculatedTotalRevenueFromServices, 'billion')}
                       </td>
                       <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
-                        {targetRoas.toFixed(1)}x
+                        {totalBudget > 0 ? (calculatedTotalRevenueFromServices / totalBudget).toFixed(1) : '0.0'}x
                       </td>
                     </tr>
                   </tfoot>
