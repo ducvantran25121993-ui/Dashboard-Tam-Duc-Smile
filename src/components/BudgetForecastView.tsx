@@ -442,6 +442,35 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     return EMPTY_BRANCH_PLAN_ITEMS;
   }, [selectedMonthNum, multiMonthPlan]);
 
+  // Check if current active month / dataset actually has reduction columns (Giảm 30%, Giảm thêm 30%)
+  const hasReduced30 = useMemo(() => {
+    if (selectedMonth === 'all') {
+      return Object.values(multiMonthPlan.monthPlans || {}).some(
+        (p) => p.hasReduced30 || (p.totalReduced30 || 0) > 0 || (p.totalReduced30Vat || 0) > 0
+      );
+    }
+    return activeItems.some((i) => (i.reduced30Budget || 0) > 0 || (i.reduced30Vat || 0) > 0);
+  }, [activeItems, selectedMonth, multiMonthPlan]);
+
+  const hasReducedExtra30 = useMemo(() => {
+    if (selectedMonth === 'all') {
+      return Object.values(multiMonthPlan.monthPlans || {}).some(
+        (p) => p.hasReducedExtra30 || (p.totalReducedExtra30 || 0) > 0 || (p.totalReducedExtra30Vat || 0) > 0
+      );
+    }
+    return activeItems.some((i) => (i.reducedExtra30Budget || 0) > 0 || (i.reducedExtra30Vat || 0) > 0);
+  }, [activeItems, selectedMonth, multiMonthPlan]);
+
+  // Auto fallback scenario if selected month doesn't have the active reduction scenario
+  useEffect(() => {
+    if (budgetScenario === 'reduced_30' && !hasReduced30) {
+      setBudgetScenario('base_100');
+    }
+    if (budgetScenario === 'reduced_extra_30' && !hasReducedExtra30) {
+      setBudgetScenario('base_100');
+    }
+  }, [hasReduced30, hasReducedExtra30, budgetScenario]);
+
   // Save custom branch data for active month
   const handleSaveBranchEdit = () => {
     if (!editingBranch) return;
@@ -536,9 +565,9 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     if (budgetScenario === 'base_100') {
       return item.monthlyBudgetVat || item.monthlyBudget;
     } else if (budgetScenario === 'reduced_30') {
-      return item.reduced30Vat || item.reduced30Budget || Math.round(item.monthlyBudget * 0.7 * 1.1664);
+      return item.reduced30Vat || item.reduced30Budget || item.monthlyBudgetVat || item.monthlyBudget;
     } else if (budgetScenario === 'reduced_extra_30') {
-      return item.reducedExtra30Vat || item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49 * 1.1664);
+      return item.reducedExtra30Vat || item.reducedExtra30Budget || item.monthlyBudgetVat || item.monthlyBudget;
     } else {
       const factor = Math.max(0, (100 - customReductionPct) / 100);
       return Math.round((item.monthlyBudgetVat || item.monthlyBudget) * factor);
@@ -573,10 +602,10 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     let activeScenarioTotalBudget = totalMonthlyVat > 0 ? totalMonthlyVat : totalMonthly;
     let scenarioLabel = 'Chuẩn Kế Hoạch (+VAT)';
     if (budgetScenario === 'reduced_30') {
-      activeScenarioTotalBudget = totalReduced30Vat > 0 ? totalReduced30Vat : (totalReduced30 || Math.round(totalMonthlyVat * 0.7));
+      activeScenarioTotalBudget = totalReduced30Vat > 0 ? totalReduced30Vat : (totalReduced30 || totalMonthlyVat);
       scenarioLabel = 'Kịch Bản Giảm 30% (+VAT)';
     } else if (budgetScenario === 'reduced_extra_30') {
-      activeScenarioTotalBudget = totalReducedExtra30Vat > 0 ? totalReducedExtra30Vat : (totalReducedExtra30 || Math.round(totalMonthlyVat * 0.49));
+      activeScenarioTotalBudget = totalReducedExtra30Vat > 0 ? totalReducedExtra30Vat : (totalReducedExtra30 || totalMonthlyVat);
       scenarioLabel = 'Kịch Bản Giảm Thêm 30% (-51% +VAT)';
     } else if (budgetScenario === 'custom') {
       const factor = Math.max(0, (100 - customReductionPct) / 100);
@@ -1025,8 +1054,14 @@ ${activeItems
           </span>
         </div>
 
-        {/* 4 Scenario Quick Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+        {/* Scenario Quick Buttons - Dynamically hide reductions if month does not have them */}
+        <div className={`grid gap-2.5 ${
+          hasReduced30 && hasReducedExtra30
+            ? 'grid-cols-2 md:grid-cols-4'
+            : (hasReduced30 || hasReducedExtra30)
+            ? 'grid-cols-1 sm:grid-cols-3'
+            : 'grid-cols-1 sm:grid-cols-2'
+        }`}>
           {/* Scenario 1: 100% Gốc */}
           <button
             onClick={() => setBudgetScenario('base_100')}
@@ -1058,65 +1093,69 @@ ${activeItems
             </div>
           </button>
 
-          {/* Scenario 2: Giảm 30% */}
-          <button
-            onClick={() => setBudgetScenario('reduced_30')}
-            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
-              budgetScenario === 'reduced_30'
-                ? 'bg-cyan-950/40 border-cyan-500 text-white shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400/50'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                Kịch Bản Giảm 30%
-              </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
-                -30%
-              </span>
-            </div>
-            <div className="mt-2 font-mono font-black text-sm text-cyan-300">
-              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
-                ? formatVND(currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7), 'full')
-                : '--'}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">
-              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
-                ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReduced30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.7)), 'million')} (+VAT)`
-                : 'Chờ cập nhật'}
-            </div>
-          </button>
+          {/* Scenario 2: Giảm 30% (Chỉ hiện khi tháng có cột Giảm 30%) */}
+          {hasReduced30 && (
+            <button
+              onClick={() => setBudgetScenario('reduced_30')}
+              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                budgetScenario === 'reduced_30'
+                  ? 'bg-cyan-950/40 border-cyan-500 text-white shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-400/50'
+                  : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                  Kịch Bản Giảm 30%
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
+                  -30%
+                </span>
+              </div>
+              <div className="mt-2 font-mono font-black text-sm text-cyan-300">
+                {currentSummary.totalReduced30Vat > 0
+                  ? formatVND(currentSummary.totalReduced30Vat, 'full')
+                  : (currentSummary.totalReduced30 > 0 ? formatVND(currentSummary.totalReduced30, 'full') : '--')}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0 && currentSummary.totalReduced30Vat > 0
+                  ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - currentSummary.totalReduced30Vat, 'million')} (+VAT)`
+                  : 'Chờ cập nhật'}
+              </div>
+            </button>
+          )}
 
-          {/* Scenario 3: Giảm thêm 30% (tổng giảm 51%) */}
-          <button
-            onClick={() => setBudgetScenario('reduced_extra_30')}
-            className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
-              budgetScenario === 'reduced_extra_30'
-                ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400/50'
-                : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                Giảm Thêm 30% (-51%)
-              </span>
-              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
-                -51%
-              </span>
-            </div>
-            <div className="mt-2 font-mono font-black text-sm text-emerald-300">
-              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
-                ? formatVND(currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49), 'full')
-                : '--'}
-            </div>
-            <div className="text-[10px] text-slate-400 mt-0.5">
-              {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0
-                ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - (currentSummary.totalReducedExtra30Vat || Math.round((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) * 0.49)), 'million')} (+VAT)`
-                : 'Chờ cập nhật'}
-            </div>
-          </button>
+          {/* Scenario 3: Giảm thêm 30% (tổng giảm 51% - Chỉ hiện khi tháng có cột Giảm thêm 30%) */}
+          {hasReducedExtra30 && (
+            <button
+              onClick={() => setBudgetScenario('reduced_extra_30')}
+              className={`p-3 rounded-xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
+                budgetScenario === 'reduced_extra_30'
+                  ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-400/50'
+                  : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900/60'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  Giảm Thêm 30% (-51%)
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                  -51%
+                </span>
+              </div>
+              <div className="mt-2 font-mono font-black text-sm text-emerald-300">
+                {currentSummary.totalReducedExtra30Vat > 0
+                  ? formatVND(currentSummary.totalReducedExtra30Vat, 'full')
+                  : (currentSummary.totalReducedExtra30 > 0 ? formatVND(currentSummary.totalReducedExtra30, 'full') : '--')}
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">
+                {(currentSummary.totalMonthlyVat || currentSummary.totalMonthly) > 0 && currentSummary.totalReducedExtra30Vat > 0
+                  ? `Tiết kiệm ${formatVND((currentSummary.totalMonthlyVat || currentSummary.totalMonthly) - currentSummary.totalReducedExtra30Vat, 'million')} (+VAT)`
+                  : 'Chờ cập nhật'}
+              </div>
+            </button>
+          )}
 
           {/* Scenario 4: Tùy Chỉnh % Giảm */}
           <div
@@ -1422,7 +1461,7 @@ ${activeItems
                       </div>
                     </div>
 
-                    {/* Comprehensive 4-Block Scenario Details Box */}
+                    {/* Scenario Details Box - Only render reduction blocks if present in month */}
                     <div className="bg-[#060913] rounded-xl p-3 border border-slate-850 grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-sans">
                       <div>
                         <div className="text-[11px] text-slate-400">NS Ngày (Gốc):</div>
@@ -1448,43 +1487,47 @@ ${activeItems
                         </div>
                       </div>
 
-                      <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
-                        <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                          <span>Giảm 30% (+VAT):</span>
-                          {budgetScenario === 'reduced_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
-                            <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
-                          )}
+                      {hasReduced30 && (
+                        <div className={budgetScenario === 'reduced_30' ? 'p-1.5 rounded-lg bg-cyan-950/30 border border-cyan-500/30 -m-1' : ''}>
+                          <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Giảm 30% (+VAT):</span>
+                            {budgetScenario === 'reduced_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
+                              <span className="text-[9px] px-1 bg-cyan-500/20 text-cyan-300 rounded font-bold">Đang áp dụng</span>
+                            )}
+                          </div>
+                          <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
+                            {item.reduced30Vat > 0
+                              ? formatVND(item.reduced30Vat, 'full')
+                              : (item.reduced30Budget > 0 ? formatVND(item.reduced30Budget, 'full') : '--')}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {item.reduced30Budget > 0
+                              ? `Gốc: ${formatVND(item.reduced30Budget, 'million')}`
+                              : 'Chờ cập nhật'}
+                          </div>
                         </div>
-                        <div className="font-mono font-bold text-cyan-300 text-xs sm:text-[13px] mt-0.5">
-                          {(item.monthlyBudgetVat || item.monthlyBudget) > 0
-                            ? formatVND(item.reduced30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.7), 'full')
-                            : '--'}
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-mono">
-                          {(item.reduced30Budget || item.monthlyBudget) > 0
-                            ? `Gốc: ${formatVND(item.reduced30Budget || Math.round(item.monthlyBudget * 0.7), 'million')}`
-                            : 'Chờ cập nhật'}
-                        </div>
-                      </div>
+                      )}
 
-                      <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
-                        <div className="text-[11px] text-slate-400 flex items-center justify-between">
-                          <span>Giảm Thêm 30% (-51%):</span>
-                          {budgetScenario === 'reduced_extra_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
-                            <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
-                          )}
+                      {hasReducedExtra30 && (
+                        <div className={budgetScenario === 'reduced_extra_30' ? 'p-1.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 -m-1' : ''}>
+                          <div className="text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Giảm Thêm 30% (-51%):</span>
+                            {budgetScenario === 'reduced_extra_30' && (item.monthlyBudgetVat || item.monthlyBudget) > 0 && (
+                              <span className="text-[9px] px-1 bg-emerald-500/20 text-emerald-300 rounded font-bold">Đang áp dụng</span>
+                            )}
+                          </div>
+                          <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
+                            {item.reducedExtra30Vat > 0
+                              ? formatVND(item.reducedExtra30Vat, 'full')
+                              : (item.reducedExtra30Budget > 0 ? formatVND(item.reducedExtra30Budget, 'full') : '--')}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            {item.reducedExtra30Budget > 0
+                              ? `Gốc: ${formatVND(item.reducedExtra30Budget, 'million')}`
+                              : 'Chờ cập nhật'}
+                          </div>
                         </div>
-                        <div className="font-mono font-bold text-emerald-300 text-xs sm:text-[13px] mt-0.5">
-                          {(item.monthlyBudgetVat || item.monthlyBudget) > 0
-                            ? formatVND(item.reducedExtra30Vat || Math.round((item.monthlyBudgetVat || item.monthlyBudget) * 0.49), 'full')
-                            : '--'}
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-mono">
-                          {(item.reducedExtra30Budget || item.monthlyBudget) > 0
-                            ? `Gốc: ${formatVND(item.reducedExtra30Budget || Math.round(item.monthlyBudget * 0.49), 'million')}`
-                            : 'Chờ cập nhật'}
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
@@ -1589,8 +1632,8 @@ ${activeItems
                     <th className="py-3.5 px-3 text-right">Ngân Sách Ngày</th>
                     <th className="py-3.5 px-3 text-right">Kế Hoạch Tháng (Gốc)</th>
                     <th className="py-3.5 px-3 text-right text-amber-400">Kế Hoạch (+VAT)</th>
-                    <th className="py-3.5 px-3 text-right text-cyan-400">Giảm 30% (+VAT)</th>
-                    <th className="py-3.5 px-3 text-right text-emerald-400">Giảm Thêm 30% (+VAT)</th>
+                    {hasReduced30 && <th className="py-3.5 px-3 text-right text-cyan-400">Giảm 30% (+VAT)</th>}
+                    {hasReducedExtra30 && <th className="py-3.5 px-3 text-right text-emerald-400">Giảm Thêm 30% (+VAT)</th>}
                     <th className="py-3.5 px-3 text-right text-purple-300">
                       Thực Chi ({selectedMonth === 'all' ? 'Cả Năm' : MONTH_TABS.find((t) => t.id === selectedMonth)?.short})
                     </th>
@@ -1619,12 +1662,20 @@ ${activeItems
                         <td className="py-3 px-3 text-right font-mono font-bold text-amber-400">
                           {item.monthlyBudgetVat > 0 ? formatVND(item.monthlyBudgetVat, 'million') : '--'}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-cyan-300">
-                          {item.reduced30Vat > 0 ? formatVND(item.reduced30Vat, 'million') : '--'}
-                        </td>
-                        <td className="py-3 px-3 text-right font-mono text-emerald-300">
-                          {item.reducedExtra30Vat > 0 ? formatVND(item.reducedExtra30Vat, 'million') : '--'}
-                        </td>
+                        {hasReduced30 && (
+                          <td className="py-3 px-3 text-right font-mono text-cyan-300">
+                            {item.reduced30Vat > 0
+                              ? formatVND(item.reduced30Vat, 'million')
+                              : (item.reduced30Budget > 0 ? formatVND(item.reduced30Budget, 'million') : '--')}
+                          </td>
+                        )}
+                        {hasReducedExtra30 && (
+                          <td className="py-3 px-3 text-right font-mono text-emerald-300">
+                            {item.reducedExtra30Vat > 0
+                              ? formatVND(item.reducedExtra30Vat, 'million')
+                              : (item.reducedExtra30Budget > 0 ? formatVND(item.reducedExtra30Budget, 'million') : '--')}
+                          </td>
+                        )}
                         <td className="py-3 px-3 text-right font-mono font-bold text-purple-300">
                           {spent > 0 ? formatVND(spent, 'million') : (effectiveLimit > 0 ? '0' : '--')}
                         </td>
@@ -1633,7 +1684,7 @@ ${activeItems
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                 pacing > 100
-                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
                                   : pacing >= 70
                                   ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                                   : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
@@ -1671,12 +1722,16 @@ ${activeItems
                     <td className="py-3.5 px-3 text-right font-mono text-amber-300">
                       {currentSummary.totalMonthlyVat > 0 ? formatVND(currentSummary.totalMonthlyVat, 'million') : '--'}
                     </td>
-                    <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
-                      {currentSummary.totalReduced30Vat > 0 ? formatVND(currentSummary.totalReduced30Vat, 'million') : '--'}
-                    </td>
-                    <td className="py-3.5 px-3 text-right font-mono text-emerald-300">
-                      {currentSummary.totalReducedExtra30Vat > 0 ? formatVND(currentSummary.totalReducedExtra30Vat, 'million') : '--'}
-                    </td>
+                    {hasReduced30 && (
+                      <td className="py-3.5 px-3 text-right font-mono text-cyan-300">
+                        {currentSummary.totalReduced30Vat > 0 ? formatVND(currentSummary.totalReduced30Vat, 'million') : '--'}
+                      </td>
+                    )}
+                    {hasReducedExtra30 && (
+                      <td className="py-3.5 px-3 text-right font-mono text-emerald-300">
+                        {currentSummary.totalReducedExtra30Vat > 0 ? formatVND(currentSummary.totalReducedExtra30Vat, 'million') : '--'}
+                      </td>
+                    )}
                     <td className="py-3.5 px-3 text-right font-mono text-purple-300">
                       {currentSummary.totalSpent > 0 ? formatVND(currentSummary.totalSpent, 'million') : (currentSummary.totalMonthly > 0 ? '0' : '--')}
                     </td>

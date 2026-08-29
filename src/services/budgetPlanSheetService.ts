@@ -24,6 +24,8 @@ export interface BudgetPlanSummary {
   totalReduced30Vat: number;
   totalReducedExtra30: number;
   totalReducedExtra30Vat: number;
+  hasReduced30?: boolean;
+  hasReducedExtra30?: boolean;
   items: BranchPlanItem[];
   lastUpdated: string;
   isLive: boolean;
@@ -158,6 +160,8 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       totalReduced30Vat: 861199864,
       totalReducedExtra30: 516460000,
       totalReducedExtra30Vat: 602839905,
+      hasReduced30: true,
+      hasReducedExtra30: true,
       items: FALLBACK_PLAN_T6_ITEMS,
       lastUpdated: '12:00',
       isLive: false,
@@ -172,8 +176,10 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       totalMonthlyVat: 1230285520,
       totalReduced30: 737800000,
       totalReduced30Vat: 860569020,
-      totalReducedExtra30: 516460000,
-      totalReducedExtra30Vat: 602839905,
+      totalReducedExtra30: 0,
+      totalReducedExtra30Vat: 0,
+      hasReduced30: true,
+      hasReducedExtra30: false,
       items: FALLBACK_PLAN_T7_ITEMS,
       lastUpdated: '12:00',
       isLive: false,
@@ -190,6 +196,8 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       totalReduced30Vat: 965675064,
       totalReducedExtra30: 599742000,
       totalReducedExtra30Vat: 699539069,
+      hasReduced30: true,
+      hasReducedExtra30: true,
       items: FALLBACK_PLAN_T8_ITEMS,
       lastUpdated: '12:00',
       isLive: false,
@@ -340,7 +348,6 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
     const redExtra30Vat = parseNumber(r[8]);
 
     if (name.toUpperCase().includes('TỔNG') || name.toUpperCase().includes('TOTAL')) {
-      // Calculate missing reduction totals if not explicitly in sheet
       const computedMonthly = monthly || currentSection.items.reduce((s, i) => s + i.monthlyBudget, 0);
       const computedMonthlyVat = monthlyVat || currentSection.items.reduce((s, i) => s + i.monthlyBudgetVat, 0);
 
@@ -348,10 +355,10 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
         daily: daily || currentSection.items.reduce((s, i) => s + i.dailyBudget, 0),
         monthly: computedMonthly,
         monthlyVat: computedMonthlyVat,
-        red30: red30 || Math.round(computedMonthly * 0.7),
-        red30Vat: red30Vat || Math.round(computedMonthlyVat * 0.7),
-        redExtra30: redExtra30 || Math.round(computedMonthly * 0.49),
-        redExtra30Vat: redExtra30Vat || Math.round(computedMonthlyVat * 0.49),
+        red30: red30 || currentSection.items.reduce((s, i) => s + i.reduced30Budget, 0),
+        red30Vat: red30Vat || currentSection.items.reduce((s, i) => s + i.reduced30Vat, 0),
+        redExtra30: redExtra30 || currentSection.items.reduce((s, i) => s + i.reducedExtra30Budget, 0),
+        redExtra30Vat: redExtra30Vat || currentSection.items.reduce((s, i) => s + i.reducedExtra30Vat, 0),
       };
 
       // Wrap up section
@@ -367,6 +374,9 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
       const totalReducedExtra30 = currentSection.totalRow.redExtra30 || secItems.reduce((s, i) => s + i.reducedExtra30Budget, 0);
       const totalReducedExtra30Vat = currentSection.totalRow.redExtra30Vat || secItems.reduce((s, i) => s + i.reducedExtra30Vat, 0);
 
+      const hasReduced30 = totalReduced30 > 0 || totalReduced30Vat > 0 || secItems.some((i) => (i.reduced30Budget || 0) > 0 || (i.reduced30Vat || 0) > 0);
+      const hasReducedExtra30 = totalReducedExtra30 > 0 || totalReducedExtra30Vat > 0 || secItems.some((i) => (i.reducedExtra30Budget || 0) > 0 || (i.reducedExtra30Vat || 0) > 0);
+
       monthPlans[mNum] = {
         monthNum: mNum,
         title: currentSection.title,
@@ -377,6 +387,8 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
         totalReduced30Vat,
         totalReducedExtra30,
         totalReducedExtra30Vat,
+        hasReduced30,
+        hasReducedExtra30,
         items: secItems,
         lastUpdated: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         isLive: true,
@@ -392,11 +404,11 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
     } else {
       const daysCount = getDaysInMonth(currentSection.monthNum);
       const calcMonthly = monthly || (daily > 0 ? daily * daysCount : 0);
-      const calcMonthlyVat = monthlyVat || Math.round(calcMonthly * 1.1672538);
-      const calcRed30 = red30 || Math.round(calcMonthly * 0.7);
-      const calcRed30Vat = red30Vat || Math.round(calcMonthlyVat * 0.7);
-      const calcRedExtra30 = redExtra30 || Math.round(calcMonthly * 0.49);
-      const calcRedExtra30Vat = redExtra30Vat || Math.round(calcMonthlyVat * 0.49);
+      const calcMonthlyVat = monthlyVat || (calcMonthly > 0 ? Math.round(calcMonthly * 1.1672538) : 0);
+      const calcRed30 = red30 > 0 ? red30 : 0;
+      const calcRed30Vat = red30Vat > 0 ? red30Vat : (calcRed30 > 0 ? Math.round(calcRed30 * 1.1672538) : 0);
+      const calcRedExtra30 = redExtra30 > 0 ? redExtra30 : 0;
+      const calcRedExtra30Vat = redExtra30Vat > 0 ? redExtra30Vat : (calcRedExtra30 > 0 ? Math.round(calcRedExtra30 * 1.1672538) : 0);
 
       currentSection.items.push({
         id: `t${currentSection.monthNum}_${idx}`,
