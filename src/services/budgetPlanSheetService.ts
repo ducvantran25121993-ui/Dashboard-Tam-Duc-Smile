@@ -41,6 +41,25 @@ export interface MultiMonthBudgetPlan {
 
 export const DEFAULT_BUDGET_PLAN_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1cUszmTk5RJLPZxkEyrs4uLm_0_yzc3NRjXPIKhA6FUs/edit?gid=0#gid=0';
 
+export function getDaysInMonth(month: number, year: number = 2026): number {
+  if (month < 1 || month > 12) return 30;
+  const daysMap: Record<number, number> = {
+    1: 31,
+    2: 28,
+    3: 31,
+    4: 30,
+    5: 31,
+    6: 30,
+    7: 31,
+    8: 31,
+    9: 30,
+    10: 31,
+    11: 30,
+    12: 31,
+  };
+  return daysMap[month] || new Date(year, month, 0).getDate();
+}
+
 // EXACT FALLBACK DATA FOR THÁNG 6 (Từ Sheet 06/2026: 1.054.000.000 đ Gốc, 1.230.285.520 đ VAT)
 export const FALLBACK_PLAN_T6_ITEMS: BranchPlanItem[] = [
   { id: 't6_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 2000000, monthlyBudget: 62000000, monthlyBudgetVat: 72316800, reduced30Budget: 43400000, reduced30Vat: 50621760, reducedExtra30Budget: 30380000, reducedExtra30Vat: 35435232 },
@@ -371,7 +390,8 @@ export function parseMultiMonthBudgetPlanCSV(csvText: string, sourceUrl: string)
 
       currentSection = null;
     } else {
-      const calcMonthly = monthly || (daily > 0 ? daily * 31 : 0);
+      const daysCount = getDaysInMonth(currentSection.monthNum);
+      const calcMonthly = monthly || (daily > 0 ? daily * daysCount : 0);
       const calcMonthlyVat = monthlyVat || Math.round(calcMonthly * 1.1672538);
       const calcRed30 = red30 || Math.round(calcMonthly * 0.7);
       const calcRed30Vat = red30Vat || Math.round(calcMonthlyVat * 0.7);

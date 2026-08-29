@@ -390,6 +390,26 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     return tab ? tab.monthNum : 8;
   }, [selectedMonth]);
 
+  // Dynamic days count in selected month (e.g. T6 = 30 ngày, T7 = 31 ngày, T8 = 31 ngày, T2 = 28 ngày)
+  const currentMonthDays = useMemo(() => {
+    if (selectedMonth === 'all' || selectedMonthNum === 0) return 365;
+    const daysMap: Record<number, number> = {
+      1: 31,
+      2: 28,
+      3: 31,
+      4: 30,
+      5: 31,
+      6: 30,
+      7: 31,
+      8: 31,
+      9: 30,
+      10: 31,
+      11: 30,
+      12: 31,
+    };
+    return daysMap[selectedMonthNum] || 30;
+  }, [selectedMonth, selectedMonthNum]);
+
   const hasPlanDataForSelectedMonth = useMemo(() => {
     if (selectedMonthNum === 0) return true;
     const plan = multiMonthPlan.monthPlans[selectedMonthNum];
@@ -897,7 +917,9 @@ ${activeItems
             <div className="text-xs text-slate-400 mt-1.5 flex items-center justify-between">
               {currentSummary.totalDaily > 0 ? (
                 <>
-                  <span>31 ngày = {formatVND(currentSummary.totalMonthly, 'million')}</span>
+                  <span>
+                    {selectedMonth === 'all' ? '365 ngày (Cả Năm)' : `${currentMonthDays} ngày`} = {formatVND(currentSummary.totalMonthly, 'million')}
+                  </span>
                   <span className="text-slate-400 font-mono text-[11px]">
                     TB: ~{formatVND(currentSummary.avgDailyPerLocation, 'million')}/cơ sở
                   </span>
@@ -2122,7 +2144,7 @@ ${activeItems
                   onChange={(e) => {
                     const daily = Math.max(0, parseInt(e.target.value, 10) || 0);
                     setEditDailyBudget(daily);
-                    setEditMonthlyBudget(daily * 30);
+                    setEditMonthlyBudget(daily * (currentMonthDays === 365 ? 30 : currentMonthDays));
                   }}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 text-sm"
                 />
@@ -2141,7 +2163,8 @@ ${activeItems
                   onChange={(e) => {
                     const monthly = Math.max(0, parseInt(e.target.value, 10) || 0);
                     setEditMonthlyBudget(monthly);
-                    setEditDailyBudget(Math.round(monthly / 30));
+                    const days = currentMonthDays === 365 ? 30 : currentMonthDays;
+                    setEditDailyBudget(Math.round(monthly / (days || 30)));
                   }}
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono focus:outline-none focus:border-amber-400 text-sm"
                 />
