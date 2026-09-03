@@ -28,6 +28,7 @@ import {
   Percent,
   ArrowDownRight,
   AlertTriangle,
+  Wallet,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -656,29 +657,29 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
               </div>
             </div>
 
-            {/* Card 2: Lead & Phễu Chuyển Đổi */}
+            {/* Card 2: Ngân Sách Dự Kiến */}
             <div
-              onClick={() => onNavigateToTab('leads_funnel')}
-              className="group p-5 rounded-2xl bg-gradient-to-b from-slate-800/70 to-slate-900/90 hover:from-slate-800 hover:to-slate-850 border border-slate-700/70 hover:border-blue-400/60 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-blue-500/10 relative overflow-hidden flex flex-col justify-between"
+              onClick={() => onNavigateToTab('budget_forecast')}
+              className="group p-5 rounded-2xl bg-gradient-to-b from-slate-800/70 to-slate-900/90 hover:from-slate-800 hover:to-slate-850 border border-slate-700/70 hover:border-emerald-400/60 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-emerald-500/10 relative overflow-hidden flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="w-11 h-11 rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Users2 className="w-5 h-5" />
+                  <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Wallet className="w-5 h-5" />
                   </div>
-                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30">
-                    Phễu Sales
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                    Kế Hoạch & Pacing
                   </span>
                 </div>
-                <h4 className="text-base font-bold text-white mt-3.5 group-hover:text-blue-300 transition-colors">
-                  Lead & Phễu Chuyển Đổi
+                <h4 className="text-base font-bold text-white mt-3.5 group-hover:text-emerald-300 transition-colors">
+                  Ngân Sách Dự Kiến
                 </h4>
                 <p className="text-xs leading-relaxed text-slate-400 mt-1.5 line-clamp-2">
-                  Theo dõi hành trình khách hàng từ lúc bấm quảng cáo đến khi tư vấn, chốt hẹn và đến phòng khám.
+                  Dự báo và phân bổ ngân sách theo từng tháng, đối soát chi phí VAT, tỷ lệ chi tiêu thực tế và 4 kịch bản vận hành.
                 </p>
               </div>
-              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-blue-400 group-hover:text-blue-300">
-                <span>Xem phân tích phễu</span>
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-emerald-400 group-hover:text-emerald-300">
+                <span>Xem ngân sách dự kiến</span>
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
             </div>
