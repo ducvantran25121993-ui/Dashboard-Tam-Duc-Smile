@@ -263,7 +263,10 @@ app.get('/api/proxy-image', async (req, res) => {
   }
 
   try {
-    let target = decodeURIComponent(imageUrl).trim();
+    let target = (imageUrl || '').trim();
+    try {
+      target = decodeURIComponent(target.replace(/%(?![0-9a-fA-F]{2})/g, '%25'));
+    } catch (_) {}
     if (!target.startsWith('http://') && !target.startsWith('https://')) {
       target = 'https://' + target;
     }
@@ -2536,6 +2539,23 @@ Hãy trích xuất:
 // LANDING PAGE AI BUILDER (VISION-TO-CODE)
 // ==========================================
 
+function safeDecodeSvg(raw: string): string {
+  if (!raw) return '';
+  // Strip data:image/svg+xml... prefix if present
+  let svgContent = raw.replace(/^data:image\/svg\+xml[^,]*,/i, '');
+  try {
+    return decodeURIComponent(svgContent);
+  } catch (_) {
+    try {
+      // Escape solitary '%' signs that aren't valid %XX hex escapes to prevent URIError
+      return decodeURIComponent(svgContent.replace(/%(?![0-9a-fA-F]{2})/g, '%25'));
+    } catch (_) {
+      // Ultimate fallback: return as-is
+      return svgContent;
+    }
+  }
+}
+
 function generateIntelligentDentalLandingPage(opts: {
   brandName: string;
   targetService: string;
@@ -3086,7 +3106,9 @@ Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và 
       let svgContextText = '';
 
       const trimmedImg = imageBase64.trim();
-      if (trimmedImg.includes('image/svg+xml')) {
+      const isSvg = trimmedImg.includes('image/svg+xml') || trimmedImg.startsWith('<svg') || trimmedImg.includes('<svg');
+
+      if (isSvg) {
         mimeType = 'image/svg+xml';
         if (trimmedImg.includes(';base64,')) {
           cleanBase64 = trimmedImg.split(';base64,')[1].replace(/\s+/g, '');
@@ -3094,10 +3116,9 @@ Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và 
             svgContextText = Buffer.from(cleanBase64, 'base64').toString('utf-8');
           } catch (_) {}
         } else {
-          // data:image/svg+xml;utf8,<svg... or plain svg
-          const rawSvg = decodeURIComponent(trimmedImg.replace(/^data:image\/svg\+xml[^,]*,/, ''));
-          svgContextText = rawSvg;
-          cleanBase64 = Buffer.from(rawSvg, 'utf-8').toString('base64');
+          // data:image/svg+xml;utf8,<svg... or raw svg string
+          svgContextText = safeDecodeSvg(trimmedImg);
+          cleanBase64 = Buffer.from(svgContextText, 'utf-8').toString('base64');
         }
       } else {
         const dataUriMatch = trimmedImg.match(/^data:([^;]+);base64,(.+)$/);
@@ -3129,19 +3150,32 @@ YÊU CẦU THỰC HIỆN:
 Hãy xuất bản toàn bộ mã nguồn HTML5 hoàn chỉnh sẵn sàng sử dụng.
 `;
 
-      contentsPayload = {
-        parts: [
+      if (isSvg || !cleanBase64) {
+        contentsPayload = [
           {
-            inlineData: {
-              mimeType,
-              data: cleanBase64,
+            role: 'user',
+            parts: [
+              {
+                text: `${promptText}\n\n[MÃ NGUỒN CẤU TRÚC BỐ CỤC SVG GỐC]:\n${(svgContextText || '').substring(0, 8000)}`,
+              },
+            ],
+          },
+        ];
+      } else {
+        contentsPayload = {
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: cleanBase64,
+              },
             },
-          },
-          {
-            text: promptText,
-          },
-        ],
-      };
+            {
+              text: promptText,
+            },
+          ],
+        };
+      }
     } else {
       const promptText = `
 Hãy thiết kế và lập trình một Landing Page HTML5 + Tailwind CSS hoàn chỉnh cho:
