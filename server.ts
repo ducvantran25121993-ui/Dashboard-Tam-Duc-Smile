@@ -2607,6 +2607,7 @@ app.post('/api/landing/generate-from-image', async (req, res) => {
       includeFloatingCallButtons = true,
       existingCode,
       refinementInstruction,
+      scopeMode = 'full_page', // 'full_page' | 'section_only'
       engine = 'multi_agent', // 'multi_agent' | 'gemini_flash' | 'gemini_pro' | 'claude_code' | 'cro_sales'
       copywritingStyle = 'cro_high_convert', // 'cro_high_convert' | 'medical_authority' | 'luxury_premium' | 'balanced'
     } = req.body;
@@ -2650,6 +2651,27 @@ TIÊU CHUẨN COPYWRITING CÂN BẰNG:
 `;
     }
 
+    let scopeInstruction = '';
+    if (scopeMode === 'section_only') {
+      scopeInstruction = `
+CHẾ ĐỘ YÊU CẦU: CHỈ CODE ĐOẠN / KHỐI GIAO DIỆN ĐÚNG THEO ẢNH CHỤP (SECTION / COMPONENT CLONE 1:1):
+- Người dùng chỉ muốn trích xuất và lập trình DUY NHẤT khối giao diện có trong ảnh (ví dụ: khối bảng giá, khối so sánh, banner ưu đãi, form đăng ký, lưới bác sĩ, v.v.).
+- TUYỆT ĐỐI KHÔNG sinh thêm Header, Navigation bar, Footer hay các khối nội dung không hề xuất hiện trong ảnh chụp.
+- Bọc toàn bộ khối giao diện này bên trong comment rõ ràng:
+  <!-- BEGIN_SECTION_CODE -->
+  <section id="custom-extracted-section" class="py-10 bg-slate-50 ...">
+    ... toàn bộ mã khối giao diện như trong ảnh ...
+  </section>
+  <!-- END_SECTION_CODE -->
+- Bên ngoài vẫn giữ khung HTML5 chuẩn (<!DOCTYPE html>, <html>, <head> nạp Tailwind CSS CDN, Font, Icons, <body>) để file hiển thị xem trước được ngay lập tức và dễ dàng trích xuất riêng thẻ <section> để nhúng vào website khác.
+`;
+    } else {
+      scopeInstruction = `
+CHẾ ĐỘ YÊU CẦU: TOÀN BỘ LANDING PAGE HOÀN CHỈNH (FULL LANDING PAGE):
+- Phân rã và tạo lập một trang Landing Page đầy đủ từ Header, Hero Section, các khối nội dung theo ảnh, Form tư vấn đến Footer hoàn chỉnh.
+`;
+    }
+
     let personaSpecialization = '';
     if (engine === 'claude_code') {
       personaSpecialization = `
@@ -2670,6 +2692,8 @@ CHUYÊN GIA GPT-4O DIRECT RESPONSE CRO:
 
     const systemInstruction = `
 Bạn là Kỹ Sư Trưởng Frontend & Chuyên Gia Thiết Kế UI/UX Landing Page Cấp Cao (Chief Frontend Architect & CRO Specialist) chuyên về Landing Page ngành Y Tế, Thẩm Mỹ và Nha Khoa tại Việt Nam.
+
+${scopeInstruction}
 
 ${personaSpecialization}
 
@@ -2873,9 +2897,23 @@ Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ng
       title = titleMatch[1].trim();
     }
 
+    // Extract standalone section code if exists
+    let sectionCode = '';
+    const sectionCommentMatch = extractedHtml.match(/<!--\s*BEGIN_SECTION_CODE\s*-->([\s\S]*?)<!--\s*END_SECTION_CODE\s*-->/i);
+    if (sectionCommentMatch && sectionCommentMatch[1]) {
+      sectionCode = sectionCommentMatch[1].trim();
+    } else {
+      const sectionTagMatch = extractedHtml.match(/<section[\s\S]*?<\/section>/i);
+      if (sectionTagMatch && sectionTagMatch[0]) {
+        sectionCode = sectionTagMatch[0].trim();
+      }
+    }
+
     return res.json({
       success: true,
       htmlCode: extractedHtml,
+      sectionCode: sectionCode || null,
+      scopeMode,
       title,
       brandName,
       targetService,
