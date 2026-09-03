@@ -103,18 +103,53 @@ body.theme-light,
 .theme-light .from-slate-950,
 .theme-light .via-slate-900,
 .theme-light .to-slate-900,
-.theme-light .to-slate-950 {
+.theme-light .to-slate-950,
+.theme-light .from-indigo-950,
+.theme-light .via-indigo-950,
+.theme-light .to-indigo-950,
+.theme-light .from-blue-950,
+.theme-light .via-blue-950,
+.theme-light .to-blue-950 {
   background-color: #ffffff !important;
 }
 
-.theme-light .bg-gradient-to-r.from-slate-900,
-.theme-light .bg-gradient-to-br.from-slate-900,
-.theme-light .bg-gradient-to-b.from-slate-900,
-.theme-light .bg-gradient-to-r.from-slate-850,
-.theme-light .bg-gradient-to-br.from-slate-850 {
-  background-image: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+/* Any card/container using dark gradient stops */
+.theme-light [class*="bg-gradient-"][class*="from-slate-"],
+.theme-light [class*="bg-gradient-"][class*="from-indigo-950"],
+.theme-light [class*="bg-gradient-"][class*="from-blue-950"],
+.theme-light [class*="bg-gradient-"][class*="from-cyan-950"],
+.theme-light [class*="bg-gradient-"][class*="via-indigo-950"],
+.theme-light [class*="bg-gradient-"][class*="via-slate-950"],
+.theme-light [class*="bg-gradient-"][class*="via-slate-900"],
+.theme-light [class*="bg-gradient-"][class*="to-slate-950"],
+.theme-light [class*="bg-gradient-"][class*="to-slate-900"] {
+  background-image: none !important;
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
+}
+
+/* Warning & Alert dark gradient cards -> Pastel light alert cards */
+.theme-light [class*="bg-gradient-"][class*="from-rose-950"],
+.theme-light [class*="bg-gradient-"][class*="from-red-950"] {
+  background-image: none !important;
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+
+.theme-light [class*="bg-gradient-"][class*="from-amber-950"] {
+  background-image: none !important;
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+  color: #92400e !important;
+}
+
+.theme-light [class*="bg-gradient-"][class*="from-emerald-950"],
+.theme-light [class*="bg-gradient-"][class*="from-teal-950"] {
+  background-image: none !important;
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
 }
 
 /* 5. Hover States */
@@ -173,6 +208,33 @@ body.theme-light,
 .theme-light .text-slate-100,
 .theme-light .text-slate-200 {
   color: #0f172a !important; /* Deep charcoal navy - crisp & sharp */
+}
+
+/* Ensure text on colored/dark primary buttons and badges remains crisp white in light mode */
+.theme-light button.bg-blue-600,
+.theme-light button.bg-blue-500,
+.theme-light button.bg-indigo-600,
+.theme-light button.bg-indigo-500,
+.theme-light button.bg-cyan-600,
+.theme-light button.bg-cyan-500,
+.theme-light button.bg-emerald-600,
+.theme-light button.bg-emerald-500,
+.theme-light button.bg-rose-600,
+.theme-light button.bg-rose-500,
+.theme-light button.bg-red-600,
+.theme-light button.bg-purple-600,
+.theme-light button.bg-purple-500,
+.theme-light [class*="bg-blue-600"] > .text-white,
+.theme-light [class*="bg-indigo-600"] > .text-white,
+.theme-light [class*="bg-cyan-600"] > .text-white,
+.theme-light [class*="bg-emerald-600"] > .text-white,
+.theme-light [class*="bg-rose-600"] > .text-white,
+.theme-light [class*="bg-red-600"] > .text-white,
+.theme-light [class*="bg-purple-600"] > .text-white,
+.theme-light button.text-white,
+.theme-light .badge-white,
+.theme-light .text-white-forced {
+  color: #ffffff !important;
 }
 
 .theme-light .text-slate-300 {

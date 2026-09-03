@@ -1105,7 +1105,7 @@ export const Crawl4AISpyConsole: React.FC<{
       {result && !isCrawling && (
         <div className="space-y-6 animate-fadeIn">
           {/* 1. KHU VỰC TEXTBOX / BÁO CÁO PHÂN TÍCH CHUYÊN SÂU TỪ GEMINI */}
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/50 border-2 border-cyan-500/50 shadow-2xl space-y-4 relative overflow-hidden">
+          <div className="p-6 rounded-3xl bg-slate-900 border-2 border-cyan-500/50 shadow-2xl space-y-4 relative overflow-hidden">
             <div className="flex items-center justify-between flex-wrap gap-3 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40">
