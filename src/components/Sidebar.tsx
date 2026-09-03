@@ -141,8 +141,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'landing_builder',
       label: 'Tạo Landing Page AI',
       icon: Wand2,
-      badge: 'Vision AI',
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
     },
     {
       id: 'ai_agent',

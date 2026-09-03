@@ -67,7 +67,7 @@ const SAMPLE_TEMPLATES = [
     service: 'Trồng Răng Implant Toàn Hàm All-on-4 / All-on-6',
     brand: 'Nha Khoa Tâm Đức Smile',
     prompt: 'Tông màu xanh dương Tâm Đức Smile, thêm bảng so sánh trụ Thụy Sĩ và Hàn Quốc, tặng máy tăm nước.',
-    imageSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%230284c7"/><rect x="40" y="40" width="520" height="70" rx="8" fill="%23ffffff" opacity="0.15"/><text x="60" y="82" fill="%23ffffff" font-family="sans-serif" font-size="20" font-weight="bold">TÂM ĐỨC SMILE - CẤY GHÉP IMPLANT KHÔNG ĐAU</text><rect x="40" y="130" width="300" height="150" rx="8" fill="%23ffffff"/><text x="60" y="170" fill="%230f172a" font-family="sans-serif" font-size="18" font-weight="bold">Ưu Đãi 35% Trụ Implant</text><text x="60" y="200" fill="%23475569" font-family="sans-serif" font-size="13">Bảo hành chính hãng 15 năm - Trả góp 0%</text><rect x="60" y="220" width="160" height="36" rx="6" fill="%23f59e0b"/><text x="140" y="243" fill="%23ffffff" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">ĐẶT LỊCH NGAY</text><rect x="360" y="130" width="200" height="150" rx="8" fill="%230369a1"/><text x="460" y="210" fill="%23ffffff" font-family="sans-serif" font-size="14" text-anchor="middle">Hình Ảnh Bác Sĩ &amp; Phòng Khám</text><rect x="40" y="300" width="520" height="60" rx="8" fill="%230c4a6e"/><text x="300" y="335" fill="%237dd3fc" font-family="sans-serif" font-size="13" text-anchor="middle">Cam kết an toàn chuẩn Bộ Y Tế - Hơn 20.000 ca thành công</text></svg>`
+    imageSvg: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwMjg0YzciLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNzAiIHJ4PSI4IiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjE1Ii8+PHRleHQgeD0iNjAiIHk9IjgyIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9ImJvbGQiPlTDgk0gxJDhu6hDIFNNSUxFIC0gQ+G6pFkgR0jDiVAgSU1QTEFOVCBLSMOUTkcgxJBBVTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTMwIiB3aWR0aD0iMzAwIiBoZWlnaHQ9IjE1MCIgcng9IjgiIGZpbGw9IiNmZmZmZmYiLz48dGV4dCB4PSI2MCIgeT0iMTcwIiBmaWxsPSIjMGYxNzJhIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiPsavdSDEkMOjaSAzNSUgVHLhu6UgSW1wbGFudDwvdGV4dD48dGV4dCB4PSI2MCIgeT0iMjAwIiBmaWxsPSIjNDc1NTY5IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyI+QuG6o28gaMOgbmggY2jDrW5oIGjDo25nIDE1IG7Eg20gLSBUcuG6oyBnw7NwIDAlPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyMjAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMzYiIHJ4PSI2IiBmaWxsPSIjZjU5ZTBiIi8+PHRleHQgeD0iMTQwIiB5PSIyNDMiIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+xJDhurZUIEzhu4pDSCBOR0FZPC90ZXh0PjxyZWN0IHg9IjM2MCIgeT0iMTMwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgcng9IjgiIGZpbGw9IiMwMzY5YTEiLz48dGV4dCB4PSI0NjAiIHk9IjIxMCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkjDrG5oIOG6om5oIELDoWMgU8SpICZhbXA7IFBow7JuZyBLaMOhbTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMzAwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjYwIiByeD0iOCIgZmlsbD0iIzBjNGE2ZSIvPjx0ZXh0IHg9IjMwMCIgeT0iMzM1IiBmaWxsPSIjN2RkM2ZjIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+Q2FtIGvhur90IGFuIHRvw6BuIGNodeG6qW4gQuG7mSBZIFThur8gLSBIxqFuIDIwLjAwMCBjYSB0aMOgbmggY8O0bmc8L3RleHQ+PC9zdmc+'
   },
   {
     id: 'sample_veneer',
@@ -75,7 +75,7 @@ const SAMPLE_TEMPLATES = [
     service: 'Bọc Răng Sứ & Dán Sứ Veneer Không Mài Nhỏ',
     brand: 'Nha Khoa Thẩm Mỹ Tâm Đức Smile',
     prompt: 'Phong cách sang trọng luxury, tông màu trắng và vàng kim, tôn vinh nụ cười tự nhiên, có form nhận ưu đãi 40%.',
-    imageSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%230f172a"/><rect x="40" y="40" width="520" height="60" rx="8" fill="%231e293b"/><text x="60" y="78" fill="%23f59e0b" font-family="sans-serif" font-size="18" font-weight="bold">KIẾN TẠO NỤ CƯỜI KIM CƯƠNG - DÁN SỨ VENEER</text><rect x="40" y="120" width="520" height="170" rx="8" fill="%231e293b"/><text x="60" y="160" fill="%23ffffff" font-family="sans-serif" font-size="22" font-weight="bold">Răng Sứ Zirconia &amp; Cercon HT</text><text x="60" y="195" fill="%2394a3b8" font-family="sans-serif" font-size="14">Bảo tồn 99% răng gốc - Trắng trong tự nhiên - Độ bền 20 năm</text><rect x="60" y="225" width="200" height="40" rx="20" fill="%23f59e0b"/><text x="160" y="250" fill="%23000000" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">NHẬN BẢNG GIÁ ƯU ĐÃI</text><rect x="40" y="310" width="160" height="50" rx="8" fill="%23334155"/><text x="120" y="340" fill="%23ffffff" font-family="sans-serif" font-size="12" text-anchor="middle">Thiết kế nụ cười DSD</text><rect x="220" y="310" width="160" height="50" rx="8" fill="%23334155"/><text x="300" y="340" fill="%23ffffff" font-family="sans-serif" font-size="12" text-anchor="middle">Bảo hành trọn đời</text><rect x="400" y="310" width="160" height="50" rx="8" fill="%23334155"/><text x="480" y="340" fill="%23ffffff" font-family="sans-serif" font-size="12" text-anchor="middle">Trả góp 0% qua thẻ</text></svg>`
+    imageSvg: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwZjE3MmEiLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNjAiIHJ4PSI4IiBmaWxsPSIjMWUyOTNiIi8+PHRleHQgeD0iNjAiIHk9Ijc4IiBmaWxsPSIjZjU5ZTBiIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiPktJ4bq+TiBU4bqgTyBO4bukIEPGr+G7nEkgS0lNIEPGr8agTkcgLSBEw4FOIFPhu6ggVkVORUVSPC90ZXh0PjxyZWN0IHg9IjQwIiB5PSIxMjAiIHdpZHRoPSI1MjAiIGhlaWdodD0iMTcwIiByeD0iOCIgZmlsbD0iIzFlMjkzYiIvPjx0ZXh0IHg9IjYwIiB5PSIxNjAiIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iYm9sZCI+UsSDbmcgU+G7qSBaaXJjb25pYSAmYW1wOyBDZXJjb24gSFQ8L3RleHQ+PHRleHQgeD0iNjAiIHk9IjE5NSIgZmlsbD0iIzk0YTNiOCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiPkLhuqNvIHThu5NuIDk5JSByxINuZyBn4buRYyAtIFRy4bqvbmcgdHJvbmcgdOG7sSBuaGnDqm4gLSDEkOG7mSBi4buBbiAyMCBuxINtPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyMjUiIHdpZHRoPSIyMDAiIGhlaWdodD0iNDAiIHJ4PSIyMCIgZmlsbD0iI2Y1OWUwYiIvPjx0ZXh0IHg9IjE2MCIgeT0iMjUwIiBmaWxsPSIjMDAwMDAwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5I4bqsTiBC4bqiTkcgR0nDgSDGr1UgxJDDg0k8L3RleHQ+PHJlY3QgeD0iNDAiIHk9IjMxMCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI1MCIgcng9IjgiIGZpbGw9IiMzMzQxNTUiLz48dGV4dCB4PSIxMjAiIHk9IjM0MCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlRoaeG6v3Qga+G6vyBu4bulIGPGsOG7nWkgRFNEPC90ZXh0PjxyZWN0IHg9IjIyMCIgeT0iMzEwIiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjUwIiByeD0iOCIgZmlsbD0iIzMzNDE1NSIvPjx0ZXh0IHg9IjMwMCIgeT0iMzQwIiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QuG6o28gaMOgbmggdHLhu41uIMSR4budaTwvdGV4dD48cmVjdCB4PSI0MDAiIHk9IjMxMCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI1MCIgcng9IjgiIGZpbGw9IiMzMzQxNTUiLz48dGV4dCB4PSI0ODAiIHk9IjM0MCIgZmlsbD0iI2ZmZmZmZiIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlRy4bqjIGfDs3AgMCUgcXVhIHRo4bq7PC90ZXh0Pjwvc3ZnPg=='
   },
   {
     id: 'sample_invisalign',
@@ -83,7 +83,7 @@ const SAMPLE_TEMPLATES = [
     service: 'Niềng Răng Trong Suốt AI & Mắc Cài Thông Minh',
     brand: 'Tâm Đức Smile Orthodontics',
     prompt: 'Tông màu xanh ngọc y tế hiện đại, trẻ trung, có video mô phỏng nụ cười 3D Clincheck, form đăng ký quét dấu răng miễn phí.',
-    imageSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%23064e3b"/><rect x="40" y="40" width="520" height="60" rx="8" fill="%23065f46"/><text x="60" y="78" fill="%23a7f3d0" font-family="sans-serif" font-size="18" font-weight="bold">NIỀNG RĂNG TRONG SUỐT - THẤY TRƯỚC NỤ CƯỜI</text><rect x="40" y="120" width="520" height="170" rx="8" fill="%23047857"/><text x="60" y="165" fill="%23ffffff" font-family="sans-serif" font-size="22" font-weight="bold">Công Nghệ Scan 3D iTero Element 5D</text><text x="60" y="200" fill="%23d1fae5" font-family="sans-serif" font-size="14">Khay niềng vô hình - Tháo lắp dễ dàng - Rút ngắn 30% thời gian</text><rect x="60" y="225" width="220" height="40" rx="8" fill="%2310b981"/><text x="170" y="250" fill="%23ffffff" font-family="sans-serif" font-size="13" font-weight="bold" text-anchor="middle">SCAN RĂNG MIỄN PHÍ HÔM NAY</text><rect x="40" y="310" width="520" height="50" rx="8" fill="%23065f46"/><text x="300" y="340" fill="%236ee7b7" font-family="sans-serif" font-size="13" text-anchor="middle">Tặng gói tẩy trắng răng 3.5 triệu khi thanh toán 1 lần</text></svg>`
+    imageSvg: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwNjRlM2IiLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNjAiIHJ4PSI4IiBmaWxsPSIjMDY1ZjQ2Ii8+PHRleHQgeD0iNjAiIHk9Ijc4IiBmaWxsPSIjYTdmM2QwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiPk5J4buATkcgUsSCTkcgVFJPTkcgU1Xhu5BUIC0gVEjhuqRZIFRSxq/hu5pDIE7hu6QgQ8av4bucSTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTIwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjE3MCIgcng9IjgiIGZpbGw9IiMwNDc4NTciLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiPkPDtG5nIE5naOG7hyBTY2FuIDNEIGlUZXJvIEVsZW1lbnQgNUQ8L3RleHQ+PHRleHQgeD0iNjAiIHk9IjIwMCIgZmlsbD0iI2QxZmFlNSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiPktoYXkgbmnhu4FuZyB2w7QgaMOsbmggLSBUaMOhbyBs4bqvcCBk4buFIGTDoG5nIC0gUsO6dCBuZ+G6r24gMzAlIHRo4budaSBnaWFuPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyMjUiIHdpZHRoPSIyMjAiIGhlaWdodD0iNDAiIHJ4PSI4IiBmaWxsPSIjMTBiOTgxIi8+PHRleHQgeD0iMTcwIiB5PSIyNTAiIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U0NBTiBSxIJORyBNSeG7hE4gUEjDjSBIw5RNIE5BWTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMzEwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjUwIiByeD0iOCIgZmlsbD0iIzA2NWY0NiIvPjx0ZXh0IHg9IjMwMCIgeT0iMzQwIiBmaWxsPSIjNmVlN2I3IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VOG6t25nIGfDs2kgdOG6qXkgdHLhuq9uZyByxINuZyAzLjUgdHJp4buHdSBraGkgdGhhbmggdG/DoW4gMSBs4bqnbjwvdGV4dD48L3N2Zz4='
   }
 ];
 
@@ -207,12 +207,38 @@ export default function LandingBuilderView() {
   };
 
   const handleSelectSample = (sample: typeof SAMPLE_TEMPLATES[0]) => {
-    setSelectedImageBase64(sample.imageSvg);
     setImageFileName(sample.name);
     setTargetService(sample.service);
     setBrandName(sample.brand);
     setCustomPrompt(sample.prompt);
     setErrorMsg(null);
+
+    // Rasterize SVG onto a canvas so Gemini Vision receives high-compatibility PNG base64
+    try {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = 600;
+          canvas.height = 400;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 600, 400);
+            ctx.drawImage(img, 0, 0, 600, 400);
+            setSelectedImageBase64(canvas.toDataURL('image/png'));
+            return;
+          }
+        } catch (_) {}
+        setSelectedImageBase64(sample.imageSvg);
+      };
+      img.onerror = () => {
+        setSelectedImageBase64(sample.imageSvg);
+      };
+      img.src = sample.imageSvg;
+    } catch (_) {
+      setSelectedImageBase64(sample.imageSvg);
+    }
   };
 
   // Main generator trigger
@@ -284,7 +310,10 @@ export default function LandingBuilderView() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || `Lỗi máy chủ (${res.status})`);
+        const detailedMessage = errorData.details
+          ? `${errorData.error} (${errorData.details})`
+          : (errorData.error || `Lỗi máy chủ (${res.status})`);
+        throw new Error(detailedMessage);
       }
 
       const data = await res.json();

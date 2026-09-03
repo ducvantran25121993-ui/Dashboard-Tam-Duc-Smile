@@ -117,7 +117,6 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     category: 'Trí Tuệ Nhân Tạo & Thiết Kế',
     description: 'Tải ảnh chụp web đối thủ hoặc mẫu đẹp để AI tự động phân tích và code ra giao diện HTML5 + Tailwind CSS hoàn chỉnh.',
     icon: Wand2,
-    badge: 'Vision AI',
   },
   {
     id: 'ai_agent',

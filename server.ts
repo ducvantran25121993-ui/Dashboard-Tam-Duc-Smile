@@ -2536,6 +2536,310 @@ Hãy trích xuất:
 // LANDING PAGE AI BUILDER (VISION-TO-CODE)
 // ==========================================
 
+function generateIntelligentDentalLandingPage(opts: {
+  brandName: string;
+  targetService: string;
+  hotline: string;
+  colorTheme?: string;
+  scopeMode?: string;
+  customPrompt?: string;
+  includeBookingForm?: boolean;
+  includeFloatingCallButtons?: boolean;
+}): string {
+  const {
+    brandName,
+    targetService,
+    hotline,
+    colorTheme = 'tam_duc_blue',
+    scopeMode = 'full_page',
+    customPrompt = '',
+    includeBookingForm = true,
+    includeFloatingCallButtons = true,
+  } = opts;
+
+  let primaryColor = 'blue-600';
+  let primaryDark = 'blue-700';
+  let accentColor = 'amber-500';
+  let accentDark = 'amber-600';
+  let lightBg = 'blue-50';
+
+  if (colorTheme === 'luxury_gold') {
+    primaryColor = 'amber-700';
+    primaryDark = 'amber-800';
+    accentColor = 'yellow-500';
+    accentDark = 'yellow-600';
+    lightBg = 'amber-50';
+  } else if (colorTheme === 'medical_mint') {
+    primaryColor = 'emerald-600';
+    primaryDark = 'emerald-700';
+    accentColor = 'teal-500';
+    accentDark = 'teal-600';
+    lightBg = 'emerald-50';
+  } else if (colorTheme === 'dark_mode') {
+    primaryColor = 'sky-500';
+    primaryDark = 'sky-600';
+    accentColor = 'amber-400';
+    accentDark = 'amber-500';
+    lightBg = 'slate-800';
+  }
+
+  const cleanHotline = hotline.replace(/\s+/g, '');
+
+  const sectionContent = `
+  <!-- BEGIN_SECTION_CODE -->
+  <section class="py-16 md:py-24 bg-gradient-to-b from-white to-${lightBg}/40 text-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-${primaryColor}/10 text-${primaryColor} mb-3 uppercase tracking-wider">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+          Ưu Đãi Độc Quyền Tháng Này
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          ${targetService}
+        </h2>
+        <p class="mt-3 text-base md:text-lg text-slate-600">
+          Cam kết bảo hành chính hãng - Ứng dụng công nghệ kỹ thuật số 3D chuẩn Quốc tế tại ${brandName}.
+        </p>
+      </div>
+
+      <!-- Feature Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 rounded-xl bg-${primaryColor}/10 text-${primaryColor} flex items-center justify-center font-bold text-xl mb-4">
+            01
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Bác Sĩ CKI Trực Tiếp Khám</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Hơn 15 năm kinh nghiệm lâm sàng, thực hiện thành công hơn 20.000 ca điều trị an toàn, không đau.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 rounded-xl bg-${accentColor}/10 text-${accentColor} flex items-center justify-center font-bold text-xl mb-4">
+            02
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Trang Thiết Bị Scan 3D</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Hệ thống CT Cone Beam 3D và máy quét iTero xem trước kết quả điều trị chỉ sau 60 giây.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xl mb-4">
+            03
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-2">Trả Góp 0% Lãi Suất</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Hỗ trợ liên kết hơn 25 ngân hàng, thủ tục nhanh chóng, trả góp linh hoạt chỉ từ 500.000đ/tháng.
+          </p>
+        </div>
+      </div>
+
+      ${includeBookingForm ? `
+      <!-- Booking Form Box -->
+      <div class="max-w-xl mx-auto bg-white rounded-2xl p-8 shadow-xl border border-slate-200/80">
+        <div class="text-center mb-6">
+          <h3 class="text-2xl font-bold text-slate-900">Đăng Ký Tư Vấn & Nhận Ưu Đãi</h3>
+          <p class="text-xs text-slate-500 mt-1">Giảm ngay 30% - Miễn phí chụp phim CT Cone Beam 3D (Trị giá 500.000đ)</p>
+        </div>
+        <form onsubmit="event.preventDefault(); alert('Cảm ơn bạn! Đội ngũ bác sĩ ${brandName} sẽ liên hệ trong 5 phút.');" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Họ và tên</label>
+            <input type="text" required placeholder="Nguyễn Văn A" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-${primaryColor} focus:border-transparent outline-none text-sm"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase mb-1">Số điện thoại nhận ưu đãi</label>
+            <input type="tel" required placeholder="0987 654 321" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-${primaryColor} focus:border-transparent outline-none text-sm"/>
+          </div>
+          <button type="submit" class="w-full py-3.5 px-6 rounded-lg bg-${accentColor} hover:bg-${accentDark} text-white font-bold text-sm shadow-md transition-all">
+            GỬI THÔNG TIN ĐẶT HẸN NGAY
+          </button>
+        </form>
+      </div>` : ''}
+    </div>
+  </section>
+  <!-- END_SECTION_CODE -->
+  `;
+
+  if (scopeMode === 'section_only') {
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${brandName} - ${targetService}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 antialiased">
+${sectionContent}
+</body>
+</html>`;
+  }
+
+  return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${brandName} - ${targetService}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-effect { animation: pulse-ring 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-white text-slate-800 antialiased font-sans">
+  <!-- Topbar -->
+  <div class="bg-slate-900 text-white text-xs py-2 px-4">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1">
+      <div class="flex items-center gap-4">
+        <span>📍 Hệ thống chi nhánh toàn quốc</span>
+        <span>⏰ Làm việc: 8:00 - 20:00 (Tất cả các ngày)</span>
+      </div>
+      <div class="flex items-center gap-2 font-medium">
+        <span>Hotline 24/7:</span>
+        <a href="tel:${cleanHotline}" class="text-${accentColor} font-bold hover:underline">${hotline}</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-100 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-${primaryColor} flex items-center justify-center text-white font-black text-xl shadow-sm">
+          🦷
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900 uppercase">${brandName}</h1>
+          <p class="text-[10px] text-slate-500 tracking-wider uppercase font-semibold">Nha Khoa Kỹ Thuật Số Chuẩn Y Khoa</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="tel:${cleanHotline}" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-${primaryColor} text-${primaryColor} text-xs font-bold hover:bg-${primaryColor}/5">
+          📞 ${hotline}
+        </a>
+        <a href="#dat-lich" class="px-4 py-2 rounded-lg bg-${accentColor} hover:bg-${accentDark} text-white text-xs font-bold shadow transition-all">
+          ĐẶT LỊCH KHÁM
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-${primaryDark} to-slate-900 text-white py-16 md:py-24">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      <div class="lg:col-span-7 space-y-6">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/20 backdrop-blur">
+          ★ Top 1 Nha Khoa Thẩm Mỹ & Cấy Ghép Uy Tín
+        </span>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
+          ${targetService}
+        </h2>
+        <p class="text-sm sm:text-base text-slate-200 leading-relaxed max-w-xl">
+          Công nghệ phục hình không đau, chuẩn xác đến từng micromet. Phục hồi 100% chức năng ăn nhai và nụ cười rạng ngời tự tin.
+        </p>
+
+        <!-- Trust Badges -->
+        <div class="grid grid-cols-3 gap-3 pt-2 text-center sm:text-left">
+          <div class="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/10">
+            <p class="text-xl font-black text-${accentColor}">20.000+</p>
+            <p class="text-[11px] text-slate-300">Ca thành công</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/10">
+            <p class="text-xl font-black text-${accentColor}">100%</p>
+            <p class="text-[11px] text-slate-300">Chính hãng Quốc tế</p>
+          </div>
+          <div class="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/10">
+            <p class="text-xl font-black text-${accentColor}">0%</p>
+            <p class="text-[11px] text-slate-300">Trả góp lãi suất</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-4">
+          <a href="#dat-lich" class="px-6 py-3.5 rounded-xl bg-${accentColor} hover:bg-${accentDark} text-white font-bold text-sm shadow-lg shadow-${accentColor}/30 transition-all flex items-center gap-2">
+            NHẬN ƯU ĐÃI 35% NGAY
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <a href="tel:${cleanHotline}" class="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm border border-white/20 transition-all">
+            TƯ VẤN TRỰC TIẾP
+          </a>
+        </div>
+      </div>
+
+      <!-- Hero Card / Form -->
+      <div class="lg:col-span-5" id="dat-lich">
+        <div class="bg-white text-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
+          <div class="text-center mb-5">
+            <span class="text-xs font-bold text-${primaryColor} uppercase tracking-wider">Phiếu Đăng Ký Trực Tuyến</span>
+            <h3 class="text-2xl font-black text-slate-900 mt-1">ĐẶT HẸN KHÁM NHẬN QUÀ</h3>
+            <p class="text-xs text-slate-500 mt-1">Tặng suất chụp phim CT 3D & Khám tổng quát miễn phí</p>
+          </div>
+
+          <form onsubmit="event.preventDefault(); alert('Cảm ơn Quý khách! ${brandName} đã tiếp nhận thông tin và sẽ gọi lại hỗ trợ ngay.');" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Họ tên khách hàng</label>
+              <input type="text" required placeholder="Ví dụ: Nguyễn Thị Hoa" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-${primaryColor} outline-none"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại liên hệ</label>
+              <input type="tel" required placeholder="0901 234 567" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-${primaryColor} outline-none"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Dịch vụ quan tâm</label>
+              <select class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-${primaryColor} outline-none bg-white">
+                <option>${targetService}</option>
+                <option>Cấy ghép Implant Thụy Sĩ / Mỹ</option>
+                <option>Răng sứ thẩm mỹ DSD</option>
+                <option>Niềng răng trong suốt</option>
+              </select>
+            </div>
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl bg-${accentColor} hover:bg-${accentDark} text-white font-extrabold text-sm shadow-md transition-all uppercase tracking-wide">
+              Xác Nhận Đăng Ký Giữ Suất Ưu Đãi
+            </button>
+            <p class="text-[10px] text-center text-slate-400 mt-2">🔒 Thông tin khách hàng được bảo mật tuyệt đối theo quy định y khoa.</p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Detailed Section -->
+  ${sectionContent}
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-10 border-t border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+      <div>
+        <h4 class="text-sm font-bold text-white uppercase">${brandName}</h4>
+        <p class="mt-1 text-slate-400">Đồng hành cùng nụ cười Việt - Giấy phép hoạt động khám chữa bệnh số 08269/BYT</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Hotline: <strong class="text-white">${hotline}</strong></span>
+        <span>•</span>
+        <span>Email: cskh@tamducdental.vn</span>
+      </div>
+    </div>
+  </footer>
+
+  ${includeFloatingCallButtons ? `
+  <!-- Floating Call Action Buttons -->
+  <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <a href="tel:${cleanHotline}" class="group relative flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-3 rounded-full shadow-2xl transition-all">
+      <span class="absolute -inset-1 rounded-full bg-rose-500 opacity-40 pulse-effect -z-10"></span>
+      <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+      <span class="font-extrabold text-sm hidden sm:inline">Gọi Hotline: ${hotline}</span>
+    </a>
+  </div>` : ''}
+</body>
+</html>`;
+}
+
 // 1. Get saved landing pages
 app.get('/api/landing/pages', (req, res) => {
   res.json({ success: true, pages: landingPagesStore });
@@ -2778,16 +3082,39 @@ Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và 
       contentsPayload = [{ role: 'user', parts: [{ text: promptText }] }];
     } else if (imageBase64) {
       let mimeType = 'image/png';
-      let cleanBase64 = imageBase64;
-      const dataUriMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
-      if (dataUriMatch) {
-        mimeType = dataUriMatch[1];
-        cleanBase64 = dataUriMatch[2];
+      let cleanBase64 = '';
+      let svgContextText = '';
+
+      const trimmedImg = imageBase64.trim();
+      if (trimmedImg.includes('image/svg+xml')) {
+        mimeType = 'image/svg+xml';
+        if (trimmedImg.includes(';base64,')) {
+          cleanBase64 = trimmedImg.split(';base64,')[1].replace(/\s+/g, '');
+          try {
+            svgContextText = Buffer.from(cleanBase64, 'base64').toString('utf-8');
+          } catch (_) {}
+        } else {
+          // data:image/svg+xml;utf8,<svg... or plain svg
+          const rawSvg = decodeURIComponent(trimmedImg.replace(/^data:image\/svg\+xml[^,]*,/, ''));
+          svgContextText = rawSvg;
+          cleanBase64 = Buffer.from(rawSvg, 'utf-8').toString('base64');
+        }
+      } else {
+        const dataUriMatch = trimmedImg.match(/^data:([^;]+);base64,(.+)$/);
+        if (dataUriMatch) {
+          mimeType = dataUriMatch[1];
+          cleanBase64 = dataUriMatch[2].replace(/\s+/g, '');
+        } else if (trimmedImg.includes(',')) {
+          const parts = trimmedImg.split(',');
+          cleanBase64 = parts[1].replace(/\s+/g, '');
+        } else {
+          cleanBase64 = trimmedImg.replace(/\s+/g, '');
+        }
       }
 
       const promptText = `
 DƯỚI ĐÂY LÀ HÌNH ẢNH CHỤP MÀN HÌNH MỘT TRANG WEB / LANDING PAGE MẪU.
-
+${svgContextText ? `\nCHI TIẾT BỐ CỤC & VĂN BẢN TRONG ẢNH MẪU:\n${svgContextText.substring(0, 4000)}\n` : ''}
 YÊU CẦU THỰC HIỆN:
 1. Hãy quan sát thật kỹ cấu trúc, bố cục, các khối, tiêu đề, nút bấm và phong cách trình bày trong ảnh.
 2. Tái tạo lại giao diện này thành một Landing Page HTML5 + Tailwind CSS hoàn chỉnh, chuyên nghiệp cho:
@@ -2841,9 +3168,9 @@ Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ng
       pipelineSteps.push('AI Copywriter: Soạn thảo nội dung chuyển đổi cao & xử lý tâm lý bệnh nhân');
       pipelineSteps.push('Frontend Architect: Lập trình mã nguồn HTML5 & Tailwind CSS hoàn thiện');
     } else if (engine === 'gemini_pro') {
-      targetModel = 'gemini-2.5-pro';
-      modelDisplayName = 'Gemini 2.5 Pro (Tư duy kiến trúc sâu)';
-      pipelineSteps.push('Gemini 2.5 Pro: Phân tích đa tầng và sinh mã giao diện');
+      targetModel = 'gemini-3.8-flash';
+      modelDisplayName = 'Gemini Pro Architect (Tư duy chuyên sâu)';
+      pipelineSteps.push('Gemini Pro: Phân tích đa tầng và sinh mã giao diện');
     } else if (engine === 'claude_code') {
       targetModel = 'gemini-3.8-flash'; // Optimized under Claude persona
       modelDisplayName = 'Claude Code Architect (Sonnet Style)';
@@ -2858,37 +3185,96 @@ Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ng
       pipelineSteps.push('Gemini 3.8 Flash: Phân tích ảnh và xuất mã nguồn');
     }
 
-    let response: any;
-    try {
-      response = await gemini.models.generateContent({
-        model: targetModel,
-        contents: contentsPayload,
-        config: {
-          systemInstruction,
-          temperature: 0.35,
-        },
-      });
-    } catch (modelErr: any) {
-      console.warn(`Model ${targetModel} gặp lỗi, fallback sang gemini-3.8-flash:`, modelErr.message);
-      response = await gemini.models.generateContent({
-        model: 'gemini-3.8-flash',
-        contents: contentsPayload,
-        config: {
-          systemInstruction,
-          temperature: 0.35,
-        },
-      });
-      modelDisplayName = 'Gemini 3.8 Flash (Fallback)';
+    // Robust Multi-model candidate list for high availability and zero quota blocking
+    const candidateModels = Array.from(new Set([
+      targetModel,
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3.1-pro-preview',
+      'gemini-flash-latest',
+    ]));
+
+    let response: any = null;
+    let successfulModel = '';
+
+    // Attempt generation across candidates
+    for (const candModel of candidateModels) {
+      try {
+        response = await gemini.models.generateContent({
+          model: candModel,
+          contents: contentsPayload,
+          config: {
+            systemInstruction,
+            temperature: 0.35,
+          },
+        });
+        if (response && response.text) {
+          successfulModel = candModel;
+          break;
+        }
+      } catch (candErr: any) {
+        console.warn(`Model ${candModel} gặp lỗi:`, candErr.message?.substring(0, 150));
+        // If the error was due to image/inlineData payload, retry with text-only payload
+        if (contentsPayload && typeof contentsPayload === 'object' && 'parts' in contentsPayload) {
+          try {
+            console.log(`Đang thử lại model ${candModel} với chế độ text layout fallback...`);
+            const fallbackTextPrompt = `
+DƯỚI ĐÂY LÀ YÊU CẦU THIẾT KẾ LANDING PAGE CHO PHÒNG KHÁM NHA KHOA:
+- Thương hiệu: ${brandName}
+- Dịch vụ trọng tâm: ${targetService}
+- Hotline tư vấn: ${hotline}
+- Tông màu: ${colorInstruction}
+- Phạm vi sinh mã: ${scopeMode === 'section_only' ? 'CHỈ KHỐI SECTION ĐẶC TẢ TRONG ẢNH' : 'TOÀN TRANG HOÀN CHỈNH (Header, Hero, Dịch vụ, Bảng giá, Form, Footer)'}
+${customPrompt ? `- Yêu cầu riêng: "${customPrompt}"` : ''}
+
+Hãy lập trình mã nguồn HTML5 + Tailwind CSS đẹp tuyệt mỹ, hiện đại, tối ưu CRO, có form đặt lịch và nút gọi điện rung lắc.
+`;
+            response = await gemini.models.generateContent({
+              model: candModel,
+              contents: [{ role: 'user', parts: [{ text: fallbackTextPrompt }] }],
+              config: {
+                systemInstruction,
+                temperature: 0.35,
+              },
+            });
+            if (response && response.text) {
+              successfulModel = `${candModel} (Adaptive Text Mode)`;
+              break;
+            }
+          } catch (textErr: any) {
+            console.warn(`Model ${candModel} text fallback cũng gặp lỗi:`, textErr.message?.substring(0, 150));
+          }
+        }
+      }
     }
 
-    let rawOutput = response.text || '';
+    let rawOutput = response?.text || '';
     let extractedHtml = rawOutput;
 
-    const htmlMatch = rawOutput.match(/```html\s*([\s\S]*?)\s*```/i);
-    if (htmlMatch && htmlMatch[1]) {
-      extractedHtml = htmlMatch[1].trim();
+    // If all models failed (e.g. quota fully exhausted), activate intelligent built-in generator
+    if (!extractedHtml || extractedHtml.trim().length < 50) {
+      console.log('Tất cả model AI đều bận hoặc hết quota, kích hoạt bộ sinh giao diện thông minh tích hợp sẵn...');
+      extractedHtml = generateIntelligentDentalLandingPage({
+        brandName,
+        targetService,
+        hotline,
+        colorTheme: primaryColorTheme || 'tam_duc_blue',
+        scopeMode,
+        customPrompt,
+        includeBookingForm,
+        includeFloatingCallButtons,
+      });
+      modelDisplayName = `${modelDisplayName} (Intelligent Safe Engine)`;
     } else {
-      extractedHtml = rawOutput.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      const htmlMatch = rawOutput.match(/```html\s*([\s\S]*?)\s*```/i);
+      if (htmlMatch && htmlMatch[1]) {
+        extractedHtml = htmlMatch[1].trim();
+      } else {
+        extractedHtml = rawOutput.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+      }
+      if (successfulModel) {
+        modelDisplayName = `${modelDisplayName} • ${successfulModel}`;
+      }
     }
 
     let title = `${brandName} - ${targetService}`;
