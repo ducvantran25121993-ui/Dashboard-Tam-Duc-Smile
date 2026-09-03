@@ -944,51 +944,33 @@ ${activeItems
                 onClick={() => handleSelectMonthTab(tab.id, tab.monthNum)}
                 className={`p-2.5 rounded-xl border text-left transition-all duration-300 relative flex flex-col justify-between cursor-pointer overflow-hidden ${
                   isSelected
-                    ? 'month-tab-active bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-2 border-white ring-4 ring-amber-400/50 shadow-[0_0_25px_rgba(251,191,36,0.95),0_0_40px_rgba(245,158,11,0.5)] scale-[1.05] -translate-y-1 z-20 font-sans'
+                    ? 'month-tab-border-glow bg-slate-900/90 border-2 border-amber-400 ring-2 ring-amber-400/40 shadow-[0_0_18px_rgba(251,191,36,0.6),inset_0_0_10px_rgba(251,191,36,0.06)] scale-[1.03] -translate-y-0.5 z-20'
                     : 'bg-slate-950/70 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700 hover:scale-[1.02]'
                 }`}
               >
-                {/* Luminous Shimmer Sweep & Glowing Beacon for the Active Month Tab */}
+                {/* Luminous Top Beacon for the Active Month Tab */}
                 {isSelected && (
-                  <>
-                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-white shadow-[0_0_10px_#ffffff] z-30" />
-                    <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-10">
-                      <span className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shimmer" />
-                    </span>
-                  </>
+                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] z-30" />
                 )}
 
                 <div className="flex items-center justify-between z-20 relative">
                   <span
                     className={`text-xs font-black transition-all ${
                       isSelected
-                        ? 'text-slate-950 text-[13px] tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]'
+                        ? 'text-amber-400 text-[13px] tracking-tight drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]'
                         : 'text-slate-200'
                     }`}
                   >
                     {tab.short}
                   </span>
                   <div className="flex items-center gap-1">
-                    {tab.hasSheetPlan && (
-                      <span
-                        className={`text-[9px] px-1 py-0.2 rounded font-black border transition-all ${
-                          isSelected
-                            ? 'bg-slate-950 text-amber-300 border-slate-950 shadow-xs'
-                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
-                        }`}
-                      >
-                        KH
-                      </span>
-                    )}
                     <span
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        isSelected ? 'ring-2 ring-slate-950 shadow-sm' : ''
-                      } ${
                         !tab.hasData
-                          ? isSelected ? 'bg-slate-700' : 'bg-slate-600'
+                          ? 'bg-slate-600'
                           : tab.isOver
-                          ? isSelected ? 'bg-rose-600 shadow-[0_0_8px_#e11d48]' : 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
-                          : isSelected ? 'bg-emerald-600 shadow-[0_0_8px_#059669]' : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                          ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
+                          : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
                       }`}
                     />
                   </div>
@@ -999,7 +981,7 @@ ${activeItems
                     <span
                       className={`transition-all ${
                         isSelected
-                          ? 'text-slate-950 font-black text-xs drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)]'
+                          ? 'text-white font-black text-xs'
                           : tab.isOver
                           ? 'text-rose-400'
                           : 'text-slate-400'
@@ -1008,7 +990,7 @@ ${activeItems
                       {formatVND(tab.spent, 'million')}
                     </span>
                   ) : (
-                    <span className={isSelected ? 'text-slate-800 font-bold' : 'text-slate-600 font-normal'}>--</span>
+                    <span className={isSelected ? 'text-slate-400 font-bold' : 'text-slate-600 font-normal'}>--</span>
                   )}
                 </div>
 
@@ -1017,16 +999,16 @@ ${activeItems
                     <span
                       className={`font-mono transition-all ${
                         isSelected
-                          ? 'text-slate-900 font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]'
+                          ? 'text-amber-300 font-bold'
                           : 'text-amber-400/80'
                       }`}
                     >
                       Plan {formatVND(tab.sheetPlanBudget, 'million')}
                     </span>
                   ) : tab.id === 'all' ? (
-                    <span className={isSelected ? 'text-slate-950 font-black' : 'text-cyan-400/80'}>Cả năm</span>
+                    <span className={isSelected ? 'text-cyan-300 font-bold' : 'text-cyan-400/80'}>Cả năm</span>
                   ) : (
-                    <span className={isSelected ? 'text-slate-800 font-bold' : 'text-slate-600'}>Chưa có KH</span>
+                    <span className={isSelected ? 'text-slate-400 font-medium' : 'text-slate-600'}>Chưa có KH</span>
                   )}
                 </div>
               </button>
