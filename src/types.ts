@@ -12,6 +12,7 @@ export type SidebarTab =
   | 'sales_copilot'
   | 'consultation'
   | 'innovation'
+  | 'landing_builder'
   | 'ai_agent'
   | 'admin_hub';
 

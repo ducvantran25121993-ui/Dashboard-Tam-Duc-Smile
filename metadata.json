@@ -1,6 +1,6 @@
 {
   "name": "Dashboard Báo Cáo Doanh Thu",
-  "description": "Hệ thống phân tích đối thủ, quét thay đổi website và Trung tâm minh bạch quảng cáo Google Ads Transparency cho chuỗi nha khoa.",
+  "description": "Hệ thống phân tích đối thủ, quét thay đổi website, AI Vision-to-Code sinh mã Landing Page từ ảnh chụp và Trung tâm minh bạch quảng cáo Google Ads Transparency cho chuỗi nha khoa.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

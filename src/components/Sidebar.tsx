@@ -16,6 +16,7 @@ import {
   Swords,
   Sliders,
   Wallet,
+  Wand2,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
@@ -135,6 +136,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Lightbulb,
       badge: '6 Sáng kiến',
       badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+    },
+    {
+      id: 'landing_builder',
+      label: 'Tạo Landing Page AI',
+      icon: Wand2,
+      badge: 'Vision AI',
+      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
     },
     {
       id: 'ai_agent',

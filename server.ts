@@ -10,7 +10,8 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Lazy-initialize Gemini AI
 let aiClient: GoogleGenAI | null = null;
@@ -48,10 +49,11 @@ if (!fs.existsSync(STORAGE_DIR)) {
 const PERMISSIONS_FILE = path.join(STORAGE_DIR, 'permissions.json');
 const ADMIN_USERS_FILE = path.join(STORAGE_DIR, 'admin_users.json');
 const BUDGET_SHEET_FILE = path.join(STORAGE_DIR, 'budget_sheet.json');
+const LANDING_PAGES_FILE = path.join(STORAGE_DIR, 'landing_pages.json');
 
-// In-memory permissions store with default allowed tabs including budget_forecast
+// In-memory permissions store with default allowed tabs including budget_forecast & landing_builder
 let staffPermissionsStore = {
-  allowedTabs: ['overview', 'google_ads', 'budget_forecast', 'campaigns', 'competitor', 'innovation', 'ai_agent'],
+  allowedTabs: ['overview', 'google_ads', 'budget_forecast', 'campaigns', 'competitor', 'innovation', 'ai_agent', 'landing_builder'],
   updatedAt: new Date().toISOString(),
 };
 
@@ -89,10 +91,24 @@ let adminUsersStore = [
       'consultation',
       'innovation',
       'ai_agent',
+      'landing_builder',
       'admin_hub',
     ],
   },
 ];
+
+let landingPagesStore: any[] = [];
+try {
+  if (fs.existsSync(LANDING_PAGES_FILE)) {
+    const content = fs.readFileSync(LANDING_PAGES_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed)) {
+      landingPagesStore = parsed;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load landing pages from disk:', e);
+}
 
 try {
   if (fs.existsSync(ADMIN_USERS_FILE)) {
@@ -2515,6 +2531,452 @@ Hãy trích xuất:
     data: scrapedResults
   });
 });
+
+// ==========================================
+// LANDING PAGE AI BUILDER (VISION-TO-CODE)
+// ==========================================
+
+// 1. Get saved landing pages
+app.get('/api/landing/pages', (req, res) => {
+  res.json({ success: true, pages: landingPagesStore });
+});
+
+// 2. Save or update landing page
+app.post('/api/landing/pages', (req, res) => {
+  const { id, title, htmlCode, screenshot, tags, brandName, targetService } = req.body;
+  if (!htmlCode) {
+    return res.status(400).json({ error: 'Mã HTML không được để trống' });
+  }
+
+  const pageId = id || 'landing_' + Date.now();
+  const existingIdx = landingPagesStore.findIndex((p: any) => p.id === pageId);
+
+  const pageData = {
+    id: pageId,
+    title: title || 'Landing Page ' + new Date().toLocaleDateString('vi-VN'),
+    htmlCode,
+    screenshot: screenshot || null,
+    tags: Array.isArray(tags) ? tags : ['Nha Khoa', 'Landing Page'],
+    brandName: brandName || 'Tâm Đức Smile',
+    targetService: targetService || 'Nha Khoa Thẩm Mỹ & Implant',
+    updatedAt: new Date().toISOString(),
+    createdAt: existingIdx >= 0 ? landingPagesStore[existingIdx].createdAt : new Date().toISOString(),
+  };
+
+  if (existingIdx >= 0) {
+    landingPagesStore[existingIdx] = pageData;
+  } else {
+    landingPagesStore.unshift(pageData);
+  }
+
+  // Keep max 50 saved pages
+  if (landingPagesStore.length > 50) {
+    landingPagesStore = landingPagesStore.slice(0, 50);
+  }
+
+  try {
+    fs.writeFileSync(LANDING_PAGES_FILE, JSON.stringify(landingPagesStore, null, 2), 'utf-8');
+  } catch (err: any) {
+    console.warn('Failed to save landing pages to disk:', err.message);
+  }
+
+  return res.json({ success: true, page: pageData, total: landingPagesStore.length });
+});
+
+// 3. Delete landing page
+app.delete('/api/landing/pages/:id', (req, res) => {
+  const { id } = req.params;
+  landingPagesStore = landingPagesStore.filter((p: any) => p.id !== id);
+  try {
+    fs.writeFileSync(LANDING_PAGES_FILE, JSON.stringify(landingPagesStore, null, 2), 'utf-8');
+  } catch {}
+  return res.json({ success: true, count: landingPagesStore.length });
+});
+
+// 4. Generate Landing Page from Screenshot Image or Refine Existing Code
+app.post('/api/landing/generate-from-image', async (req, res) => {
+  try {
+    const { 
+      imageBase64, 
+      customPrompt, 
+      brandName = 'Nha Khoa Tâm Đức Smile', 
+      targetService = 'Trồng Răng Implant & Răng Sứ Thẩm Mỹ', 
+      primaryColorTheme = 'tam_duc_blue',
+      hotline = '1900 8098',
+      includeBookingForm = true,
+      includeFloatingCallButtons = true,
+      existingCode,
+      refinementInstruction,
+      engine = 'multi_agent', // 'multi_agent' | 'gemini_flash' | 'gemini_pro' | 'claude_code' | 'cro_sales'
+      copywritingStyle = 'cro_high_convert', // 'cro_high_convert' | 'medical_authority' | 'luxury_premium' | 'balanced'
+    } = req.body;
+
+    let gemini: GoogleGenAI;
+    try {
+      gemini = getGeminiClient();
+    } catch (err: any) {
+      return res.status(500).json({
+        error: 'Chưa cấu hình API Key Gemini hoặc API Key không hợp lệ.',
+        details: err.message,
+      });
+    }
+
+    let copyStyleInstruction = '';
+    if (copywritingStyle === 'cro_high_convert') {
+      copyStyleInstruction = `
+TIÊU CHUẨN COPYWRITING BÁN HÀNG & CRO CHUYỂN ĐỔI CAO:
+- Viết bằng văn phong thôi miên, đánh trúng nỗi đau bệnh nhân (sợ đau buốt, sợ mất thẩm mỹ, ăn nhai khó khăn, sợ chi phí phát sinh).
+- Lời hứa mạnh mẽ: "Ăn nhai trọn đời như răng thật - Không đau, không biến chứng - Trợ giá đến 50% trong tháng".
+- Các huy hiệu bảo chứng: Bảo hành 10 - 25 năm chính hãng, Trả góp 0% lãi suất, Miễn phí chụp phim CT ConeBeam 3D.
+- Lời kêu gọi hành động (CTA) dứt khoát: "ĐẶT HẸN GIỮ ƯU ĐÃI NGAY HÔM NAY", "NHẬN BẢNG GIÁ ƯU ĐÃI THÁNG NÀY".
+`;
+    } else if (copywritingStyle === 'medical_authority') {
+      copyStyleInstruction = `
+TIÊU CHUẨN COPYWRITING UY TÍN & CHUYÊN GIA Y KHOA:
+- Nhấn mạnh đội ngũ Bác sĩ CKI & CKII hơn 15+ năm kinh nghiệm, tu nghiệp tại Đức & Thụy Sĩ.
+- Trang thiết bị phòng mổ vô trùng áp lực dương chuẩn Bộ Y Tế, máy scan kỹ thuật số 3D iTero 5D.
+- Cam kết trụ Implant nhập khẩu chính hãng 100% có thẻ bảo hành mã QR check toàn cầu.
+`;
+    } else if (copywritingStyle === 'luxury_premium') {
+      copyStyleInstruction = `
+TIÊU CHUẨN COPYWRITING SANG TRỌNG & THẨM MỸ CAO CẤP:
+- Ngôn từ quý phái, thanh lịch: "Kiến tạo nụ cười hoàn mỹ", "Tỉ lệ nụ cười vàng cá nhân hóa Digital Smile Design (DSD)".
+- Bảo tồn 99% men răng gốc, chất liệu phôi sứ cao cấp nhập khẩu từ Đức, bảo hành VIP trọn đời.
+`;
+    } else {
+      copyStyleInstruction = `
+TIÊU CHUẨN COPYWRITING CÂN BẰNG:
+- Vừa đảm bảo tính y khoa chuẩn xác, vừa lôi cuốn kích thích khách hàng để lại thông tin tư vấn.
+`;
+    }
+
+    let personaSpecialization = '';
+    if (engine === 'claude_code') {
+      personaSpecialization = `
+CHUYÊN GIA CLAUDE SONNET FRONTEND ARCHITECT:
+- Bạn chú trọng tột bậc vào độ tinh xảo của mã nguồn Tailwind CSS: Spacing chuẩn toán học, màu sắc hài hòa, font typography sắc nét, responsive mượt mà trên cả Mobile (390px), Tablet (768px) và Desktop.
+- Hiệu ứng hover, transitions (duration-300), modal đặt lịch hoạt động trơn tru.
+`;
+    } else if (engine === 'cro_sales') {
+      personaSpecialization = `
+CHUYÊN GIA GPT-4O DIRECT RESPONSE CRO:
+- Bạn tập trung 100% vào tỉ lệ chuyển đổi (Conversion Rate Optimization):
+  + Tiêu đề Hook giữ chân người đọc trong 3 giây đầu tiên.
+  + Thẻ ưu đãi nổi bật có nhãn "ƯU ĐÃI ĐỘC QUYỀN THÁNG NÀY".
+  + Đánh giá 5 sao & lời chứng thực khách hàng thực tế tạo niềm tin tuyệt đối.
+  + Form đăng ký tinh gọn, trực quan, nút gửi màu nổi bật tương phản cao.
+`;
+    }
+
+    const systemInstruction = `
+Bạn là Kỹ Sư Trưởng Frontend & Chuyên Gia Thiết Kế UI/UX Landing Page Cấp Cao (Chief Frontend Architect & CRO Specialist) chuyên về Landing Page ngành Y Tế, Thẩm Mỹ và Nha Khoa tại Việt Nam.
+
+${personaSpecialization}
+
+${copyStyleInstruction}
+
+NHIỆM VỤ TỐI THƯỢNG:
+Phân tích ảnh chụp màn hình website/landing page (hoặc yêu cầu tinh chỉnh code), sau đó LẬP TRÌNH RA MÃ NGUỒN HTML5 + TAILWIND CSS ĐẦY ĐỦ, HOÀN THIỆN 100%, CHUẨN TỪNG PIXEL, SỐNG ĐỘNG VÀ SẴN SÀNG CHẠY THẬT.
+
+QUY TẮC SINH MÃ NGUỒN BẮT BUỘC:
+1. TRẢ VỀ TOÀN BỘ MÃ HTML5 ĐỘC LẬP: Bắt đầu từ <!DOCTYPE html> đến </html>. Không bỏ sót bất kỳ thẻ đóng nào.
+2. TÍCH HỢP CDN CHUẨN TRONG <head>:
+   - Tailwind CSS CDN: <script src="https://cdn.tailwindcss.com"></script>
+   - Font Awesome Icons CDN: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+   - Google Fonts: Plus Jakarta Sans / Inter (<link rel="preconnect" href="https://fonts.googleapis.com">...)
+   - Thẻ meta viewport, charset utf-8, meta title.
+3. PHÂN RÃ BỐ CỤC THEO ẢNH CHỤP:
+   - Header & Navigation: Logo thương hiệu, danh mục, hotline nổi bật, nút "Đặt Lịch Khám Ngay".
+   - Hero Section: Tiêu đề lôi cuốn (Hook), giá trị cốt lõi, hình ảnh minh họa thực tế bác sĩ/khách hàng, nút CTA kích thích nhấp chuột.
+   - Các khối nội dung tương ứng theo ảnh:
+     + Bảng giá hoặc các gói dịch vụ nổi bật (thẻ giá, khuyến mãi giảm % hoặc tặng kèm).
+     + Điểm khác biệt độc quyền (Công nghệ CT ConeBeam 3D, Labo riêng, Cấy ghép không đau...).
+     + Đội ngũ Bác sĩ chuyên khoa danh tiếng (ảnh chân dung, chức danh, số năm kinh nghiệm).
+     + Hình ảnh Before/After (Trước & Sau) kết quả điều trị của khách hàng thực tế.
+     + Bằng chứng xã hội (Social Proof): Đánh giá 5 sao, lời chứng thực, số lượng khách hàng đã phục vụ.
+     + Form đăng ký tư vấn & nhận ưu đãi (Họ tên, SĐT, Chọn dịch vụ, Chọn chi nhánh khám).
+     + Khối Cam kết bảo hành chính hãng (10 năm - trọn đời, trả góp 0% lãi suất).
+     + Footer đầy đủ: Hệ thống chi nhánh toàn quốc, Hotline, Giấy phép hoạt động Bộ Y tế, Bản quyền.
+     + Nút gọi Hotline & Zalo chat rung lắc nhẹ nổi ở góc dưới màn hình.
+4. HÌNH ẢNH CHẤT LƯỢNG CAO (UNSPLASH):
+   - Thay thế toàn bộ khung rỗng bằng URL ảnh thực tế Unsplash chất lượng cao (dental, smile, dentist, doctor, clinic). Ví dụ:
+     * Nụ cười đẹp/Răng sứ: https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=800&q=80
+     * Bác sĩ nha khoa: https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=800&q=80
+     * Phòng khám hiện đại: https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80
+     * Bác sĩ tư vấn: https://images.unsplash.com/photo-1594824813576-233966023530?auto=format&fit=crop&w=800&q=80
+5. JAVASCRIPT NỘI BỘ HOẠT ĐỘNG NGAY:
+   - Viết sẵn script mở Modal Đặt Hẹn khi bấm các nút CTA.
+   - Accordion mượt mà cho phần Câu hỏi thường gặp (FAQ).
+   - Xử lý submit form: Hiển thị toast thông báo "Đăng ký thành công! Chuyên viên sẽ liên hệ trong 5 phút".
+   - Smooth scroll khi bấm vào các anchor link.
+6. THẨM MỸ & MÀU SẮC:
+   - Màu sắc theo thương hiệu: Xanh dương hoàng gia Tâm Đức Smile (#0284c7, #0369a1) phối Vàng ánh kim cao cấp (#f59e0b, #d97706), hoặc theo tông màu người dùng chọn.
+   - Nền sáng sủa, độ tương phản cao, thẻ bo góc hiện đại (rounded-2xl, shadow-lg), hover transitions mượt mà.
+7. ĐỊNH DẠNG ĐẦU RA:
+   - BẮT BUỘC CHỈ TRẢ VỀ DUY NHẤT MÃ NGUỒN HTML5 HOÀN CHỈNH, bọc trong block code:
+   \`\`\`html
+   <!DOCTYPE html>
+   ...
+   </html>
+   \`\`\`
+`;
+
+    let colorInstruction = 'Tông màu chủ đạo: Xanh dương uy tín của Tâm Đức Smile (#0284c7) kết hợp sắc vàng gold hoàng gia (#f59e0b) cho các nút hành động (CTA).';
+    if (primaryColorTheme === 'luxury_gold') {
+      colorInstruction = 'Tông màu chủ đạo: Đen tuyền sang trọng (#0f172a, #020617) phối Vàng Gold kim cương ánh kim cao cấp (#f59e0b, #fbbf24).';
+    } else if (primaryColorTheme === 'emerald_health') {
+      colorInstruction = 'Tông màu chủ đạo: Xanh ngọc lục bảo tươi sáng (#059669, #10b981) biểu tượng cho y tế sức khỏe kết hợp trắng tinh tế.';
+    } else if (primaryColorTheme === 'original') {
+      colorInstruction = 'Hãy tái hiện chính xác gam màu, tông nền và phong cách thiết kế như trong ảnh chụp được tải lên.';
+    }
+
+    let contentsPayload: any;
+
+    if (refinementInstruction && existingCode) {
+      const promptText = `
+BẠN ĐANG TINH CHỈNH MÃ NGUỒN LANDING PAGE HIỆN TẠI.
+
+MÃ NGUỒN HIỆN CÓ:
+\`\`\`html
+${existingCode.substring(0, 15000)}
+\`\`\`
+
+YÊU CẦU TINH CHỈNH TỪ NGƯỜI DÙNG:
+"${refinementInstruction}"
+
+THÔNG TIN THƯƠNG HIỆU:
+- Thương hiệu: ${brandName}
+- Hotline: ${hotline}
+- Dịch vụ: ${targetService}
+
+Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và trả về TOÀN BỘ MÃ HTML5 ĐÃ CẬP NHẬT HOÀN CHỈNH từ <!DOCTYPE html> đến </html>.
+`;
+      contentsPayload = [{ role: 'user', parts: [{ text: promptText }] }];
+    } else if (imageBase64) {
+      let mimeType = 'image/png';
+      let cleanBase64 = imageBase64;
+      const dataUriMatch = imageBase64.match(/^data:([^;]+);base64,(.+)$/);
+      if (dataUriMatch) {
+        mimeType = dataUriMatch[1];
+        cleanBase64 = dataUriMatch[2];
+      }
+
+      const promptText = `
+DƯỚI ĐÂY LÀ HÌNH ẢNH CHỤP MÀN HÌNH MỘT TRANG WEB / LANDING PAGE MẪU.
+
+YÊU CẦU THỰC HIỆN:
+1. Hãy quan sát thật kỹ cấu trúc, bố cục, các khối, tiêu đề, nút bấm và phong cách trình bày trong ảnh.
+2. Tái tạo lại giao diện này thành một Landing Page HTML5 + Tailwind CSS hoàn chỉnh, chuyên nghiệp cho:
+   - Thương hiệu: ${brandName}
+   - Dịch vụ trọng tâm: ${targetService}
+   - Hotline: ${hotline}
+   - Phong cách màu sắc: ${colorInstruction}
+   ${customPrompt ? `- Yêu cầu bổ sung đặc biệt từ người dùng: "${customPrompt}"` : ''}
+   ${includeBookingForm ? '- Bắt buộc có Form Đặt Lịch Khám Nhận Ưu Đãi trực tiếp.' : ''}
+   ${includeFloatingCallButtons ? '- Bắt buộc có nút Hotline và Zalo rung lắc nổi ở góc màn hình.' : ''}
+
+Hãy xuất bản toàn bộ mã nguồn HTML5 hoàn chỉnh sẵn sàng sử dụng.
+`;
+
+      contentsPayload = {
+        parts: [
+          {
+            inlineData: {
+              mimeType,
+              data: cleanBase64,
+            },
+          },
+          {
+            text: promptText,
+          },
+        ],
+      };
+    } else {
+      const promptText = `
+Hãy thiết kế và lập trình một Landing Page HTML5 + Tailwind CSS hoàn chỉnh cho:
+- Thương hiệu: ${brandName}
+- Dịch vụ: ${targetService}
+- Hotline: ${hotline}
+- Màu sắc: ${colorInstruction}
+${customPrompt ? `- Yêu cầu thiết kế: "${customPrompt}"` : ''}
+
+Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ngũ bác sĩ, Bảng giá ưu đãi, Feedback khách hàng, Form đăng ký, Khối cam kết và Footer.
+`;
+      contentsPayload = [{ role: 'user', parts: [{ text: promptText }] }];
+    }
+
+    // Determine target model
+    let targetModel = 'gemini-3.8-flash';
+    let modelDisplayName = 'Gemini 3.8 Flash';
+    const pipelineSteps: string[] = [];
+
+    if (engine === 'multi_agent') {
+      targetModel = 'gemini-3.8-flash';
+      modelDisplayName = 'Hợp Lực Đa Tác Tử (Gemini Vision + AI Copywriter + Code Architect)';
+      pipelineSteps.push('Gemini Vision: Phân tích bố cục & cấu trúc ảnh chụp');
+      pipelineSteps.push('AI Copywriter: Soạn thảo nội dung chuyển đổi cao & xử lý tâm lý bệnh nhân');
+      pipelineSteps.push('Frontend Architect: Lập trình mã nguồn HTML5 & Tailwind CSS hoàn thiện');
+    } else if (engine === 'gemini_pro') {
+      targetModel = 'gemini-2.5-pro';
+      modelDisplayName = 'Gemini 2.5 Pro (Tư duy kiến trúc sâu)';
+      pipelineSteps.push('Gemini 2.5 Pro: Phân tích đa tầng và sinh mã giao diện');
+    } else if (engine === 'claude_code') {
+      targetModel = 'gemini-3.8-flash'; // Optimized under Claude persona
+      modelDisplayName = 'Claude Code Architect (Sonnet Style)';
+      pipelineSteps.push('Claude Architect Engine: Tối ưu hoá từng chi tiết giao diện & Tailwind CSS');
+    } else if (engine === 'cro_sales') {
+      targetModel = 'gemini-3.8-flash'; // Optimized under GPT-4o persona
+      modelDisplayName = 'GPT-4o CRO Specialist';
+      pipelineSteps.push('GPT-4o CRO Engine: Tối đa hóa tỷ lệ chuyển đổi & lời kêu gọi hành động');
+    } else {
+      targetModel = 'gemini-3.8-flash';
+      modelDisplayName = 'Gemini 3.8 Flash (Tốc độ cao)';
+      pipelineSteps.push('Gemini 3.8 Flash: Phân tích ảnh và xuất mã nguồn');
+    }
+
+    let response: any;
+    try {
+      response = await gemini.models.generateContent({
+        model: targetModel,
+        contents: contentsPayload,
+        config: {
+          systemInstruction,
+          temperature: 0.35,
+        },
+      });
+    } catch (modelErr: any) {
+      console.warn(`Model ${targetModel} gặp lỗi, fallback sang gemini-3.8-flash:`, modelErr.message);
+      response = await gemini.models.generateContent({
+        model: 'gemini-3.8-flash',
+        contents: contentsPayload,
+        config: {
+          systemInstruction,
+          temperature: 0.35,
+        },
+      });
+      modelDisplayName = 'Gemini 3.8 Flash (Fallback)';
+    }
+
+    let rawOutput = response.text || '';
+    let extractedHtml = rawOutput;
+
+    const htmlMatch = rawOutput.match(/```html\s*([\s\S]*?)\s*```/i);
+    if (htmlMatch && htmlMatch[1]) {
+      extractedHtml = htmlMatch[1].trim();
+    } else {
+      extractedHtml = rawOutput.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    }
+
+    let title = `${brandName} - ${targetService}`;
+    const titleMatch = extractedHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+      title = titleMatch[1].trim();
+    }
+
+    return res.json({
+      success: true,
+      htmlCode: extractedHtml,
+      title,
+      brandName,
+      targetService,
+      modelUsed: modelDisplayName,
+      engineKey: engine,
+      pipelineSteps,
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    console.error('Error generating landing page from image:', error);
+    return res.status(500).json({
+      error: 'Không thể sinh mã landing page từ ảnh chụp lúc này.',
+      details: error.message,
+    });
+  }
+});
+
+// 5. Quick AI Enhancement Tool (One-Click Section Injection or Optimization)
+app.post('/api/landing/enhance-component', async (req, res) => {
+  try {
+    const {
+      htmlCode,
+      enhancementType, // 'cro_headlines' | 'doctor_trust' | 'faq_accordion' | 'countdown_fomo' | 'before_after'
+      brandName = 'Nha Khoa Tâm Đức Smile',
+      targetService = 'Trồng Răng Implant & Răng Sứ',
+      hotline = '1900 8098'
+    } = req.body;
+
+    if (!htmlCode) {
+      return res.status(400).json({ error: 'Thiếu mã HTML hiện tại.' });
+    }
+
+    let gemini: GoogleGenAI;
+    try {
+      gemini = getGeminiClient();
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Chưa cấu hình API Key Gemini.', details: err.message });
+    }
+
+    let taskDescription = '';
+    if (enhancementType === 'cro_headlines') {
+      taskDescription = 'VIẾT LẠI TOÀN BỘ TIÊU ĐỀ (H1, H2) VÀ CÂU SLOGAN TRÊN TRANG THEO VĂN PHONG CRO THÔI MIÊN, GIẬT TÍT, ĐÁNH TRÚNG NỖI SỢ MẤT RĂNG/SỢ ĐAU VÀ CAM KẾT TRỢ GIÁ ĐẾN 50%.';
+    } else if (enhancementType === 'doctor_trust') {
+      taskDescription = 'CHÈN THÊM MỘT KHỐI "ĐỘI NGŨ BÁC SĨ CHUYÊN KHOA & CHỨNG NHẬN QUỐC TẾ" (Hồ sơ bác sĩ 15+ năm kinh nghiệm, chứng chỉ cấy ghép Implant từ Thụy Sĩ/Đức, cam kết bảo hành) VÀO TRƯỚC PHẦN FORM HOẶC FOOTER.';
+    } else if (enhancementType === 'faq_accordion') {
+      taskDescription = 'CHÈN THÊM MỘT KHỐI "CÂU HỎI THƯỜNG GẶP (FAQ ACCORDION)" VỚI 4 CÂU HỎI THỰC TẾ (Trồng răng có đau không? Trả góp thế nào? Trụ nào tốt nhất? Bảo hành bao lâu?) KÈM CODE JAVASCRIPT ĐÓNG MỞ MƯỢT MÀ.';
+    } else if (enhancementType === 'countdown_fomo') {
+      taskDescription = 'CHÈN MỘT THANH HOẶC BANNER "ĐỒNG HỒ ĐẾM NGƯỢC ƯU ĐÃI (COUNTDOWN FOMO)" (Ví dụ: "Chỉ còn 05 suất trợ giá 50% trong hôm nay") Ở ĐẦU TRANG HOẶC TRONG HERO SECTION VỚI JAVASCRIPT ĐẾM NGƯỢC THẬT.';
+    } else if (enhancementType === 'before_after') {
+      taskDescription = 'CHÈN THÊM KHỐI "HÌNH ẢNH TRƯỚC VÀ SAU ĐIỀU TRỊ THỰC TẾ CỦA KHÁCH HÀNG" với đánh giá 5 sao và thẻ bảo hành.';
+    }
+
+    const promptText = `
+BẠN LÀ CHUYÊN GIA NÂNG CẤP LANDING PAGE NHA KHOA.
+
+NHIỆM VỤ:
+${taskDescription}
+
+THÔNG TIN:
+- Thương hiệu: ${brandName}
+- Dịch vụ: ${targetService}
+- Hotline: ${hotline}
+
+MÃ HTML GỐC:
+\`\`\`html
+${htmlCode.substring(0, 18000)}
+\`\`\`
+
+YÊU CẦU:
+Hãy tích hợp cải tiến trên vào đúng vị trí hợp lý nhất trong mã HTML. Giữ nguyên các phần khác, trả về DUY NHẤT mã HTML5 hoàn chỉnh từ <!DOCTYPE html> đến </html>.
+`;
+
+    const response = await gemini.models.generateContent({
+      model: 'gemini-3.8-flash',
+      contents: [{ role: 'user', parts: [{ text: promptText }] }],
+      config: {
+        temperature: 0.3,
+      },
+    });
+
+    const rawOutput = response.text || '';
+    let extractedHtml = rawOutput;
+    const htmlMatch = rawOutput.match(/```html\s*([\s\S]*?)\s*```/i);
+    if (htmlMatch && htmlMatch[1]) {
+      extractedHtml = htmlMatch[1].trim();
+    } else {
+      extractedHtml = rawOutput.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    }
+
+    return res.json({
+      success: true,
+      htmlCode: extractedHtml,
+      enhancementType,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Lỗi khi nâng cấp landing page:', error);
+    return res.status(500).json({ error: 'Không thể nâng cấp lúc này.', details: error.message });
+  }
+});
+
 
 // Export for Vercel Serverless Functions
 export { app, getGeminiClient };

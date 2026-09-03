@@ -20,6 +20,7 @@ export const DEFAULT_SUPER_ADMIN_USER: AdminUser = {
     'sales_copilot',
     'consultation',
     'innovation',
+    'landing_builder',
     'ai_agent',
     'admin_hub',
   ],

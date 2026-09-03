@@ -12,6 +12,7 @@ import { LeadsFunnelView } from './components/LeadsFunnelView';
 import { CampaignsView } from './components/CampaignsView';
 import { CompetitorTrackingView } from './components/CompetitorTrackingView';
 import { SalesCopilotView, ConsultationView } from './components/ExtraViews';
+import LandingBuilderView from './components/LandingBuilderView';
 import { KPISummary } from './components/KPISummary';
 import { CostChart } from './components/CostChart';
 import { RevenueChart } from './components/RevenueChart';
@@ -419,6 +420,7 @@ export default function App() {
                     {activeSidebarTab === 'sales_copilot' && 'Sales Copilot AI'}
                     {activeSidebarTab === 'consultation' && 'Hội Thoại Tư Vấn'}
                     {activeSidebarTab === 'innovation' && 'Sáng Tạo & Đổi Mới'}
+                    {activeSidebarTab === 'landing_builder' && 'Tạo Landing Page AI (Vision to Code)'}
                     {activeSidebarTab === 'ai_agent' && 'AI — Trợ Lý Tăng Trưởng'}
                   </h1>
                   {userRole === 'admin' && (
@@ -586,6 +588,8 @@ export default function App() {
           {activeSidebarTab === 'consultation' && <ConsultationView />}
 
           {activeSidebarTab === 'innovation' && <InnovationView />}
+
+          {activeSidebarTab === 'landing_builder' && <LandingBuilderView />}
 
           {activeSidebarTab === 'ai_agent' && (
             <AIAgentView monthlyDatasets={monthlyDatasets} />

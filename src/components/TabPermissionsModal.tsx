@@ -24,6 +24,7 @@ import {
   Cloud,
   Globe,
   Loader2,
+  Wand2,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { savePermissionsToCloud } from '../services/cloudPermissionsService';
@@ -111,6 +112,14 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     badge: '6 Sáng Kiến',
   },
   {
+    id: 'landing_builder',
+    label: 'Tạo Landing Page AI (Vision to Code)',
+    category: 'Trí Tuệ Nhân Tạo & Thiết Kế',
+    description: 'Tải ảnh chụp web đối thủ hoặc mẫu đẹp để AI tự động phân tích và code ra giao diện HTML5 + Tailwind CSS hoàn chỉnh.',
+    icon: Wand2,
+    badge: 'Vision AI',
+  },
+  {
     id: 'ai_agent',
     label: 'Trợ Lý Tăng Trưởng AI',
     category: 'Trí Tuệ Nhân Tạo',
@@ -135,6 +144,7 @@ export const DEFAULT_STAFF_ALLOWED_TABS: SidebarTab[] = [
   'campaigns',
   'competitor',
   'innovation',
+  'landing_builder',
   'ai_agent',
 ];
 
