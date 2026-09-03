@@ -52,9 +52,50 @@ import {
 } from './services/googleSheetsService';
 
 export default function App() {
-  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>('google_ads');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>(() => {
+    try {
+      const saved = localStorage.getItem('dashboard_active_sidebar_tab');
+      if (saved) return saved as SidebarTab;
+    } catch {}
+    return 'google_ads';
+  });
+
+  const handleSelectSidebarTab = (tab: SidebarTab) => {
+    setActiveSidebarTab(tab);
+    try {
+      localStorage.setItem('dashboard_active_sidebar_tab', tab);
+    } catch {}
+  };
+
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<MonthTab>(7);
+
+  // Initialize month tab with current real-world month (or saved preference)
+  const [activeTab, setActiveTab] = useState<MonthTab>(() => {
+    try {
+      const saved = localStorage.getItem('dashboard_active_month_tab');
+      if (saved) {
+        if (saved === 'overview') return 'overview';
+        const parsed = parseInt(saved, 10);
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 9) {
+          return parsed as MonthTab;
+        }
+      }
+    } catch {}
+
+    const currentCalendarMonth = new Date().getMonth() + 1; // 1 to 12
+    if (currentCalendarMonth >= 1 && currentCalendarMonth <= 9) {
+      return currentCalendarMonth as MonthTab;
+    }
+    return 9;
+  });
+
+  const handleSelectMonthTab = (tab: MonthTab) => {
+    setActiveTab(tab);
+    try {
+      localStorage.setItem('dashboard_active_month_tab', String(tab));
+    } catch {}
+  };
+
   const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('full');
 
   // Authentication State
@@ -285,8 +326,10 @@ export default function App() {
     return () => clearInterval(interval);
   }, [autoRefreshEnabled, sheetUrl, loadSheetData]);
 
-  // Find dataset for active month
-  const currentMonthNum = typeof activeTab === 'number' ? activeTab : 1;
+  // Find dataset for active month (defaults to current real calendar month)
+  const currentCalendarMonth = new Date().getMonth() + 1;
+  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 9 ? currentCalendarMonth : 9;
+  const currentMonthNum = typeof activeTab === 'number' ? activeTab : defaultCurrentMonth;
   const currentMonthData = monthlyDatasets.find((m) => m.month === currentMonthNum) || monthlyDatasets[0] || MONTHLY_DATA[0];
 
   return (
@@ -327,7 +370,7 @@ export default function App() {
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeSidebarTab}
-        onSelectTab={setActiveSidebarTab}
+        onSelectTab={handleSelectSidebarTab}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         userRole={userRole}
@@ -345,7 +388,7 @@ export default function App() {
         {activeSidebarTab === 'google_ads' ? (
           <Header
             activeTab={activeTab}
-            onSelectTab={setActiveTab}
+            onSelectTab={handleSelectMonthTab}
             displayUnit={displayUnit}
             onSelectUnit={setDisplayUnit}
             monthlyData={monthlyDatasets}
@@ -505,7 +548,7 @@ export default function App() {
             <WorkOverview
               monthlyDatasets={monthlyDatasets}
               displayUnit={displayUnit}
-              onNavigateToTab={setActiveSidebarTab}
+              onNavigateToTab={handleSelectSidebarTab}
               isLive={isLive}
               lastUpdated={lastUpdated}
             />
@@ -515,6 +558,14 @@ export default function App() {
             <BudgetForecastView
               monthlyDatasets={monthlyDatasets}
               displayUnit={displayUnit}
+              activeMonth={typeof activeTab === 'number' ? activeTab : defaultCurrentMonth}
+              onSelectMonth={(m) => {
+                if (typeof m === 'number' && m >= 1 && m <= 9) {
+                  handleSelectMonthTab(m as MonthTab);
+                } else if (m === 'all') {
+                  handleSelectMonthTab('overview');
+                }
+              }}
             />
           )}
 
@@ -544,14 +595,14 @@ export default function App() {
             <AdminHubView
               onOpenTabPermissions={() => setIsTabPermissionsOpen(true)}
               onOpenChangePassword={() => setIsChangePasswordOpen(true)}
-              onNavigateToTab={setActiveSidebarTab}
+              onNavigateToTab={handleSelectSidebarTab}
               currentSheetUrl={sheetUrl}
               onUpdateSheetUrl={(newUrl) => {
                 setSheetUrl(newUrl);
                 loadSheetData(newUrl);
               }}
               monthlyDatasets={monthlyDatasets}
-              activeMonth={typeof activeTab === 'number' ? activeTab : 8}
+              activeMonth={typeof activeTab === 'number' ? activeTab : defaultCurrentMonth}
             />
           )}
 

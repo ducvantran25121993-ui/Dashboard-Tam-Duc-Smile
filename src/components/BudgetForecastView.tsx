@@ -70,6 +70,8 @@ import {
 interface BudgetForecastViewProps {
   monthlyDatasets: MonthDataset[];
   displayUnit?: DisplayUnit;
+  activeMonth?: number | string;
+  onSelectMonth?: (month: number | string) => void;
 }
 
 interface ServiceBudgetItem {
@@ -261,6 +263,8 @@ function monthDataExists(m: MonthDataset | undefined): m is MonthDataset {
 export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   monthlyDatasets,
   displayUnit = 'full',
+  activeMonth,
+  onSelectMonth,
 }) => {
   // Main view mode: 'cards_grid' (Dạng Thẻ Tiến Độ theo ảnh), 'sheet_plan' (Dạng Bảng), 'simulation' (Mô Phỏng Doanh Thu & ROI)
   const [activeViewMode, setActiveViewMode] = useState<'cards_grid' | 'sheet_plan' | 'simulation'>('cards_grid');
@@ -269,8 +273,27 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [budgetScenario, setBudgetScenario] = useState<'base_100' | 'reduced_30' | 'reduced_extra_30' | 'custom'>('base_100');
   const [customReductionPct, setCustomReductionPct] = useState<number>(20); // % giảm tùy chỉnh
 
-  // Selected Month for comparison (Default T8 as current plan in Google Sheet)
-  const [selectedMonth, setSelectedMonth] = useState<string>('t8');
+  // Helper to resolve month tab key (e.g. 9 -> 't9', 't9' -> 't9', 'all' -> 'all')
+  const resolveMonthKey = (m?: number | string) => {
+    if (!m) {
+      const currentCalendarMonth = new Date().getMonth() + 1;
+      return currentCalendarMonth >= 1 && currentCalendarMonth <= 9 ? `t${currentCalendarMonth}` : 't9';
+    }
+    if (typeof m === 'number') return `t${m}`;
+    const lower = String(m).toLowerCase();
+    if (lower === 'all' || lower.startsWith('t')) return lower;
+    return `t${lower}`;
+  };
+
+  // Selected Month for comparison (Synced with activeMonth, default T8)
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => resolveMonthKey(activeMonth));
+
+  // Sync with parent activeMonth prop if it changes
+  useEffect(() => {
+    if (activeMonth !== undefined && activeMonth !== null) {
+      setSelectedMonth(resolveMonthKey(activeMonth));
+    }
+  }, [activeMonth]);
   const [tableSubMode, setTableSubMode] = useState<'single_month' | 'all_months_matrix'>('single_month');
 
   // Status Filter: 'all', 'over_budget', 'within_budget'
@@ -867,6 +890,17 @@ ${activeItems
   const overBudgetCount = activeItems.filter((i) => (i.spentThisMonth || 0) > i.monthlyBudget && i.monthlyBudget > 0).length;
   const withinBudgetCount = activeItems.length - overBudgetCount;
 
+  const handleSelectMonthTab = (tabId: string, monthNum: number) => {
+    setSelectedMonth(tabId);
+    if (onSelectMonth) {
+      if (tabId === 'all') {
+        onSelectMonth('all');
+      } else if (monthNum > 0) {
+        onSelectMonth(monthNum);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 0. BỘ CHỌN & CHIA THEO TỪNG THÁNG (MONTH SELECTOR BAR) */}
@@ -879,10 +913,11 @@ ${activeItems
             <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
               Chia & Theo Dõi Ngân Sách Từng Tháng
             </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 font-bold border border-cyan-500/30">
+            <span className="text-[11px] px-3 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-extrabold border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.3)] flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#fbbf24]" />
               {selectedMonth === 'all'
                 ? 'Tổng Hợp Cả Năm (Lũy kế)'
-                : `Đang Xem: ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label || 'Tháng 1'}`}
+                : `Đang Xem: ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label || `Tháng ${new Date().getMonth() + 1}`}`}
             </span>
           </div>
 
@@ -900,56 +935,98 @@ ${activeItems
         </div>
 
         {/* 10 Month Selector Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 pt-1">
           {monthTabSummaries.map((tab) => {
             const isSelected = selectedMonth === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setSelectedMonth(tab.id)}
-                className={`p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                onClick={() => handleSelectMonthTab(tab.id, tab.monthNum)}
+                className={`p-2.5 rounded-xl border text-left transition-all duration-300 relative flex flex-col justify-between cursor-pointer overflow-hidden ${
                   isSelected
-                    ? 'bg-amber-500/15 border-amber-400 text-white shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/50 scale-[1.02]'
-                    : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700'
+                    ? 'month-tab-active bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 text-slate-950 border-2 border-white ring-4 ring-amber-400/50 shadow-[0_0_25px_rgba(251,191,36,0.95),0_0_40px_rgba(245,158,11,0.5)] scale-[1.05] -translate-y-1 z-20 font-sans'
+                    : 'bg-slate-950/70 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700 hover:scale-[1.02]'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-bold ${isSelected ? 'text-amber-400' : 'text-slate-200'}`}>
+                {/* Luminous Shimmer Sweep & Glowing Beacon for the Active Month Tab */}
+                {isSelected && (
+                  <>
+                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-white shadow-[0_0_10px_#ffffff] z-30" />
+                    <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-10">
+                      <span className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shimmer" />
+                    </span>
+                  </>
+                )}
+
+                <div className="flex items-center justify-between z-20 relative">
+                  <span
+                    className={`text-xs font-black transition-all ${
+                      isSelected
+                        ? 'text-slate-950 text-[13px] tracking-tight drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]'
+                        : 'text-slate-200'
+                    }`}
+                  >
                     {tab.short}
                   </span>
                   <div className="flex items-center gap-1">
                     {tab.hasSheetPlan && (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+                      <span
+                        className={`text-[9px] px-1 py-0.2 rounded font-black border transition-all ${
+                          isSelected
+                            ? 'bg-slate-950 text-amber-300 border-slate-950 shadow-xs'
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        }`}
+                      >
                         KH
                       </span>
                     )}
                     <span
-                      className={`w-2 h-2 rounded-full transition-all ${
+                      className={`w-2.5 h-2.5 rounded-full transition-all ${
+                        isSelected ? 'ring-2 ring-slate-950 shadow-sm' : ''
+                      } ${
                         !tab.hasData
-                          ? 'bg-slate-600'
+                          ? isSelected ? 'bg-slate-700' : 'bg-slate-600'
                           : tab.isOver
-                          ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
-                          : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                          ? isSelected ? 'bg-rose-600 shadow-[0_0_8px_#e11d48]' : 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+                          : isSelected ? 'bg-emerald-600 shadow-[0_0_8px_#059669]' : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
                       }`}
                     />
                   </div>
                 </div>
-                <div className="mt-1 font-mono text-[11px] font-bold truncate">
+
+                <div className="mt-1 font-mono text-[11px] font-bold truncate z-20 relative">
                   {tab.hasData ? (
-                    <span className={isSelected ? 'text-amber-300 font-extrabold' : tab.isOver ? 'text-rose-400' : 'text-slate-400'}>
+                    <span
+                      className={`transition-all ${
+                        isSelected
+                          ? 'text-slate-950 font-black text-xs drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)]'
+                          : tab.isOver
+                          ? 'text-rose-400'
+                          : 'text-slate-400'
+                      }`}
+                    >
                       {formatVND(tab.spent, 'million')}
                     </span>
                   ) : (
-                    <span className="text-slate-600 font-normal">--</span>
+                    <span className={isSelected ? 'text-slate-800 font-bold' : 'text-slate-600 font-normal'}>--</span>
                   )}
                 </div>
-                <div className="mt-0.5 text-[9px] text-slate-500 truncate">
+
+                <div className="mt-0.5 text-[9px] truncate z-20 relative">
                   {tab.hasSheetPlan ? (
-                    <span className="text-amber-400/80 font-mono">Plan {formatVND(tab.sheetPlanBudget, 'million')}</span>
+                    <span
+                      className={`font-mono transition-all ${
+                        isSelected
+                          ? 'text-slate-900 font-black drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]'
+                          : 'text-amber-400/80'
+                      }`}
+                    >
+                      Plan {formatVND(tab.sheetPlanBudget, 'million')}
+                    </span>
                   ) : tab.id === 'all' ? (
-                    <span className="text-cyan-400/80">Cả năm</span>
+                    <span className={isSelected ? 'text-slate-950 font-black' : 'text-cyan-400/80'}>Cả năm</span>
                   ) : (
-                    <span className="text-slate-600">Chưa có KH</span>
+                    <span className={isSelected ? 'text-slate-800 font-bold' : 'text-slate-600'}>Chưa có KH</span>
                   )}
                 </div>
               </button>
