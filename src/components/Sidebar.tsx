@@ -246,8 +246,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 title={!isOpen ? item.label : undefined}
                 className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 select-none ${
                   isActive
-                    ? 'bg-slate-900 text-white font-semibold shadow-lg shadow-black/40 border border-slate-700/60 ring-1 ring-cyan-400/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border border-transparent'
+                    ? 'sidebar-nav-active bg-slate-900 text-white font-semibold shadow-lg shadow-black/40 border border-slate-700/60 ring-1 ring-cyan-400/30'
+                    : 'sidebar-nav-inactive text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 border border-transparent'
                 }`}
               >
                 {/* Active left indicator bar */}
@@ -258,14 +258,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Icon
                   className={`w-5 h-5 shrink-0 transition-transform group-hover:scale-110 ${
                     isActive
-                      ? 'text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]'
+                      ? 'sidebar-nav-icon-active text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]'
                       : 'text-slate-400 group-hover:text-slate-200'
                   }`}
                 />
 
                 {isOpen && (
                   <div className="flex-1 flex items-center justify-between min-w-0">
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate sidebar-nav-label">{item.label}</span>
                     {item.badge && (
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
@@ -291,8 +291,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title={!isOpen ? 'Quản Trị Admin' : undefined}
               className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 select-none cursor-pointer ${
                 activeTab === 'admin_hub'
-                  ? 'bg-emerald-950/60 text-white font-semibold shadow-lg shadow-emerald-950/50 border border-emerald-600/50 ring-1 ring-emerald-400/40'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-900/80 border border-slate-800/80 hover:border-slate-700'
+                  ? 'sidebar-admin-active bg-emerald-950/60 text-white font-semibold shadow-lg shadow-emerald-950/50 border border-emerald-600/50 ring-1 ring-emerald-400/40'
+                  : 'sidebar-admin-inactive text-slate-300 hover:text-white hover:bg-slate-900/80 border border-slate-800/80 hover:border-slate-700'
               }`}
             >
               {/* Active left indicator bar */}
