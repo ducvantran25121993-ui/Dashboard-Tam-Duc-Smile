@@ -1,4 +1,5 @@
 import { ThemeMode } from '../types';
+import { getActivePalette, applyPaletteToDOM } from './customThemePalettes';
 
 const THEME_STORAGE_KEY = 'dashboard_theme_mode';
 
@@ -70,6 +71,14 @@ export function applyThemeToDOM(effectiveTheme: 'light' | 'dark', mode: ThemeMod
   }
 
   root.setAttribute('data-theme-mode', mode);
+
+  // Apply active custom palette for this effective theme (guarantees harmonious surfaces)
+  try {
+    const activePalette = getActivePalette(effectiveTheme);
+    applyPaletteToDOM(activePalette);
+  } catch {
+    // ignore
+  }
 
   // Dispatch custom event for real-time reactivity
   try {

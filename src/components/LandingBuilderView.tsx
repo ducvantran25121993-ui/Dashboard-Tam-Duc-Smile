@@ -694,7 +694,7 @@ export default function LandingBuilderView() {
                   <button
                     key={tpl.id}
                     onClick={() => handleSelectSample(tpl)}
-                    className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 text-left transition-all group"
+                    className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-500/50 text-left transition-all group builder-option-inactive"
                   >
                     <div className="text-[11px] font-bold text-slate-200 group-hover:text-cyan-300 line-clamp-1">
                       {tpl.name.replace('Landing Page ', '')}
@@ -733,8 +733,8 @@ export default function LandingBuilderView() {
                   onClick={() => setScopeMode('full_page')}
                   className={`p-2.5 rounded-xl border text-left transition-all relative ${
                     scopeMode === 'full_page'
-                      ? 'bg-cyan-950/50 border-cyan-400 text-white ring-1 ring-cyan-400/40 shadow-sm'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-cyan-950/50 border-cyan-400 text-white ring-1 ring-cyan-400/40 shadow-sm builder-option-active-cyan'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -751,8 +751,8 @@ export default function LandingBuilderView() {
                   onClick={() => setScopeMode('section_only')}
                   className={`p-2.5 rounded-xl border text-left transition-all relative ${
                     scopeMode === 'section_only'
-                      ? 'bg-amber-950/50 border-amber-400 text-white ring-1 ring-amber-400/40 shadow-sm'
-                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-amber-950/50 border-amber-400 text-white ring-1 ring-amber-400/40 shadow-sm builder-option-active-amber'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -821,8 +821,8 @@ export default function LandingBuilderView() {
                     onClick={() => setColorTheme('tam_duc_blue')}
                     className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${
                       colorTheme === 'tam_duc_blue'
-                        ? 'bg-sky-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/40'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-sky-950/60 border-cyan-400 text-white ring-1 ring-cyan-400/40 builder-option-active-cyan'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="w-4 h-4 rounded-full bg-sky-500 shrink-0 border border-white/40" />
@@ -837,8 +837,8 @@ export default function LandingBuilderView() {
                     onClick={() => setColorTheme('luxury_gold')}
                     className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${
                       colorTheme === 'luxury_gold'
-                        ? 'bg-amber-950/60 border-amber-400 text-white ring-1 ring-amber-400/40'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-amber-950/60 border-amber-400 text-white ring-1 ring-amber-400/40 builder-option-active-amber'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="w-4 h-4 rounded-full bg-amber-500 shrink-0 border border-white/40" />
@@ -853,8 +853,8 @@ export default function LandingBuilderView() {
                     onClick={() => setColorTheme('emerald_health')}
                     className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${
                       colorTheme === 'emerald_health'
-                        ? 'bg-emerald-950/60 border-emerald-400 text-white ring-1 ring-emerald-400/40'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-emerald-950/60 border-emerald-400 text-white ring-1 ring-emerald-400/40 builder-option-active-emerald'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="w-4 h-4 rounded-full bg-emerald-500 shrink-0 border border-white/40" />
@@ -869,8 +869,8 @@ export default function LandingBuilderView() {
                     onClick={() => setColorTheme('original')}
                     className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${
                       colorTheme === 'original'
-                        ? 'bg-purple-950/60 border-purple-400 text-white ring-1 ring-purple-400/40'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-purple-950/60 border-purple-400 text-white ring-1 ring-purple-400/40 builder-option-active-purple'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 shrink-0 border border-white/40" />
@@ -948,8 +948,8 @@ export default function LandingBuilderView() {
                   onClick={() => setSelectedEngine('multi_agent')}
                   className={`w-full p-3 rounded-xl border text-left transition-all relative overflow-hidden ${
                     selectedEngine === 'multi_agent'
-                      ? 'bg-gradient-to-r from-amber-950/40 via-cyan-950/30 to-indigo-950/40 border-amber-400/80 ring-1 ring-amber-400/40'
-                      : 'bg-slate-950/70 border-slate-800 hover:border-slate-700'
+                      ? 'bg-gradient-to-r from-amber-950/40 via-cyan-950/30 to-indigo-950/40 border-amber-400/80 ring-1 ring-amber-400/40 builder-option-active-amber'
+                      : 'bg-slate-950/70 border-slate-800 hover:border-slate-700 builder-option-inactive'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -993,8 +993,8 @@ export default function LandingBuilderView() {
                     onClick={() => setSelectedEngine('gemini_flash')}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedEngine === 'gemini_flash'
-                        ? 'bg-cyan-950/50 border-cyan-400 ring-1 ring-cyan-400/40 text-white'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-cyan-950/50 border-cyan-400 ring-1 ring-cyan-400/40 text-white builder-option-active-cyan'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-cyan-300">
@@ -1012,8 +1012,8 @@ export default function LandingBuilderView() {
                     onClick={() => setSelectedEngine('gemini_pro')}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedEngine === 'gemini_pro'
-                        ? 'bg-indigo-950/50 border-indigo-400 ring-1 ring-indigo-400/40 text-white'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-indigo-950/50 border-indigo-400 ring-1 ring-indigo-400/40 text-white builder-option-active-purple'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-300">
@@ -1031,8 +1031,8 @@ export default function LandingBuilderView() {
                     onClick={() => setSelectedEngine('claude_code')}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedEngine === 'claude_code'
-                        ? 'bg-orange-950/50 border-orange-400 ring-1 ring-orange-400/40 text-white'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-orange-950/50 border-orange-400 ring-1 ring-orange-400/40 text-white builder-option-active-amber'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-orange-300">
@@ -1050,8 +1050,8 @@ export default function LandingBuilderView() {
                     onClick={() => setSelectedEngine('cro_sales')}
                     className={`p-2.5 rounded-xl border text-left transition-all ${
                       selectedEngine === 'cro_sales'
-                        ? 'bg-emerald-950/50 border-emerald-400 ring-1 ring-emerald-400/40 text-white'
-                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-emerald-950/50 border-emerald-400 ring-1 ring-emerald-400/40 text-white builder-option-active-emerald'
+                        : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-emerald-300">
@@ -1079,8 +1079,8 @@ export default function LandingBuilderView() {
                   onClick={() => setCopywritingStyle('cro_high_convert')}
                   className={`p-2 rounded-xl border text-left transition-all ${
                     copywritingStyle === 'cro_high_convert'
-                      ? 'bg-amber-950/40 border-amber-400 text-amber-200 font-semibold ring-1 ring-amber-400/30'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-amber-950/40 border-amber-400 text-amber-200 font-semibold ring-1 ring-amber-400/30 builder-option-active-amber'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <p className="font-bold text-[11px] text-amber-300">🏆 Thôi Miên Chuyển Đổi</p>
@@ -1092,8 +1092,8 @@ export default function LandingBuilderView() {
                   onClick={() => setCopywritingStyle('medical_authority')}
                   className={`p-2 rounded-xl border text-left transition-all ${
                     copywritingStyle === 'medical_authority'
-                      ? 'bg-cyan-950/40 border-cyan-400 text-cyan-200 font-semibold ring-1 ring-cyan-400/30'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-cyan-950/40 border-cyan-400 text-cyan-200 font-semibold ring-1 ring-cyan-400/30 builder-option-active-cyan'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <p className="font-bold text-[11px] text-cyan-300">🩺 Uy Tín Y Khoa</p>
@@ -1105,8 +1105,8 @@ export default function LandingBuilderView() {
                   onClick={() => setCopywritingStyle('luxury_premium')}
                   className={`p-2 rounded-xl border text-left transition-all ${
                     copywritingStyle === 'luxury_premium'
-                      ? 'bg-purple-950/40 border-purple-400 text-purple-200 font-semibold ring-1 ring-purple-400/30'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-purple-950/40 border-purple-400 text-purple-200 font-semibold ring-1 ring-purple-400/30 builder-option-active-purple'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <p className="font-bold text-[11px] text-purple-300">✨ Sang Trọng Thẩm Mỹ</p>
@@ -1118,8 +1118,8 @@ export default function LandingBuilderView() {
                   onClick={() => setCopywritingStyle('balanced')}
                   className={`p-2 rounded-xl border text-left transition-all ${
                     copywritingStyle === 'balanced'
-                      ? 'bg-emerald-950/40 border-emerald-400 text-emerald-200 font-semibold ring-1 ring-emerald-400/30'
-                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200'
+                      ? 'bg-emerald-950/40 border-emerald-400 text-emerald-200 font-semibold ring-1 ring-emerald-400/30 builder-option-active-emerald'
+                      : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                   }`}
                 >
                   <p className="font-bold text-[11px] text-emerald-300">⚖️ Chuẩn Mực Cân Bằng</p>

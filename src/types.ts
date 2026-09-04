@@ -35,3 +35,18 @@ export interface ComputedRegionMetrics extends RegionData {
   totalServicesCount: number;
   totalCustomerData: number;
 }
+
+export interface ThemePalette {
+  id: string;
+  name: string;
+  badge?: string;
+  mode: 'dark' | 'light';
+  canvasBg: string;
+  cardBg: string;
+  cardElevated: string;
+  borderColor: string;
+  headerBg: string;
+  sidebarBg: string;
+  accentGlow: string;
+  previewColor: string;
+}

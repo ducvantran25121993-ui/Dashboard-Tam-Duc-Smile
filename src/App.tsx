@@ -51,6 +51,8 @@ import {
   DEFAULT_SHEET_URL,
   DailyRecord,
 } from './services/googleSheetsService';
+import { getStoredThemeMode, resolveEffectiveTheme } from './utils/themeManager';
+import { getActivePalette } from './utils/customThemePalettes';
 
 export default function App() {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>(() => {
@@ -98,6 +100,39 @@ export default function App() {
   };
 
   const [displayUnit, setDisplayUnit] = useState<DisplayUnit>('full');
+
+  // Dynamic Theme & Custom Background Color State for 100% instant reactivity
+  const [currentCanvasBg, setCurrentCanvasBg] = useState<string>(() => {
+    try {
+      const mode = getStoredThemeMode();
+      const eff = resolveEffectiveTheme(mode);
+      const pal = getActivePalette(eff);
+      return pal.canvasBg;
+    } catch {
+      return '#0b1120';
+    }
+  });
+
+  useEffect(() => {
+    const handleThemeOrPaletteUpdate = () => {
+      try {
+        const mode = getStoredThemeMode();
+        const eff = resolveEffectiveTheme(mode);
+        const pal = getActivePalette(eff);
+        setCurrentCanvasBg(pal.canvasBg);
+      } catch {
+        // ignore
+      }
+    };
+
+    window.addEventListener('theme_changed', handleThemeOrPaletteUpdate);
+    window.addEventListener('palette_changed', handleThemeOrPaletteUpdate);
+
+    return () => {
+      window.removeEventListener('theme_changed', handleThemeOrPaletteUpdate);
+      window.removeEventListener('palette_changed', handleThemeOrPaletteUpdate);
+    };
+  }, []);
 
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -334,7 +369,11 @@ export default function App() {
   const currentMonthData = monthlyDatasets.find((m) => m.month === currentMonthNum) || monthlyDatasets[0] || MONTHLY_DATA[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-blue-500 selection:text-white flex flex-col">
+    <div
+      id="dashboard-root-container"
+      style={{ backgroundColor: currentCanvasBg }}
+      className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-blue-500 selection:text-white flex flex-col transition-colors duration-200"
+    >
       {/* Login Authentication Modal Gate */}
       {!isAuthenticated && (
         <LoginModal
