@@ -17,10 +17,11 @@ import { Activity, DollarSign, Target, TrendingUp, Users, Layers, BarChart3, Lin
 import { DailyRecord } from '../services/googleSheetsService';
 import { RegionData } from '../data/revenueData';
 import { formatVND } from '../utils/formatters';
+import { parseCustomRange } from '../utils/quarterAggregator';
 
 interface DailyDataChartProps {
   dailyRecords: DailyRecord[];
-  activeMonth: number;
+  activeMonth: number | string;
   monthLabel: string;
   regions?: RegionData[];
 }
@@ -90,11 +91,20 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
   const uniqueServices = Array.from(new Set([...defaultServices, ...monthServicesFromSheet])).sort();
   const uniqueRegions = regions.map((r) => r.name).sort();
 
-  // Days in active month
-  const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][activeMonth] || 30;
+  const isQuarterOrRange = typeof activeMonth === 'string';
+  const activeMonthsList = isQuarterOrRange
+    ? (parseCustomRange(activeMonth) || (activeMonth === 'q1' ? [1, 2, 3] : activeMonth === 'q2' ? [4, 5, 6] : activeMonth === 'q3' ? [7, 8, 9] : [10]))
+    : [activeMonth as number];
 
-  // Filter existing daily records for active month
-  const monthRecords = dailyRecords.filter((r) => r.monthNum === activeMonth);
+  const defaultActiveNum = isQuarterOrRange ? activeMonthsList[activeMonthsList.length - 1] : (activeMonth as number);
+
+  // Days in active month
+  const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][defaultActiveNum] || 31;
+
+  // Filter existing daily records for active month, quarter, or custom range
+  const monthRecords = isQuarterOrRange
+    ? dailyRecords.filter((r) => activeMonthsList.includes(r.monthNum))
+    : dailyRecords.filter((r) => r.monthNum === activeMonth);
 
   // Build daily data map for the month
   interface DayData {
@@ -115,9 +125,10 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
     // Process existing daily records from sheet
     monthRecords.forEach((r) => {
       const normSvc = normalizeSvcName(r.service);
-      if (!dayMap[r.dayNum]) {
-        dayMap[r.dayNum] = {
-          day: r.dayNum,
+      const dayKey = isQuarterOrRange ? r.monthNum * 100 + r.dayNum : r.dayNum;
+      if (!dayMap[dayKey]) {
+        dayMap[dayKey] = {
+          day: dayKey,
           dateStr: `${r.dayNum}/${r.monthNum}`,
           leadTho: 0,
           leadChatLuong: 0,
@@ -128,20 +139,20 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
           regionData: {},
         };
       }
-      dayMap[r.dayNum].leadTho += r.leadTho || 0;
-      dayMap[r.dayNum].leadChatLuong += r.leadChatLuong || 0;
-      dayMap[r.dayNum].budgetVnd += r.budgetVnd || 0;
+      dayMap[dayKey].leadTho += r.leadTho || 0;
+      dayMap[dayKey].leadChatLuong += r.leadChatLuong || 0;
+      dayMap[dayKey].budgetVnd += r.budgetVnd || 0;
 
-      dayMap[r.dayNum].serviceLeads[normSvc] = (dayMap[r.dayNum].serviceLeads[normSvc] || 0) + (r.leadTho || 0);
-      dayMap[r.dayNum].serviceQuality[normSvc] = (dayMap[r.dayNum].serviceQuality[normSvc] || 0) + (r.leadChatLuong || 0);
-      dayMap[r.dayNum].serviceBudgets[normSvc] = (dayMap[r.dayNum].serviceBudgets[normSvc] || 0) + (r.budgetVnd || 0);
+      dayMap[dayKey].serviceLeads[normSvc] = (dayMap[dayKey].serviceLeads[normSvc] || 0) + (r.leadTho || 0);
+      dayMap[dayKey].serviceQuality[normSvc] = (dayMap[dayKey].serviceQuality[normSvc] || 0) + (r.leadChatLuong || 0);
+      dayMap[dayKey].serviceBudgets[normSvc] = (dayMap[dayKey].serviceBudgets[normSvc] || 0) + (r.budgetVnd || 0);
 
-      if (!dayMap[r.dayNum].regionData[r.region]) {
-        dayMap[r.dayNum].regionData[r.region] = { leadTho: 0, leadChatLuong: 0, budgetVnd: 0 };
+      if (!dayMap[dayKey].regionData[r.region]) {
+        dayMap[dayKey].regionData[r.region] = { leadTho: 0, leadChatLuong: 0, budgetVnd: 0 };
       }
-      dayMap[r.dayNum].regionData[r.region].leadTho += r.leadTho || 0;
-      dayMap[r.dayNum].regionData[r.region].leadChatLuong += r.leadChatLuong || 0;
-      dayMap[r.dayNum].regionData[r.region].budgetVnd += r.budgetVnd || 0;
+      dayMap[dayKey].regionData[r.region].leadTho += r.leadTho || 0;
+      dayMap[dayKey].regionData[r.region].leadChatLuong += r.leadChatLuong || 0;
+      dayMap[dayKey].regionData[r.region].budgetVnd += r.budgetVnd || 0;
     });
   } else {
     // Generate synthetic daily breakdown matching exact monthly sheet totals & service costs

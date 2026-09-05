@@ -5584,5 +5584,43 @@ export const MONTHLY_DATA: MonthDataset[] = [
         ]
       }
     ]
+  },
+  {
+    month: 10,
+    label: 'Tháng 10',
+    regions: [
+      'Bình Dương',
+      'Bình Phước',
+      'Biên Hòa',
+      'Cần Thơ',
+      'Đà Nẵng',
+      'Quy Nhơn',
+      'Tây Ninh',
+      'Vũng Tàu',
+      'Dĩ An',
+      'HCM',
+      'Việt Kiều',
+      'Bạc Liêu',
+      'Cà Mau',
+      'Đồng Tháp',
+      'Sóc Trăng',
+      'Đà Lạt',
+      'Gia Kiệm',
+      'Không Địa Chỉ',
+    ].map((name) => ({
+      name,
+      costVAT: 0,
+      revenue: 0,
+      cpDichVu: 0,
+      cpTong: 0,
+      totalData: 0,
+      dataChatLuong: 0,
+      services: [
+        { name: 'Implant', cp: 0, dataCount: 0, dataChatLuong: 0 },
+        { name: 'Niềng', cp: 0, dataCount: 0, dataChatLuong: 0 },
+        { name: 'Sứ', cp: 0, dataCount: 0, dataChatLuong: 0 },
+        { name: 'TH', cp: 0, dataCount: 0, dataChatLuong: 0 },
+      ],
+    })),
   }
 ];

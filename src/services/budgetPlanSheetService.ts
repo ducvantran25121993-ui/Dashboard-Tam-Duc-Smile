@@ -125,7 +125,28 @@ export const FALLBACK_PLAN_T8_ITEMS: BranchPlanItem[] = [
   { id: 't8_bp', name: 'Bình Phước', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
 ];
 
-// EMPTY TEMPLATE FOR MONTHS WITHOUT PLAN DATA YET (T1-T5, T9, etc. waiting for update)
+// EXACT FALLBACK DATA FOR THÁNG 9 (Từ Sheet 09/2026)
+export const FALLBACK_PLAN_T9_ITEMS: BranchPlanItem[] = [
+  { id: 't9_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 1000000, monthlyBudget: 30000000, monthlyBudgetVat: 34992000, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_cm', name: 'Cà Mau', dailyBudget: 400000, monthlyBudget: 12000000, monthlyBudgetVat: 13996800, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_dt', name: 'Đồng Tháp', dailyBudget: 200000, monthlyBudget: 6000000, monthlyBudgetVat: 6998400, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_bl', name: 'Bạc Liêu', dailyBudget: 200000, monthlyBudget: 6000000, monthlyBudgetVat: 6998400, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_st', name: 'Sóc Trăng', dailyBudget: 200000, monthlyBudget: 6000000, monthlyBudgetVat: 6998400, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_bd', name: 'Bình Dương', dailyBudget: 1200000, monthlyBudget: 36000000, monthlyBudgetVat: 41990400, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_vt', name: 'Phước Tỉnh+Xuyên Mộc + Bacu + Bà Rịa', dailyBudget: 1000000, monthlyBudget: 30000000, monthlyBudgetVat: 34992000, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_bh', name: 'Biên Hòa + Đại Phước', dailyBudget: 1000000, monthlyBudget: 30000000, monthlyBudgetVat: 34992000, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_hcm', name: 'HỒ CHÍ MINH lân cận', dailyBudget: 12000000, monthlyBudget: 360000000, monthlyBudgetVat: 419904000, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_vk', name: 'Việt Kiều', dailyBudget: 3000000, monthlyBudget: 90000000, monthlyBudgetVat: 104976000, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_qn', name: 'Quy Nhơn', dailyBudget: 600000, monthlyBudget: 18000000, monthlyBudgetVat: 20995200, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_tn', name: 'Tây Ninh', dailyBudget: 600000, monthlyBudget: 18000000, monthlyBudgetVat: 20995200, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_dn', name: 'Đà Nẵng', dailyBudget: 600000, monthlyBudget: 18000000, monthlyBudgetVat: 20995200, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_dl', name: 'Đà Lạt', dailyBudget: 400000, monthlyBudget: 12000000, monthlyBudgetVat: 13996800, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_da', name: 'Dĩ An', dailyBudget: 300000, monthlyBudget: 9000000, monthlyBudgetVat: 10497600, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_gk', name: 'Gia Kiệm', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+  { id: 't9_bp', name: 'Bình Phước', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
+];
+
+// EMPTY TEMPLATE FOR MONTHS WITHOUT PLAN DATA YET (T1-T5, T10, etc. waiting for update)
 export const EMPTY_BRANCH_PLAN_ITEMS: BranchPlanItem[] = [
   { id: 'empty_ct', name: 'Cần Thơ 1 + 2+TN', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
   { id: 'empty_cm', name: 'Cà Mau', dailyBudget: 0, monthlyBudget: 0, monthlyBudgetVat: 0, reduced30Budget: 0, reduced30Vat: 0, reducedExtra30Budget: 0, reducedExtra30Vat: 0 },
@@ -204,8 +225,26 @@ export const DEFAULT_MULTI_MONTH_PLAN: MultiMonthBudgetPlan = {
       sourceUrl: DEFAULT_BUDGET_PLAN_SHEET_URL,
       hasPlanData: true,
     },
+    9: {
+      monthNum: 9,
+      title: 'Ngân Sách Dự Kiến T9 (09/2026)',
+      totalDaily: 22700000,
+      totalMonthly: 681000000,
+      totalMonthlyVat: 794318400,
+      totalReduced30: 0,
+      totalReduced30Vat: 0,
+      totalReducedExtra30: 0,
+      totalReducedExtra30Vat: 0,
+      hasReduced30: false,
+      hasReducedExtra30: false,
+      items: FALLBACK_PLAN_T9_ITEMS,
+      lastUpdated: '12:00',
+      isLive: false,
+      sourceUrl: DEFAULT_BUDGET_PLAN_SHEET_URL,
+      hasPlanData: true,
+    },
   },
-  availableMonths: [6, 7, 8],
+  availableMonths: [6, 7, 8, 9],
   lastUpdated: '12:00',
   isLive: false,
   sourceUrl: DEFAULT_BUDGET_PLAN_SHEET_URL,

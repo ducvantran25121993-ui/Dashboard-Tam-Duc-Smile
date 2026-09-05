@@ -1,8 +1,9 @@
 import React from 'react';
-import { Calendar, DollarSign, TrendingUp, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu, Sliders, Clock } from 'lucide-react';
+import { DollarSign, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu } from 'lucide-react';
 import { MonthTab, DisplayUnit } from '../types';
 import { MonthDataset } from '../data/revenueData';
 import { ThemeToggle } from './ThemeToggle';
+import { MonthNavigation } from './MonthNavigation';
 
 interface HeaderProps {
   activeTab: MonthTab;
@@ -29,24 +30,11 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTabPermissions,
   onToggleSidebar,
 }) => {
-  const months: { id: MonthTab; label: string }[] = [
-    { id: 1, label: 'Tháng 1' },
-    { id: 2, label: 'Tháng 2' },
-    { id: 3, label: 'Tháng 3' },
-    { id: 4, label: 'Tháng 4' },
-    { id: 5, label: 'Tháng 5' },
-    { id: 6, label: 'Tháng 6' },
-    { id: 7, label: 'Tháng 7' },
-    { id: 8, label: 'Tháng 8' },
-    { id: 9, label: 'Tháng 9' },
-    { id: 'overview', label: 'Tổng Quan' },
-  ];
-
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
-      <div className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
         {/* Top bar: Title & Controls */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-3 border-b border-slate-800">
           <div className="flex items-center space-x-3">
             {onToggleSidebar && (
               <button
@@ -151,107 +139,13 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Month Navigation Tabs - White Glass & Shimmer Light Sweep */}
-        <div className="pt-3 pb-2 flex items-center justify-between gap-2 overflow-x-auto overflow-y-hidden no-scrollbar">
-          <div className="inline-flex items-center gap-1 sm:gap-2 p-1.5 bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-800/90 shadow-2xl max-w-full overflow-x-auto overflow-y-hidden no-scrollbar">
-            {months.map((m) => {
-              const isActive = activeTab === m.id;
-              const isOverview = m.id === 'overview';
-              const shortLabel = typeof m.id === 'number' ? `T${m.id}` : 'Tổng Quan';
-
-              if (isOverview) {
-                return (
-                  <React.Fragment key={m.id}>
-                    {/* Divider */}
-                    <div className="h-6 w-px bg-slate-800 mx-1 shrink-0" />
-                    <button
-                      onClick={() => onSelectTab(m.id)}
-                      title={m.label}
-                      className={`group relative flex items-center justify-center gap-1.5 px-4 sm:px-4.5 py-2 text-xs sm:text-sm font-black rounded-full whitespace-nowrap transition-all duration-300 shrink-0 select-none overflow-hidden ${
-                        isActive
-                          ? 'bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 text-slate-950 border-2 border-white ring-4 ring-emerald-400/60 shadow-[0_0_25px_rgba(52,211,153,0.9),0_0_40px_rgba(20,184,166,0.6)] scale-[1.05] -translate-y-0.5 z-20'
-                          : 'bg-slate-900/60 border border-slate-700/70 text-slate-300 hover:text-white hover:bg-slate-800/80 hover:border-slate-600'
-                      }`}
-                    >
-                      {/* Light Sweep Shimmer Effect ONLY for Active */}
-                      {isActive && (
-                        <>
-                          <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-white shadow-[0_0_10px_#ffffff] z-30" />
-                          <span className="absolute inset-0 rounded-full overflow-hidden pointer-events-none z-10">
-                            <span className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shimmer" />
-                          </span>
-                        </>
-                      )}
-
-                      <TrendingUp className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors z-20 ${
-                        isActive ? 'text-slate-950 stroke-[2.5]' : 'text-emerald-400 group-hover:text-emerald-300'
-                      }`} />
-                      <span className={`sm:hidden z-20 ${
-                        isActive ? 'text-slate-950 font-black' : 'text-slate-300 group-hover:text-white'
-                      }`}>{shortLabel}</span>
-                      <span className={`hidden sm:inline z-20 ${
-                        isActive ? 'text-slate-950 font-black' : 'text-slate-300 group-hover:text-white'
-                      }`}>{m.label}</span>
-                      {isActive && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 sm:w-12 h-[3.5px] rounded-full bg-emerald-600 shadow-[0_0_10px_#10b981] z-20" />
-                      )}
-                    </button>
-                  </React.Fragment>
-                );
-              }
-
-              const ds = typeof m.id === 'number' ? monthlyData.find((d) => d.month === m.id) : null;
-              const hasData = ds ? ds.regions.some((r) => (r.costVAT || 0) > 0 || (r.revenue || 0) > 0 || (r.totalData || 0) > 0) : false;
-
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => onSelectTab(m.id)}
-                  title={hasData ? m.label : `${m.label} (Chưa có dữ liệu - Đang để trống chờ cập nhật)`}
-                  className={`group relative flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm rounded-xl whitespace-nowrap transition-all duration-300 shrink-0 select-none overflow-hidden ${
-                    isActive
-                      ? 'bg-gradient-to-r from-cyan-200 via-white to-sky-200 text-slate-950 font-black border-2 border-white ring-4 ring-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.9),0_0_40px_rgba(56,189,248,0.5)] scale-[1.05] -translate-y-0.5 z-20'
-                      : hasData
-                      ? 'text-slate-300 font-semibold hover:text-white hover:bg-slate-800/70 border border-transparent hover:border-slate-700/60'
-                      : 'text-slate-400 font-medium hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
-                  }`}
-                >
-                  {isActive && (
-                    <>
-                      <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-white shadow-[0_0_10px_#ffffff] z-30" />
-                      <span className="absolute -inset-1.5 rounded-2xl bg-cyan-400/30 blur-md pointer-events-none -z-10" />
-                      {/* Light Sweep Shimmer Effect */}
-                      <span className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none z-10">
-                        <span className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/90 to-transparent animate-shimmer" />
-                      </span>
-                    </>
-                  )}
-                  <Calendar className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors z-20 ${
-                    isActive ? 'text-slate-950 stroke-[2.5]' : hasData ? 'text-cyan-400' : 'text-slate-500 group-hover:text-slate-400'
-                  }`} />
-                  <span className={`sm:hidden z-20 ${isActive ? 'text-slate-950 font-black' : ''}`}>{shortLabel}</span>
-                  <span className={`hidden sm:inline z-20 ${isActive ? 'text-slate-950 font-black' : ''}`}>{m.label}</span>
-                  
-                  {/* Small Dot Status: Green if has data, subtle gray if waiting for data */}
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full z-20 ml-0.5 transition-all ${
-                      isActive
-                        ? hasData ? 'bg-emerald-600 ring-1 ring-slate-950 shadow-sm' : 'bg-amber-600'
-                        : hasData
-                        ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
-                        : 'bg-slate-600'
-                    }`}
-                    title={hasData ? 'Đã có dữ liệu' : 'Chờ cập nhật'}
-                  />
-
-                  {isActive && (
-                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 sm:w-12 h-[3.5px] rounded-full bg-cyan-600 shadow-[0_0_10px_#06b6d4] z-20" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        {/* Month Navigation - Compact Grouped Tabs by Quarter or Dropdown */}
+        <MonthNavigation
+          activeTab={activeTab}
+          onSelectTab={onSelectTab}
+          monthlyData={monthlyData}
+          displayUnit={displayUnit}
+        />
       </div>
     </header>
   );

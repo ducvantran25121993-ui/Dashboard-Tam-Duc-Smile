@@ -63,6 +63,7 @@ import {
   FALLBACK_PLAN_T6_ITEMS,
   FALLBACK_PLAN_T7_ITEMS,
   FALLBACK_PLAN_T8_ITEMS,
+  FALLBACK_PLAN_T9_ITEMS,
   FALLBACK_BUDGET_PLAN_ITEMS,
   EMPTY_BRANCH_PLAN_ITEMS,
 } from '../services/budgetPlanSheetService';
@@ -150,7 +151,22 @@ const MONTH_TABS = [
   { id: 't7', monthNum: 7, label: 'Tháng 7', short: 'T7' },
   { id: 't8', monthNum: 8, label: 'Tháng 8', short: 'T8' },
   { id: 't9', monthNum: 9, label: 'Tháng 9', short: 'T9' },
-  { id: 'all', monthNum: 0, label: 'Cả Năm / Tổng Hợp', short: 'Cả Năm' },
+  { id: 't10', monthNum: 10, label: 'Tháng 10', short: 'T10' },
+];
+
+interface ForecastQuarterGroup {
+  id: 'q1' | 'q2' | 'q3' | 'q4';
+  label: string;
+  shortLabel: string;
+  rangeLabel: string;
+  monthIds: string[];
+}
+
+const FORECAST_QUARTERS: ForecastQuarterGroup[] = [
+  { id: 'q1', label: 'Quý 1', shortLabel: 'Q1', rangeLabel: 'T1 - T3', monthIds: ['t1', 't2', 't3'] },
+  { id: 'q2', label: 'Quý 2', shortLabel: 'Q2', rangeLabel: 'T4 - T6', monthIds: ['t4', 't5', 't6'] },
+  { id: 'q3', label: 'Quý 3', shortLabel: 'Q3', rangeLabel: 'T7 - T9', monthIds: ['t7', 't8', 't9'] },
+  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10', monthIds: ['t10'] },
 ];
 
 function normalizeBranchName(str: string): string {
@@ -273,15 +289,16 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [budgetScenario, setBudgetScenario] = useState<'base_100' | 'reduced_30' | 'reduced_extra_30' | 'custom'>('base_100');
   const [customReductionPct, setCustomReductionPct] = useState<number>(20); // % giảm tùy chỉnh
 
-  // Helper to resolve month tab key (e.g. 9 -> 't9', 't9' -> 't9', 'all' -> 'all')
+  // Helper to resolve month tab key (e.g. 9 -> 't9', 't9' -> 't9')
   const resolveMonthKey = (m?: number | string) => {
     if (!m) {
       const currentCalendarMonth = new Date().getMonth() + 1;
-      return currentCalendarMonth >= 1 && currentCalendarMonth <= 9 ? `t${currentCalendarMonth}` : 't9';
+      return currentCalendarMonth >= 1 && currentCalendarMonth <= 10 ? `t${currentCalendarMonth}` : 't9';
     }
-    if (typeof m === 'number') return `t${m}`;
+    if (typeof m === 'number') return m >= 1 && m <= 10 ? `t${m}` : 't9';
     const lower = String(m).toLowerCase();
-    if (lower === 'all' || lower.startsWith('t')) return lower;
+    if (lower === 'all' || lower === '0') return 't9';
+    if (lower.startsWith('t')) return lower;
     return `t${lower}`;
   };
 
@@ -294,6 +311,10 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
       setSelectedMonth(resolveMonthKey(activeMonth));
     }
   }, [activeMonth]);
+
+  // Quarter navigation tab: 'all' (Tất cả 4 quý) | 'q1' | 'q2' | 'q3' | 'q4'
+  const [forecastQuarterTab, setForecastQuarterTab] = useState<'all' | 'q1' | 'q2' | 'q3' | 'q4'>('all');
+
   const [tableSubMode, setTableSubMode] = useState<'single_month' | 'all_months_matrix'>('single_month');
 
   // Status Filter: 'all', 'over_budget', 'within_budget'
@@ -446,6 +467,9 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
     if (selectedMonthNum === 8) {
       return multiMonthPlan.monthPlans[8]?.items || FALLBACK_PLAN_T8_ITEMS;
+    }
+    if (selectedMonthNum === 9) {
+      return multiMonthPlan.monthPlans[9]?.items || FALLBACK_PLAN_T9_ITEMS;
     }
     // For months 1 to 5 (or any month without plan data), return empty items with 0s waiting for update
     return EMPTY_BRANCH_PLAN_ITEMS;
@@ -737,7 +761,6 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     return MONTH_TABS.map((tab) => {
       let spent = 0;
       const mNum = tab.monthNum;
-      const isAvailableInSheet = mNum === 6 || mNum === 7 || mNum === 8;
       const planForTab = multiMonthPlan.monthPlans[mNum];
 
       if (tab.id === 'all') {
@@ -752,7 +775,13 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
         }
       }
 
-      const planVatBudget = planForTab?.totalMonthlyVat || 0;
+      const planVatBudget = planForTab?.totalMonthlyVat || (tab.id === selectedMonth ? currentSummary.totalMonthlyVat : 0);
+      const isAvailableInSheet = Boolean(
+        planVatBudget > 0 ||
+        (planForTab && ((planForTab.totalMonthly || 0) > 0 || (planForTab.items && planForTab.items.length > 0))) ||
+        (multiMonthPlan.availableMonths || []).includes(mNum) ||
+        [6, 7, 8, 9].includes(mNum)
+      );
       const limit = planVatBudget || currentSummary.activeScenarioTotalBudget;
       const isOver = spent > limit && limit > 0;
 
@@ -766,7 +795,7 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
         planTitle: planForTab?.title,
       };
     });
-  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget, multiMonthPlan, monthlyDatasets]);
+  }, [activeItems, getBranchSpentForMonth, currentSummary.activeScenarioTotalBudget, currentSummary.totalMonthlyVat, selectedMonth, multiMonthPlan, monthlyDatasets]);
 
   // Filtered branch items based on effective limit & active month's spent
   const filteredBranchItems = useMemo(() => {
@@ -903,30 +932,31 @@ ${activeItems
 
   return (
     <div className="space-y-6">
-      {/* 0. BỘ CHỌN & CHIA THEO TỪNG THÁNG (MONTH SELECTOR BAR) */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
+      {/* 0. BỘ CHỌN & THEO DÕI NGÂN SÁCH TỪNG THÁNG THEO QUÝ (QUARTER TABS & CARDS) */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
+        {/* Header bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800/80">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
               <Calendar className="w-4 h-4" />
             </div>
-            <span className="text-xs sm:text-sm font-black text-white uppercase tracking-wider">
+            <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
               Chia & Theo Dõi Ngân Sách Từng Tháng
             </span>
-            <span className="text-[11px] px-3 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-extrabold border border-amber-400/50 shadow-[0_0_12px_rgba(251,191,36,0.3)] flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_6px_#fbbf24]" />
-              {selectedMonth === 'all'
-                ? 'Tổng Hợp Cả Năm (Lũy kế)'
-                : `Đang Xem: ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label || `Tháng ${new Date().getMonth() + 1}`}`}
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-extrabold border border-amber-400/50 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              {MONTH_TABS.find((t) => t.id === selectedMonth)?.label
+                ? `Đang Xem: ${MONTH_TABS.find((t) => t.id === selectedMonth)?.label}`
+                : 'Đang Xem: Tháng 9'}
             </span>
           </div>
 
           <div className="flex items-center gap-3 text-[11px] text-slate-400">
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" /> An toàn
+              <span className="w-2 h-2 rounded-full bg-emerald-400" /> An toàn
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]" /> Vượt hạn mức
+              <span className="w-2 h-2 rounded-full bg-rose-400" /> Vượt hạn mức
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-slate-600" /> Chưa có dữ liệu
@@ -934,87 +964,240 @@ ${activeItems
           </div>
         </div>
 
-        {/* 10 Month Selector Buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 pt-1">
-          {monthTabSummaries.map((tab) => {
-            const isSelected = selectedMonth === tab.id;
+        {/* Tab switchers: [Tất Cả 4 Quý] [Quý 1 (T1-T3)] [Quý 2 (T4-T6)] [Quý 3 (T7-T9)] [Quý 4 (T10)] | [Cả Năm] */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800/80 overflow-x-auto scrollbar-none">
+          <button
+            onClick={() => setForecastQuarterTab('all')}
+            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              forecastQuarterTab === 'all'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80'
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Tất Cả 4 Quý</span>
+          </button>
+
+          {FORECAST_QUARTERS.map((q) => {
+            const isQActive = forecastQuarterTab === q.id;
+            const qTabs = monthTabSummaries.filter((t) => q.monthIds.includes(t.id));
+            const hasSelectedMonth = qTabs.some((t) => t.id === selectedMonth);
+
             return (
               <button
-                key={tab.id}
-                onClick={() => handleSelectMonthTab(tab.id, tab.monthNum)}
-                className={`p-2.5 rounded-xl border text-left transition-all duration-300 relative flex flex-col justify-between cursor-pointer overflow-hidden ${
-                  isSelected
-                    ? 'month-tab-border-glow bg-slate-900/90 border-2 border-amber-400 ring-2 ring-amber-400/40 shadow-[0_0_18px_rgba(251,191,36,0.6),inset_0_0_10px_rgba(251,191,36,0.06)] scale-[1.03] -translate-y-0.5 z-20'
-                    : 'bg-slate-950/70 border-slate-800/80 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700 hover:scale-[1.02]'
+                key={q.id}
+                onClick={() => setForecastQuarterTab(q.id)}
+                className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                  isQActive
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : hasSelectedMonth
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80'
                 }`}
               >
-                {/* Luminous Top Beacon for the Active Month Tab */}
-                {isSelected && (
-                  <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] z-30" />
+                <span>{q.label}</span>
+                <span className="text-[10px] font-normal opacity-75">({q.rangeLabel})</span>
+                {hasSelectedMonth && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                 )}
-
-                <div className="flex items-center justify-between z-20 relative">
-                  <span
-                    className={`text-xs font-black transition-all ${
-                      isSelected
-                        ? 'text-amber-400 text-[13px] tracking-tight drop-shadow-[0_0_8px_rgba(251,191,36,0.4)]'
-                        : 'text-slate-200'
-                    }`}
-                  >
-                    {tab.short}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        !tab.hasData
-                          ? 'bg-slate-600'
-                          : tab.isOver
-                          ? 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.9)]'
-                          : 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-1 font-mono text-[11px] font-bold truncate z-20 relative">
-                  {tab.hasData ? (
-                    <span
-                      className={`transition-all ${
-                        isSelected
-                          ? 'text-white font-black text-xs'
-                          : tab.isOver
-                          ? 'text-rose-400'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {formatVND(tab.spent, 'million')}
-                    </span>
-                  ) : (
-                    <span className={isSelected ? 'text-slate-400 font-bold' : 'text-slate-600 font-normal'}>--</span>
-                  )}
-                </div>
-
-                <div className="mt-0.5 text-[9px] truncate z-20 relative">
-                  {tab.hasSheetPlan ? (
-                    <span
-                      className={`font-mono transition-all ${
-                        isSelected
-                          ? 'text-amber-300 font-bold'
-                          : 'text-amber-400/80'
-                      }`}
-                    >
-                      Plan {formatVND(tab.sheetPlanBudget, 'million')}
-                    </span>
-                  ) : tab.id === 'all' ? (
-                    <span className={isSelected ? 'text-cyan-300 font-bold' : 'text-cyan-400/80'}>Cả năm</span>
-                  ) : (
-                    <span className={isSelected ? 'text-slate-400 font-medium' : 'text-slate-600'}>Chưa có KH</span>
-                  )}
-                </div>
               </button>
             );
           })}
         </div>
+
+        {/* VIEW 1: TẤT CẢ 4 QUÝ - PHÂN NHÓM GỌN GÀNG THEO QUÝ VỚI CARD ĐẦY ĐỦ THÔNG TIN */}
+        {forecastQuarterTab === 'all' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 pt-1">
+            {FORECAST_QUARTERS.map((q) => {
+              const qTabs = monthTabSummaries.filter((t) => q.monthIds.includes(t.id));
+              const qSpent = qTabs.reduce((sum, t) => sum + (t.spent || 0), 0);
+              const hasActiveInQuarter = qTabs.some((t) => t.id === selectedMonth);
+
+              return (
+                <div
+                  key={q.id}
+                  className={`p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
+                    hasActiveInQuarter
+                      ? 'bg-slate-950/90 border-amber-500/40 ring-1 ring-amber-500/20'
+                      : 'bg-slate-950/60 border-slate-800/80'
+                  }`}
+                >
+                  {/* Quarter Card Header */}
+                  <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-800/70">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${hasActiveInQuarter ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                      <span className={`text-xs font-black uppercase tracking-wider ${hasActiveInQuarter ? 'text-amber-300' : 'text-blue-400'}`}>
+                        {q.label}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">({q.rangeLabel})</span>
+                    </div>
+                    {qSpent > 0 && (
+                      <span className="text-[10px] font-mono font-bold text-slate-300 bg-slate-900/90 px-1.5 py-0.5 rounded border border-slate-800">
+                        {formatVND(qSpent, 'million')}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Subgrid of month cards ("kiểu như cũ") */}
+                  <div className={`grid ${qTabs.length === 1 ? 'grid-cols-1' : qTabs.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-1.5`}>
+                    {qTabs.map((tab) => {
+                      const isSelected = selectedMonth === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => handleSelectMonthTab(tab.id, tab.monthNum)}
+                          className={`p-2 rounded-lg border text-left transition-all duration-200 relative flex flex-col justify-between cursor-pointer overflow-hidden ${
+                            isSelected
+                              ? 'month-tab-border-glow bg-slate-900/95 border-2 border-amber-400 ring-2 ring-amber-400/40 shadow-[0_0_14px_rgba(251,191,36,0.5)] scale-[1.02] z-10'
+                              : 'bg-slate-900/80 border-slate-800/80 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
+                          }`}
+                        >
+                          {/* Luminous top beacon for selected card */}
+                          {isSelected && (
+                            <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-[2px] rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24] z-20" />
+                          )}
+
+                          <div className="flex items-center justify-between z-10">
+                            <span className={`text-xs font-black ${isSelected ? 'text-amber-400' : 'text-slate-200'}`}>
+                              {tab.short}
+                            </span>
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                !tab.hasData
+                                  ? 'bg-slate-600'
+                                  : tab.isOver
+                                  ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+                                  : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                              }`}
+                            />
+                          </div>
+
+                          <div className="mt-1 font-mono text-[11px] font-bold truncate z-10">
+                            {tab.hasData ? (
+                              <span className={isSelected ? 'text-white font-black' : tab.isOver ? 'text-rose-400' : 'text-slate-300'}>
+                                {formatVND(tab.spent, 'million')}
+                              </span>
+                            ) : (
+                              <span className={isSelected ? 'text-slate-400' : 'text-slate-600'}>--</span>
+                            )}
+                          </div>
+
+                          <div className="mt-0.5 text-[9px] truncate z-10">
+                            {tab.hasSheetPlan ? (
+                              <span className={isSelected ? 'text-amber-300 font-semibold' : 'text-amber-400/80'}>
+                                Plan {formatVND(tab.sheetPlanBudget, 'million')}
+                              </span>
+                            ) : (
+                              <span className={isSelected ? 'text-slate-400 font-medium' : 'text-slate-600'}>Chưa có KH</span>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* VIEW 2: XEM TẬP TRUNG 1 QUÝ ĐƯỢC CHỌN (EXPANDED QUARTER VIEW) */}
+        {forecastQuarterTab !== 'all' && (() => {
+          const currentQ = FORECAST_QUARTERS.find((q) => q.id === forecastQuarterTab);
+          if (!currentQ) return null;
+          const qTabs = monthTabSummaries.filter((t) => currentQ.monthIds.includes(t.id));
+          const qSpent = qTabs.reduce((sum, t) => sum + (t.spent || 0), 0);
+          const qPlan = qTabs.reduce((sum, t) => sum + (t.sheetPlanBudget || 0), 0);
+
+          return (
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/90 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2.5 border-b border-slate-800">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="w-2 h-2 rounded-full bg-blue-400" />
+                  <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                    {currentQ.label} ({currentQ.rangeLabel})
+                  </h4>
+                  {qSpent > 0 && (
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-300 font-bold border border-blue-500/30">
+                      Tổng thực chi: {formatVND(qSpent, 'million')}
+                    </span>
+                  )}
+                  {qPlan > 0 && (
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30">
+                      Kế hoạch: {formatVND(qPlan, 'million')}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setForecastQuarterTab('all')}
+                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold cursor-pointer self-start sm:self-auto"
+                >
+                  <span>← Xem tất cả 4 Quý</span>
+                </button>
+              </div>
+
+              {/* Spacious month cards */}
+              <div className={`grid ${qTabs.length === 1 ? 'grid-cols-1 sm:grid-cols-2 max-w-xl' : qTabs.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'} gap-3`}>
+                {qTabs.map((tab) => {
+                  const isSelected = selectedMonth === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleSelectMonthTab(tab.id, tab.monthNum)}
+                      className={`p-3.5 rounded-xl border text-left transition-all duration-200 relative flex flex-col justify-between cursor-pointer ${
+                        isSelected
+                          ? 'month-tab-border-glow bg-slate-900 border-2 border-amber-400 ring-2 ring-amber-400/40 shadow-[0_0_16px_rgba(251,191,36,0.5)] scale-[1.02] z-10'
+                          : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:bg-slate-850 hover:border-slate-700'
+                      }`}
+                    >
+                      {isSelected && (
+                        <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-10 h-[2px] rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24] z-20" />
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <span className={`text-sm font-black ${isSelected ? 'text-amber-400' : 'text-slate-100'}`}>
+                          {tab.label} ({tab.short})
+                        </span>
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full ${
+                            !tab.hasData
+                              ? 'bg-slate-600'
+                              : tab.isOver
+                              ? 'bg-rose-400 shadow-[0_0_6px_rgba(244,63,94,0.8)]'
+                              : 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                          }`}
+                        />
+                      </div>
+
+                      <div className="mt-2 font-mono text-base font-bold">
+                        {tab.hasData ? (
+                          <span className={isSelected ? 'text-white font-black' : tab.isOver ? 'text-rose-400' : 'text-slate-200'}>
+                            {formatVND(tab.spent, 'million')}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 font-normal text-xs">Chưa có số liệu chi</span>
+                        )}
+                      </div>
+
+                      <div className="mt-1 text-xs">
+                        {tab.hasSheetPlan ? (
+                          <span className={isSelected ? 'text-amber-300 font-bold' : 'text-amber-400/90 font-medium'}>
+                            Kế hoạch: {formatVND(tab.sheetPlanBudget, 'million')}
+                          </span>
+                        ) : tab.id === 'all' ? (
+                          <span className="text-cyan-300 font-medium">Tổng lũy kế cả năm</span>
+                        ) : (
+                          <span className="text-slate-500">Chưa thiết lập kế hoạch</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 1. TOP KPI METRIC ROW - DYNAMICALLY COMPUTED FOR SELECTED MONTH */}

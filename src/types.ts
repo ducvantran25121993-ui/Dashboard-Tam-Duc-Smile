@@ -1,6 +1,6 @@
 import { RegionData } from './data/revenueData';
 
-export type MonthTab = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 'overview';
+export type MonthTab = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 'q1' | 'q2' | 'q3' | 'q4' | 'overview' | string;
 
 export type SidebarTab =
   | 'overview'

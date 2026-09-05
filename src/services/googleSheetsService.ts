@@ -97,6 +97,7 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
     { month: 7, label: 'Tháng 7', regionCol: 50, svcCol: 51, cpSvcCol: 52, cpTongCol: -1, vatCol: 53, revCol: 54, pctCol: 55, svcDataCol: 56, regDataCol: 57 },
     { month: 8, label: 'Tháng 8', regionCol: 58, svcCol: 59, cpSvcCol: 60, cpTongCol: -1, vatCol: 61, revCol: 62, pctCol: 63, svcDataCol: 64, regDataCol: 65 },
     { month: 9, label: 'Tháng 9', regionCol: 66, svcCol: 67, cpSvcCol: 68, cpTongCol: -1, vatCol: 69, revCol: 70, pctCol: 71, svcDataCol: 72, regDataCol: 73 },
+    { month: 10, label: 'Tháng 10', regionCol: 74, svcCol: 75, cpSvcCol: 76, cpTongCol: -1, vatCol: 77, revCol: 78, pctCol: 79, svcDataCol: 80, regDataCol: 81 },
   ];
 
   const datasets: MonthDataset[] = [];

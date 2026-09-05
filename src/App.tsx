@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MONTHLY_DATA, MonthDataset } from './data/revenueData';
 import { MonthTab, DisplayUnit, SidebarTab } from './types';
 import { Header } from './components/Header';
@@ -24,6 +24,16 @@ import { VietKieuChart } from './components/VietKieuChart';
 import { RegionalDetailTable } from './components/RegionalDetailTable';
 import { SixMonthOverview } from './components/SixMonthOverview';
 import { SheetStatusBanner } from './components/SheetStatusBanner';
+import { QuarterSummaryBanner } from './components/QuarterSummaryBanner';
+import { CustomRangeBanner } from './components/CustomRangeBanner';
+import {
+  isQuarterTab,
+  getQuarterDataset,
+  QuarterId,
+  isCustomRange,
+  parseCustomRange,
+  getCustomRangeDataset,
+} from './utils/quarterAggregator';
 import { LoginModal } from './components/LoginModal';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import {
@@ -362,11 +372,30 @@ export default function App() {
     return () => clearInterval(interval);
   }, [autoRefreshEnabled, sheetUrl, loadSheetData]);
 
-  // Find dataset for active month (defaults to current real calendar month)
+  // Find dataset for active month or consolidated quarter/range (defaults to current real calendar month)
   const currentCalendarMonth = new Date().getMonth() + 1;
-  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 9 ? currentCalendarMonth : 9;
+  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 10 ? currentCalendarMonth : 10;
+  const isQuarter = isQuarterTab(activeTab);
+  const isRange = isCustomRange(activeTab);
+  const customMonths = useMemo(() => {
+    return isRange ? parseCustomRange(activeTab) || [] : [];
+  }, [isRange, activeTab]);
+
+  const currentDataset: MonthDataset = useMemo(() => {
+    if (isQuarterTab(activeTab)) {
+      return getQuarterDataset(activeTab, monthlyDatasets);
+    }
+    if (isCustomRange(activeTab)) {
+      const months = parseCustomRange(activeTab) || [];
+      if (months.length > 0) {
+        return getCustomRangeDataset(months, monthlyDatasets);
+      }
+    }
+    const monthNum = typeof activeTab === 'number' ? activeTab : defaultCurrentMonth;
+    return monthlyDatasets.find((m) => m.month === monthNum) || monthlyDatasets[0] || MONTHLY_DATA[0];
+  }, [activeTab, monthlyDatasets, defaultCurrentMonth]);
+
   const currentMonthNum = typeof activeTab === 'number' ? activeTab : defaultCurrentMonth;
-  const currentMonthData = monthlyDatasets.find((m) => m.month === currentMonthNum) || monthlyDatasets[0] || MONTHLY_DATA[0];
 
   return (
     <div
@@ -674,12 +703,32 @@ export default function App() {
                   monthlyData={monthlyDatasets}
                   dailyRecords={dailyRecords}
                 />
-              ) : currentMonthData ? (
-                /* Individual Month View (Tháng 1 - Tháng 9) */
+              ) : currentDataset ? (
+                /* Individual Month View or Consolidated Quarter View */
                 <div className="space-y-6">
-                  {/* Top KPI Cards */}
+                  {/* If viewing a Quarter (Quý 1, Quý 2, Quý 3), display Quarter Banner */}
+                  {isQuarter && (
+                    <QuarterSummaryBanner
+                      quarterId={activeTab as QuarterId}
+                      monthlyData={monthlyDatasets}
+                      displayUnit={displayUnit}
+                      onSelectTab={handleSelectMonthTab}
+                    />
+                  )}
+
+                  {/* If viewing a Custom Range of Months (e.g. Tháng 1 - Tháng 6), display Range Banner */}
+                  {isRange && customMonths.length > 0 && (
+                    <CustomRangeBanner
+                      months={customMonths}
+                      monthlyData={monthlyDatasets}
+                      displayUnit={displayUnit}
+                      onSelectTab={handleSelectMonthTab}
+                    />
+                  )}
+
+                  {/* Top KPI Cards (Consolidated if Quarter or Custom Range) */}
                   <KPISummary
-                    monthData={currentMonthData}
+                    monthData={currentDataset}
                     displayUnit={displayUnit}
                   />
 
@@ -687,15 +736,15 @@ export default function App() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Chart 1: Chi Phí (VAT) Theo Khu Vực */}
                     <CostChart
-                      regions={currentMonthData.regions}
-                      monthLabel={currentMonthData.label}
+                      regions={currentDataset.regions}
+                      monthLabel={currentDataset.label}
                       displayUnit={displayUnit}
                     />
 
                     {/* Chart 2: Doanh Thu Theo Khu Vực */}
                     <RevenueChart
-                      regions={currentMonthData.regions}
-                      monthLabel={currentMonthData.label}
+                      regions={currentDataset.regions}
+                      monthLabel={currentDataset.label}
                       displayUnit={displayUnit}
                     />
                   </div>
@@ -704,44 +753,44 @@ export default function App() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Chart 3: Data Tháng Theo Từng Khu Vực (Cột Data) */}
                     <RegionDataChart
-                      regions={currentMonthData.regions}
-                      monthLabel={currentMonthData.label}
+                      regions={currentDataset.regions}
+                      monthLabel={currentDataset.label}
                     />
 
                     {/* Chart 4: Data Tháng Theo Từng Dịch Vụ (Cột Data Dịch Vụ) */}
                     <ServiceDataChart
-                      regions={currentMonthData.regions}
-                      monthLabel={currentMonthData.label}
+                      regions={currentDataset.regions}
+                      monthLabel={currentDataset.label}
                       displayUnit={displayUnit}
                     />
                   </div>
 
-                  {/* Chart 5: Data Ngày Theo Từng Dịch Vụ & Từng Tháng */}
+                  {/* Chart 5: Data Ngày Theo Từng Dịch Vụ & Từng Tháng / Quý / Khoảng */}
                   <DailyDataChart
                     dailyRecords={dailyRecords}
-                    activeMonth={currentMonthNum}
-                    monthLabel={currentMonthData.label}
-                    regions={currentMonthData?.regions}
+                    activeMonth={isQuarter || isRange ? (activeTab as any) : currentMonthNum}
+                    monthLabel={currentDataset.label}
+                    regions={currentDataset?.regions}
                   />
 
                   {/* Combined Comparison Chart: Revenue vs Cost VAT */}
                   <CombinedChart
-                    regions={currentMonthData.regions}
-                    monthLabel={currentMonthData.label}
+                    regions={currentDataset.regions}
+                    monthLabel={currentDataset.label}
                     displayUnit={displayUnit}
                   />
 
                   {/* Dedicated Viet Kieu Revenue & Cost Chart */}
                   <VietKieuChart
                     monthlyData={monthlyDatasets}
-                    activeMonth={currentMonthNum}
+                    activeMonth={typeof activeTab === 'number' ? activeTab : undefined}
                     displayUnit={displayUnit}
                   />
 
-                  {/* Detailed Data Table */}
+                  {/* Detailed Data Table (Consolidated for the whole Quarter or Month) */}
                   <RegionalDetailTable
-                    regions={currentMonthData.regions}
-                    monthLabel={currentMonthData.label}
+                    regions={currentDataset.regions}
+                    monthLabel={currentDataset.label}
                     displayUnit={displayUnit}
                   />
                 </div>

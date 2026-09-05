@@ -835,3 +835,81 @@ html[data-custom-theme="true"].theme-light .border-slate-800,
 html[data-custom-theme="true"].theme-light .border-slate-700 {
   border-color: var(--app-border-color) !important;
 }
+
+/* Month Navigation Light Mode Refinements */
+.theme-light .month-nav-popover {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .month-nav-popover h4 {
+  color: #0f172a !important;
+}
+
+.theme-light .month-nav-popover select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-light .month-nav-popover [class*="bg-slate-950"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .month-nav-quarter-card {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .month-nav-quarter-card button:not(.bg-blue-600) {
+  background-color: #ffffff !important;
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .month-nav-quarter-card button:not(.bg-blue-600):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-light .month-nav-inactive-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Quarter Summary Banner Light Mode Refinements */
+.theme-light .quarter-summary-banner {
+  background: #ffffff !important;
+  border-color: #bfdbfe !important;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .quarter-summary-banner h2 {
+  color: #0f172a !important;
+}
+
+.theme-light .quarter-stat-pill {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+.theme-light .quarter-month-card {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .quarter-month-card:hover {
+  background-color: #ffffff !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1) !important;
+}
+
+.theme-light .quarter-month-card span.font-bold {
+  color: #0f172a !important;
+}
+
+
