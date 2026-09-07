@@ -50,6 +50,28 @@ const PERMISSIONS_FILE = path.join(STORAGE_DIR, 'permissions.json');
 const ADMIN_USERS_FILE = path.join(STORAGE_DIR, 'admin_users.json');
 const BUDGET_SHEET_FILE = path.join(STORAGE_DIR, 'budget_sheet.json');
 const LANDING_PAGES_FILE = path.join(STORAGE_DIR, 'landing_pages.json');
+const PANCAKE_CONFIG_FILE = path.join(STORAGE_DIR, 'pancake_config.json');
+
+// Pancake CRM config store
+let pancakeConfigStore = {
+  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF8zMjk2MzUyNDIyNjEwMTA3MjMiLCJ0aW1lc3RhbXAiOjE3ODg3NjQyNDV9.sb2fG-sOSql9rKgI9u6TYDDRJjYCfkBOgprqUZV1gww',
+  pageId: 'pzl_329635242261010723',
+  pageName: 'Hệ Thống Nha Khoa Tâm Đức Smile (Zalo OA)',
+  autoSync: true,
+  updatedAt: new Date().toISOString(),
+};
+
+try {
+  if (fs.existsSync(PANCAKE_CONFIG_FILE)) {
+    const content = fs.readFileSync(PANCAKE_CONFIG_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (parsed && parsed.token) {
+      pancakeConfigStore = { ...pancakeConfigStore, ...parsed };
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load pancake config from disk:', e);
+}
 
 // In-memory permissions store with default allowed tabs including budget_forecast & landing_builder
 let staffPermissionsStore = {
@@ -253,6 +275,229 @@ app.post('/api/monitor/notifications', (req, res) => {
     return res.json({ success: true, count: monitorNotificationsStore.length, updatedAt: new Date().toISOString() });
   }
   return res.status(400).json({ error: 'Invalid notifications array' });
+});
+
+// ==========================================
+// PANCAKE CRM ENDPOINTS (Zalo OA & Pages.fm)
+// ==========================================
+app.get('/api/pancake/status', async (req, res) => {
+  try {
+    const { token, pageId, pageName, autoSync, updatedAt } = pancakeConfigStore;
+    if (!token || !pageId) {
+      return res.json({ connected: false, message: 'Chưa cấu hình Token' });
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const resp = await fetch(`https://pages.fm/api/public_api/v1/pages/${pageId}/tags?page_access_token=${token}`, {
+      headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    const data: any = await resp.json();
+    if (data && Array.isArray(data.tags)) {
+      return res.json({
+        connected: true,
+        pageId,
+        pageName,
+        tokenMasked: token.slice(0, 15) + '...' + token.slice(-8),
+        totalTags: data.tags.length,
+        tags: data.tags,
+        autoSync,
+        updatedAt,
+      });
+    }
+    return res.json({ connected: false, error: data?.message || 'Không thể xác thực Token Pancake' });
+  } catch (err: any) {
+    return res.json({ connected: false, error: err.message });
+  }
+});
+
+app.post('/api/pancake/config', (req, res) => {
+  const { token, pageId, pageName, autoSync } = req.body;
+  if (token && typeof token === 'string') {
+    pancakeConfigStore.token = token.trim();
+  }
+  if (pageId && typeof pageId === 'string') {
+    pancakeConfigStore.pageId = pageId.trim();
+  }
+  if (pageName && typeof pageName === 'string') {
+    pancakeConfigStore.pageName = pageName.trim();
+  }
+  if (typeof autoSync === 'boolean') {
+    pancakeConfigStore.autoSync = autoSync;
+  }
+  pancakeConfigStore.updatedAt = new Date().toISOString();
+
+  try {
+    fs.writeFileSync(PANCAKE_CONFIG_FILE, JSON.stringify(pancakeConfigStore, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Failed to persist pancake config:', err);
+  }
+
+  return res.json({ success: true, config: {
+    pageId: pancakeConfigStore.pageId,
+    pageName: pancakeConfigStore.pageName,
+    tokenMasked: pancakeConfigStore.token.slice(0, 15) + '...' + pancakeConfigStore.token.slice(-8),
+    autoSync: pancakeConfigStore.autoSync,
+    updatedAt: pancakeConfigStore.updatedAt,
+  } });
+});
+
+app.get('/api/pancake/conversations', async (req, res) => {
+  try {
+    const { token, pageId } = pancakeConfigStore;
+    if (!token || !pageId) {
+      return res.status(400).json({ success: false, error: 'Chưa có Token Pancake' });
+    }
+
+    const days = Math.min(Math.max(parseInt((req.query.days as string) || '14', 10), 1), 60);
+    const pageNumber = Math.max(parseInt((req.query.page_number as string) || '1', 10), 1);
+    const search = ((req.query.search as string) || '').toLowerCase().trim();
+    const tagFilter = ((req.query.tag as string) || '').toLowerCase().trim();
+
+    const now = Math.floor(Date.now() / 1000);
+    const since = now - days * 86400;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const resp = await fetch(
+      `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${pageNumber}`,
+      {
+        headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeoutId);
+
+    const data: any = await resp.json();
+
+    if (!data.success && data.message) {
+      return res.status(400).json({ success: false, error: data.message });
+    }
+
+    const rawList: any[] = Array.isArray(data.conversations) ? data.conversations : [];
+
+    const branches = [
+      'Cần Thơ', 'Cà Mau', 'Hóc Môn', 'Gò Vấp', 'Quận 5', 'Quận 10', 'Bình Thạnh',
+      'Thủ Đức', 'Bình Dương', 'Biên Hòa', 'Đồng Tháp', 'Vũng Tàu', 'Đà Nẵng',
+      'Kiên Giang', 'An Giang', 'Tây Ninh', 'Bến Tre', 'Long An', 'Hồ Chí Minh'
+    ];
+
+    const leads = rawList.map((c) => {
+      const notes = Array.isArray(c.page_customer?.notes) ? c.page_customer.notes : [];
+      const notesText = notes.map((n: any) => n.message || '').join(' | ');
+
+      // Extract phone number
+      let phone = c.from?.phone_number || '';
+      if (!phone && Array.isArray(c.recent_phone_numbers) && c.recent_phone_numbers.length > 0) {
+        phone = c.recent_phone_numbers[0];
+      }
+      if (!phone) {
+        const phoneMatch = notesText.match(/(0[35789][0-9]{8})/);
+        if (phoneMatch) phone = phoneMatch[1];
+      }
+
+      // Detect branch
+      let detectedBranch = '';
+      for (const b of branches) {
+        if (notesText.toLowerCase().includes(b.toLowerCase()) || 
+            (c.snippet && c.snippet.toLowerCase().includes(b.toLowerCase()))) {
+          detectedBranch = b;
+          break;
+        }
+      }
+
+      // Detect service from tags or notes
+      const tagTexts = (c.tags || []).filter(Boolean).map((t: any) => (t?.text || '').toLowerCase());
+      let detectedService = '';
+      if (tagTexts.includes('imp') || notesText.toLowerCase().includes('implant') || (c.snippet && c.snippet.toLowerCase().includes('implant'))) {
+        detectedService = 'Implant';
+      } else if (tagTexts.includes('sứ') || notesText.toLowerCase().includes('sứ') || (c.snippet && c.snippet.toLowerCase().includes('sứ'))) {
+        detectedService = 'Răng Sứ';
+      } else if (tagTexts.includes('cn') || tagTexts.includes('niềng') || notesText.toLowerCase().includes('niềng')) {
+        detectedService = 'Niềng Răng / Chỉnh Nha';
+      } else if (tagTexts.includes('vk') || notesText.toLowerCase().includes('việt kiều')) {
+        detectedService = 'Việt Kiều';
+      } else if (tagTexts.includes('tq')) {
+        detectedService = 'Khám Tổng Quát';
+      }
+
+      return {
+        id: c.id,
+        name: c.from?.name || 'Khách hàng',
+        avatar: c.from?.avatar_url || '',
+        phone,
+        hasPhone: !!phone || !!c.has_phone,
+        snippet: c.snippet || '',
+        insertedAt: c.inserted_at,
+        updatedAt: c.updated_at,
+        messageCount: c.message_count || 0,
+        tags: (c.tags || []).filter(Boolean).map((t: any) => ({
+          id: t.id,
+          text: t.text,
+          color: t.color || '#3b82f6',
+        })),
+        notes: notes.map((n: any) => ({
+          id: n.id,
+          message: n.message,
+          author: n.created_by?.fb_name || 'Tư vấn viên',
+          time: n.created_at,
+        })),
+        branch: detectedBranch || 'Toàn Hệ Thống',
+        service: detectedService || 'Tư Vấn Chung',
+        isWon: tagTexts.includes('#đậu'),
+        isLost: tagTexts.includes('#rớt'),
+        isBooked: tagTexts.includes('ddh'),
+      };
+    });
+
+    let filtered = leads;
+    if (search) {
+      filtered = filtered.filter((l) =>
+        l.name.toLowerCase().includes(search) ||
+        l.phone.includes(search) ||
+        l.snippet.toLowerCase().includes(search) ||
+        l.branch.toLowerCase().includes(search) ||
+        l.service.toLowerCase().includes(search)
+      );
+    }
+    if (tagFilter) {
+      filtered = filtered.filter((l) =>
+        l.tags.some((t: any) => t.text.toLowerCase() === tagFilter)
+      );
+    }
+
+    // Summary calculation
+    const summary = {
+      totalLeads: leads.length,
+      withPhone: leads.filter((l) => l.hasPhone).length,
+      booked: leads.filter((l) => l.isBooked).length,
+      won: leads.filter((l) => l.isWon).length,
+      lost: leads.filter((l) => l.isLost).length,
+      byService: {
+        implant: leads.filter((l) => l.service === 'Implant').length,
+        porcelain: leads.filter((l) => l.service === 'Răng Sứ').length,
+        ortho: leads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
+        vietKieu: leads.filter((l) => l.service === 'Việt Kiều').length,
+        general: leads.filter((l) => l.service === 'Khám Tổng Quát').length,
+      },
+    };
+
+    return res.json({
+      success: true,
+      totalInPancake: data.total,
+      returned: filtered.length,
+      pageNumber,
+      summary,
+      leads: filtered,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Image Proxy endpoint to bypass hotlink protection and CORS for competitor banners

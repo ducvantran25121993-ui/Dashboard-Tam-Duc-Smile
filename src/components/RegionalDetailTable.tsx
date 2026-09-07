@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Download,
@@ -10,6 +10,8 @@ import {
   Building2,
   AlertCircle,
   CheckCircle2,
+  X,
+  Sparkles,
 } from 'lucide-react';
 import { RegionData } from '../data/revenueData';
 import { DisplayUnit } from '../types';
@@ -19,17 +21,44 @@ interface RegionalDetailTableProps {
   regions: RegionData[];
   monthLabel: string;
   displayUnit: DisplayUnit;
+  selectedRegionFilter?: string | null;
+  onClearRegionFilter?: () => void;
+  selectedServiceFilter?: string | null;
+  onClearServiceFilter?: () => void;
+  onSelectRegionFilter?: (regionName: string | null) => void;
 }
 
 export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
   regions,
   monthLabel,
   displayUnit,
+  selectedRegionFilter,
+  onClearRegionFilter,
+  selectedServiceFilter,
+  onClearServiceFilter,
+  onSelectRegionFilter,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRegions, setExpandedRegions] = useState<Record<string, boolean>>({});
   const [sortField, setSortField] = useState<'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong'>('revenue');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  // Auto-expand region when selected via Command Palette or Chart click
+  useEffect(() => {
+    if (selectedRegionFilter) {
+      const matched = regions.find(
+        (r) =>
+          r.name.toLowerCase().includes(selectedRegionFilter.toLowerCase()) ||
+          selectedRegionFilter.toLowerCase().includes(r.name.toLowerCase())
+      );
+      if (matched) {
+        setExpandedRegions((prev) => ({
+          ...prev,
+          [matched.name]: true,
+        }));
+      }
+    }
+  }, [selectedRegionFilter, regions]);
 
   const toggleExpand = (regionName: string) => {
     setExpandedRegions((prev) => ({
@@ -72,9 +101,19 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
     })
     .filter((r) => {
       const search = searchTerm.toLowerCase();
-      const matchRegion = r.name.toLowerCase().includes(search);
-      const matchService = r.services.some((s) => s.name.toLowerCase().includes(search));
-      return matchRegion || matchService;
+      const matchRegion = !searchTerm || r.name.toLowerCase().includes(search);
+      const matchService = !searchTerm || r.services.some((s) => s.name.toLowerCase().includes(search));
+      const matchSearch = matchRegion || matchService;
+
+      let matchServiceFilter = true;
+      if (selectedServiceFilter) {
+        const targetSvc = selectedServiceFilter.toLowerCase();
+        matchServiceFilter = r.services.some(
+          (s) => s.name.toLowerCase().includes(targetSvc) || targetSvc.includes(s.name.toLowerCase())
+        );
+      }
+
+      return matchSearch && matchServiceFilter;
     })
     .sort((a, b) => {
       let result = 0;
@@ -181,6 +220,35 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
         </div>
       </div>
 
+      {/* Cross-Filter Active Notification Banner */}
+      {(selectedRegionFilter || selectedServiceFilter) && (
+        <div className="flex items-center justify-between p-3 px-4 mb-4 rounded-xl bg-gradient-to-r from-cyan-950/80 to-slate-900 border border-cyan-500/40 text-xs shadow-md">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shrink-0" />
+            <span className="text-cyan-200 font-semibold">Đang lọc chéo tương tác:</span>
+            {selectedRegionFilter && (
+              <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30 flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5" /> Cơ sở: {selectedRegionFilter}
+              </span>
+            )}
+            {selectedServiceFilter && (
+              <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1">
+                <Sparkles className="w-3.5 h-3.5" /> Dịch vụ: {selectedServiceFilter}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              onClearRegionFilter?.();
+              onClearServiceFilter?.();
+            }}
+            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 flex items-center gap-1 transition-all cursor-pointer shrink-0 ml-2"
+          >
+            <X className="w-3.5 h-3.5 text-rose-400" /> Xóa bộ lọc
+          </button>
+        </div>
+      )}
+
       {/* Table View */}
       <div className="overflow-x-auto rounded-xl border border-slate-800">
         <table className="w-full text-left text-xs text-slate-300">
@@ -264,13 +332,23 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
               processedRegions.map((r) => {
                 const isExpanded = expandedRegions[r.name];
                 const hasServices = r.services && r.services.length > 0;
+                const isSelectedByFilter = Boolean(
+                  selectedRegionFilter &&
+                    (r.name.toLowerCase().includes(selectedRegionFilter.toLowerCase()) ||
+                      selectedRegionFilter.toLowerCase().includes(r.name.toLowerCase()))
+                );
 
                 return (
                   <React.Fragment key={r.name}>
                     <tr
+                      id={`region-row-${r.name.replace(/\s+/g, '-')}`}
                       onClick={() => hasServices && toggleExpand(r.name)}
-                      className={`hover:bg-slate-800/50 transition-colors cursor-pointer ${
-                        isExpanded ? 'bg-slate-800/30' : ''
+                      className={`transition-all cursor-pointer ${
+                        isSelectedByFilter
+                          ? 'bg-cyan-950/50 border-l-4 border-l-cyan-400 font-semibold'
+                          : isExpanded
+                          ? 'bg-slate-800/40 hover:bg-slate-800/60'
+                          : 'hover:bg-slate-800/50'
                       }`}
                     >
                       <td className="py-3 px-3 text-slate-500 text-center">
@@ -283,7 +361,14 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                         ) : null}
                       </td>
                       <td className="py-3 px-3 font-bold text-white text-sm whitespace-nowrap">
-                        {r.name}
+                        <div className="flex items-center gap-1.5">
+                          <span>{r.name}</span>
+                          {isSelectedByFilter && (
+                            <span className="px-1.5 py-0.5 text-[10px] rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold animate-pulse">
+                              Đang lọc
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-3 text-right font-bold text-cyan-400 text-sm whitespace-nowrap">
                         {r.dataTong.toLocaleString('vi-VN')}
@@ -340,16 +425,30 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                               : r.dataTong > 0 && r.dataChatLuong > 0
                               ? Math.round(svcDataDV * (r.dataChatLuong / r.dataTong))
                               : svcDataDV;
+                          const isServiceMatch = Boolean(
+                            selectedServiceFilter &&
+                              (svc.name.toLowerCase().includes(selectedServiceFilter.toLowerCase()) ||
+                                selectedServiceFilter.toLowerCase().includes(svc.name.toLowerCase()))
+                          );
 
                           return (
                             <tr
                               key={`${r.name}-svc-${idx}`}
-                              className="bg-slate-950/60 border-l-2 border-l-blue-500 text-slate-400"
+                              className={`transition-colors ${
+                                isServiceMatch
+                                  ? 'bg-amber-950/40 border-l-4 border-l-amber-400 text-amber-100 font-semibold'
+                                  : 'bg-slate-950/60 border-l-2 border-l-blue-500 text-slate-400'
+                              }`}
                             >
                               <td></td>
-                              <td className="py-2.5 px-3 pl-8 flex items-center gap-2 font-medium text-slate-300 whitespace-nowrap">
-                                <Layers className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                                <span className="whitespace-nowrap">{svc.name}</span>
+                              <td className="py-2.5 px-3 pl-8 flex items-center gap-2 font-medium whitespace-nowrap">
+                                <Layers className={`w-3.5 h-3.5 shrink-0 ${isServiceMatch ? 'text-amber-400' : 'text-blue-400'}`} />
+                                <span className={`whitespace-nowrap ${isServiceMatch ? 'text-amber-200' : 'text-slate-300'}`}>{svc.name}</span>
+                                {isServiceMatch && (
+                                  <span className="text-[10px] px-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    Khớp dịch vụ
+                                  </span>
+                                )}
                               </td>
                               <td className="py-2.5 px-3 text-right font-semibold text-cyan-300 whitespace-nowrap">
                                 {svcDataDV ? `${svcDataDV.toLocaleString('vi-VN')} data` : '—'}

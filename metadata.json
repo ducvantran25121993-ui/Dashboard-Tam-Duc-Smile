@@ -1,6 +1,6 @@
 {
   "name": "Dashboard Báo Cáo Doanh Thu",
-  "description": "Hệ thống phân tích đối thủ, quét thay đổi website, AI Vision-to-Code sinh mã Landing Page từ ảnh chụp và Trung tâm minh bạch quảng cáo Google Ads Transparency cho chuỗi nha khoa.",
+  "description": "Hệ thống quản trị doanh thu, kết nối Pancake CRM Zalo OA, phân tích đối thủ, sinh Landing Page AI và quản lý 17 cơ sở Nha Khoa Tâm Đức Smile.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

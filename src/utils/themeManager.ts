@@ -38,6 +38,15 @@ export function saveThemeMode(mode: ThemeMode): void {
 }
 
 /**
+ * Saves and applies theme mode in one step.
+ */
+export function setThemeMode(mode: ThemeMode): void {
+  saveThemeMode(mode);
+  const effective = resolveEffectiveTheme(mode);
+  applyThemeToDOM(effective, mode);
+}
+
+/**
  * Resolves the effective active theme ('light' or 'dark') based on the current mode and time.
  */
 export function resolveEffectiveTheme(mode: ThemeMode): 'light' | 'dark' {

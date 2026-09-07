@@ -36,10 +36,9 @@ import {
 } from './utils/quarterAggregator';
 import { LoginModal } from './components/LoginModal';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
-import {
-  TabPermissionsModal,
-  DEFAULT_STAFF_ALLOWED_TABS,
-} from './components/TabPermissionsModal';
+import { TabPermissionsModal, DEFAULT_STAFF_ALLOWED_TABS } from './components/TabPermissionsModal';
+import { CommandPalette } from './components/CommandPalette';
+import { PancakeCRMView } from './components/PancakeCRMView';
 import { ThemeToggle } from './components/ThemeToggle';
 import { fetchPermissionsFromCloud } from './services/cloudPermissionsService';
 import {
@@ -55,6 +54,7 @@ import {
   AlertTriangle,
   Clock,
   ArrowRight,
+  Search,
 } from 'lucide-react';
 import {
   fetchGoogleSheetData,
@@ -208,6 +208,23 @@ export default function App() {
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState<boolean>(false);
   const [isTabPermissionsOpen, setIsTabPermissionsOpen] = useState<boolean>(false);
+
+  // Command Palette & Interactive Cross-Filters
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+  const [selectedRegionFilter, setSelectedRegionFilter] = useState<string | null>(null);
+  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string | null>(null);
+
+  // Global Ctrl + K / Cmd + K listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLoginSuccess = (role: 'admin' | 'staff') => {
     setUserRole(role);
@@ -436,6 +453,36 @@ export default function App() {
         />
       )}
 
+      {/* Command Palette (Ctrl + K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        activeSidebarTab={activeSidebarTab}
+        onSelectSidebarTab={handleSelectSidebarTab}
+        activeMonthTab={activeTab}
+        onSelectMonthTab={handleSelectMonthTab}
+        displayUnit={displayUnit}
+        onSelectDisplayUnit={setDisplayUnit}
+        monthlyDatasets={monthlyDatasets}
+        onRefreshData={() => loadSheetData(sheetUrl)}
+        onLogout={handleLogout}
+        onSelectRegionFilter={(regionName) => {
+          setSelectedRegionFilter(regionName);
+          if (regionName) {
+            const elem = document.getElementById('regional-detail-table-section');
+            if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+        onSelectServiceFilter={(serviceName) => {
+          setSelectedServiceFilter(serviceName);
+          if (serviceName) {
+            const elem = document.getElementById('regional-detail-table-section');
+            if (elem) elem.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+        userRole={userRole}
+      />
+
       {/* Left Navigation Sidebar */}
       <Sidebar
         activeTab={activeSidebarTab}
@@ -466,6 +513,7 @@ export default function App() {
             onChangePassword={() => setIsChangePasswordOpen(true)}
             onOpenTabPermissions={() => setIsTabPermissionsOpen(true)}
             onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           />
         ) : (
           /* General Top Navigation for other tabs */
@@ -506,6 +554,19 @@ export default function App() {
 
               {/* Right Controls */}
               <div className="flex items-center gap-2">
+                {/* Command Palette Trigger Button */}
+                <button
+                  onClick={() => setIsCommandPaletteOpen(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 hover:border-cyan-500/40 transition-all text-xs font-medium shadow-sm group cursor-pointer"
+                  title="Tìm nhanh cơ sở, dịch vụ, chuyển tab (Phím tắt: Ctrl + K)"
+                >
+                  <Search className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <span className="hidden sm:inline">Tìm nhanh...</span>
+                  <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-900 border border-slate-700/80 rounded">
+                    Ctrl K
+                  </kbd>
+                </button>
+
                 {/* Theme Toggle (Sáng / Tối / Tự động theo thời gian) */}
                 <ThemeToggle />
 
@@ -653,7 +714,7 @@ export default function App() {
 
           {activeSidebarTab === 'sales_copilot' && <SalesCopilotView />}
 
-          {activeSidebarTab === 'consultation' && <ConsultationView />}
+          {activeSidebarTab === 'consultation' && <PancakeCRMView />}
 
           {activeSidebarTab === 'innovation' && <InnovationView />}
 
@@ -762,6 +823,8 @@ export default function App() {
                       regions={currentDataset.regions}
                       monthLabel={currentDataset.label}
                       displayUnit={displayUnit}
+                      selectedService={selectedServiceFilter}
+                      onSelectService={setSelectedServiceFilter}
                     />
                   </div>
 
@@ -792,6 +855,11 @@ export default function App() {
                     regions={currentDataset.regions}
                     monthLabel={currentDataset.label}
                     displayUnit={displayUnit}
+                    selectedRegionFilter={selectedRegionFilter}
+                    onClearRegionFilter={() => setSelectedRegionFilter(null)}
+                    selectedServiceFilter={selectedServiceFilter}
+                    onClearServiceFilter={() => setSelectedServiceFilter(null)}
+                    onSelectRegionFilter={setSelectedRegionFilter}
                   />
                 </div>
               ) : null}

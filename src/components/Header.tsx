@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu } from 'lucide-react';
+import { DollarSign, Building2, BarChart2, Lock, KeyRound, ShieldCheck, Users, Menu, Search, Command } from 'lucide-react';
 import { MonthTab, DisplayUnit } from '../types';
 import { MonthDataset } from '../data/revenueData';
 import { ThemeToggle } from './ThemeToggle';
@@ -16,6 +16,7 @@ interface HeaderProps {
   onChangePassword?: () => void;
   onOpenTabPermissions?: () => void;
   onToggleSidebar?: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,6 +30,7 @@ export const Header: React.FC<HeaderProps> = ({
   onChangePassword,
   onOpenTabPermissions,
   onToggleSidebar,
+  onOpenCommandPalette,
 }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
@@ -71,8 +73,23 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Controls: Display Unit Selector, Theme Toggle & Security Lock */}
+          {/* Controls: Quick Search Palette, Display Unit Selector, Theme Toggle & Security Lock */}
           <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
+            {/* Quick Command Palette Button */}
+            {onOpenCommandPalette && (
+              <button
+                onClick={onOpenCommandPalette}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/80 hover:border-cyan-500/40 transition-all text-xs font-medium shadow-sm group"
+                title="Mở thanh tìm kiếm nhanh cơ sở, dịch vụ, tháng (Phím tắt: Ctrl + K)"
+              >
+                <Search className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <span className="hidden sm:inline">Tìm nhanh...</span>
+                <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-900 border border-slate-700/80 rounded">
+                  Ctrl K
+                </kbd>
+              </button>
+            )}
+
             {/* Theme Toggle (Sáng / Tối / Tự động theo giờ) */}
             <ThemeToggle />
 

@@ -125,10 +125,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'consultation',
-      label: 'Hội thoại tư vấn',
+      label: 'Pancake CRM (Live)',
       icon: MessageSquare,
-      badge: '98%',
-      badgeColor: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+      badge: 'Zalo OA',
+      badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 animate-pulse',
     },
     {
       id: 'innovation',

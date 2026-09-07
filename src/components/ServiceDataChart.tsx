@@ -21,6 +21,8 @@ interface ServiceDataChartProps {
   regions: RegionData[];
   monthLabel: string;
   displayUnit: DisplayUnit;
+  selectedService?: string | null;
+  onSelectService?: (serviceName: string | null) => void;
 }
 
 const SERVICE_COLORS = [
@@ -37,6 +39,8 @@ export const ServiceDataChart: React.FC<ServiceDataChartProps> = ({
   regions,
   monthLabel,
   displayUnit,
+  selectedService,
+  onSelectService,
 }) => {
   const [chartMode, setChartMode] = useState<'donut' | 'bar'>('donut');
 
@@ -213,36 +217,53 @@ export const ServiceDataChart: React.FC<ServiceDataChartProps> = ({
 
         {/* Breakdown List Cards */}
         <div className="lg:col-span-5 space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-          {chartData.map((svc) => (
-            <div
-              key={svc.name}
-              className="bg-slate-800/60 border border-slate-700/60 hover:border-slate-600 rounded-xl p-3 flex items-center justify-between transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
-                  style={{ backgroundColor: svc.color }}
-                />
-                <div>
-                  <p className="font-bold text-white text-xs sm:text-sm">{svc.name}</p>
-                  <p className="text-[11px] text-slate-400">
-                    Tỷ trọng: <strong className="text-slate-200">{formatPercent(svc.sharePercent)}</strong>
+          {chartData.map((svc) => {
+            const isSelected = selectedService && (svc.name.toLowerCase() === selectedService.toLowerCase());
+
+            return (
+              <div
+                key={svc.name}
+                onClick={() => onSelectService?.(isSelected ? null : svc.name)}
+                className={`border rounded-xl p-3 flex items-center justify-between transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/40 shadow-lg'
+                    : 'bg-slate-800/60 border-slate-700/60 hover:border-slate-500 hover:bg-slate-800/90'
+                }`}
+                title={isSelected ? 'Click để hủy lọc dịch vụ này' : `Click để lọc dữ liệu dịch vụ ${svc.name} ở bảng chi tiết bên dưới`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3.5 h-3.5 rounded-full shrink-0 shadow-sm"
+                    style={{ backgroundColor: svc.color }}
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-bold text-white text-xs sm:text-sm">{svc.name}</p>
+                      {isSelected && (
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/30 text-amber-300 font-semibold border border-amber-500/40">
+                          Đang lọc
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      Tỷ trọng: <strong className="text-slate-200">{formatPercent(svc.sharePercent)}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-sm font-extrabold text-blue-400">
+                    {svc.dataCount.toLocaleString('vi-VN')} <span className="text-xs font-normal text-slate-400">data</span>
                   </p>
+                  {svc.totalCp > 0 && (
+                    <p className="text-[11px] text-amber-400 font-medium">
+                      {formatVND(svc.totalCp, displayUnit)}
+                    </p>
+                  )}
                 </div>
               </div>
-
-              <div className="text-right">
-                <p className="text-sm font-extrabold text-blue-400">
-                  {svc.dataCount.toLocaleString('vi-VN')} <span className="text-xs font-normal text-slate-400">data</span>
-                </p>
-                {svc.totalCp > 0 && (
-                  <p className="text-[11px] text-amber-400 font-medium">
-                    {formatVND(svc.totalCp, displayUnit)}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
