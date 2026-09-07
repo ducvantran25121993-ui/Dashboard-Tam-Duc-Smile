@@ -155,7 +155,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
   };
 
   // Button label formatting
-  let triggerLabel = 'Xem Từng Tháng';
+  let triggerLabel = 'Xem Theo Tháng';
   const isRangeActive = isCustomRange(activeTab);
 
   if (typeof activeTab === 'number') {
