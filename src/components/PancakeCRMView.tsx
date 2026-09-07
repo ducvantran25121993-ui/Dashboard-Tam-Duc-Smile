@@ -89,6 +89,8 @@ export const PancakeCRMView: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isFromCache, setIsFromCache] = useState<boolean>(false);
+  const [cacheAgeSeconds, setCacheAgeSeconds] = useState<number>(0);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -104,26 +106,48 @@ export const PancakeCRMView: React.FC = () => {
   const [isSavingConfig, setIsSavingConfig] = useState<boolean>(false);
   const [configSuccessMsg, setConfigSuccessMsg] = useState<string | null>(null);
 
-  const fetchPancakeData = async (showLoading = true) => {
+  const fetchPancakeData = async (showLoading = true, force = false) => {
     if (showLoading) setLoading(true);
     setError(null);
     try {
-      // 1. Fetch Status
-      const statusRes = await fetch('/api/pancake/status');
-      const statusData = await statusRes.json();
-      setStatus(statusData);
+      // 1. Fetch Status safely
+      try {
+        const statusRes = await fetch('/api/pancake/status');
+        if (statusRes.ok) {
+          const contentType = statusRes.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const statusData = await statusRes.json();
+            setStatus(statusData);
+          }
+        }
+      } catch (stErr) {
+        console.warn('Pancake status fetch warning:', stErr);
+      }
 
-      // 2. Fetch Conversations & Leads
-      const convRes = await fetch(`/api/pancake/conversations?days=${daysRange}`);
+      // 2. Fetch Conversations & Leads safely
+      const convRes = await fetch(
+        `/api/pancake/conversations?days=${daysRange}${force ? '&force=true' : ''}`
+      );
+
+      const contentType = convRes.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(
+          'Máy chủ Pancake đang xử lý tải dữ liệu. Vui lòng bấm "Thử lại ngay" để kết nối.'
+        );
+      }
+
       const convData = await convRes.json();
 
       if (convData.success) {
         setLeads(convData.leads || []);
         setSummary(convData.summary || null);
+        setIsFromCache(!!convData.fromCache);
+        setCacheAgeSeconds(convData.cacheAgeSeconds || 0);
       } else {
         setError(convData.error || 'Không thể tải danh sách khách từ Pancake');
       }
     } catch (err: any) {
+      console.error('Fetch Pancake error:', err);
       setError(err.message || 'Lỗi mạng khi kết nối Pancake API');
     } finally {
       setLoading(false);
@@ -137,7 +161,7 @@ export const PancakeCRMView: React.FC = () => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    fetchPancakeData(false);
+    fetchPancakeData(false, true);
   };
 
   const handleCopy = (text: string, id: string) => {
@@ -226,6 +250,12 @@ export const PancakeCRMView: React.FC = () => {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
                 Public API Active
               </span>
+              {isFromCache && (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  Lưu đệm tốc độ cao ({cacheAgeSeconds > 60 ? `${Math.round(cacheAgeSeconds / 60)} phút trước` : `${cacheAgeSeconds}s trước`})
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
               {status?.pageName || 'Hệ Thống Nha Khoa Tâm Đức Smile (Zalo OA)'}
@@ -490,10 +520,11 @@ export const PancakeCRMView: React.FC = () => {
             <AlertCircle className="w-8 h-8 text-rose-400 mx-auto" />
             <p className="text-sm text-rose-300">{error}</p>
             <button
-              onClick={handleRefresh}
-              className="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-700"
+              onClick={() => fetchPancakeData(true, true)}
+              className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 text-xs font-bold transition shadow-lg inline-flex items-center gap-2"
             >
-              Thử lại
+              <RefreshCw className="w-3.5 h-3.5" />
+              Thử lại kết nối ngay
             </button>
           </div>
         ) : filteredLeads.length === 0 ? (

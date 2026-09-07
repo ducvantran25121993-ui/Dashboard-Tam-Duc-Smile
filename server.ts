@@ -51,6 +51,7 @@ const ADMIN_USERS_FILE = path.join(STORAGE_DIR, 'admin_users.json');
 const BUDGET_SHEET_FILE = path.join(STORAGE_DIR, 'budget_sheet.json');
 const LANDING_PAGES_FILE = path.join(STORAGE_DIR, 'landing_pages.json');
 const PANCAKE_CONFIG_FILE = path.join(STORAGE_DIR, 'pancake_config.json');
+const PANCAKE_CACHE_FILE = path.join(STORAGE_DIR, 'pancake_cache.json');
 
 // Pancake CRM config store
 let pancakeConfigStore = {
@@ -71,6 +72,34 @@ try {
   }
 } catch (e) {
   console.warn('Failed to load pancake config from disk:', e);
+}
+
+// Pancake in-memory & disk cache store for high performance & fallback
+let pancakeCacheStore: {
+  lastFetched: number;
+  data: {
+    totalInPancake: number;
+    returned: number;
+    pageNumber: number;
+    summary: any;
+    leads: any[];
+    cachedAt: string;
+  } | null;
+} = {
+  lastFetched: 0,
+  data: null,
+};
+
+try {
+  if (fs.existsSync(PANCAKE_CACHE_FILE)) {
+    const cacheContent = fs.readFileSync(PANCAKE_CACHE_FILE, 'utf-8');
+    const parsedCache = JSON.parse(cacheContent);
+    if (parsedCache && parsedCache.data && Array.isArray(parsedCache.data.leads)) {
+      pancakeCacheStore = parsedCache;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load pancake cache from disk:', e);
 }
 
 // In-memory permissions store with default allowed tabs including budget_forecast & landing_builder
@@ -346,6 +375,99 @@ app.post('/api/pancake/config', (req, res) => {
   } });
 });
 
+function parsePancakeConversations(rawList: any[]) {
+  const branches = [
+    'Cần Thơ', 'Cà Mau', 'Hóc Môn', 'Gò Vấp', 'Quận 5', 'Quận 10', 'Bình Thạnh',
+    'Thủ Đức', 'Bình Dương', 'Biên Hòa', 'Đồng Tháp', 'Vũng Tàu', 'Đà Nẵng',
+    'Kiên Giang', 'An Giang', 'Tây Ninh', 'Bến Tre', 'Long An', 'Hồ Chí Minh'
+  ];
+
+  const leads = rawList.map((c) => {
+    const notes = Array.isArray(c.page_customer?.notes) ? c.page_customer.notes : [];
+    const notesText = notes.map((n: any) => n.message || '').join(' | ');
+
+    // Extract phone number
+    let phone = c.from?.phone_number || '';
+    if (!phone && Array.isArray(c.recent_phone_numbers) && c.recent_phone_numbers.length > 0) {
+      phone = c.recent_phone_numbers[0];
+    }
+    if (!phone) {
+      const phoneMatch = notesText.match(/(0[35789][0-9]{8})/);
+      if (phoneMatch) phone = phoneMatch[1];
+    }
+
+    // Detect branch
+    let detectedBranch = '';
+    for (const b of branches) {
+      if (notesText.toLowerCase().includes(b.toLowerCase()) || 
+          (c.snippet && c.snippet.toLowerCase().includes(b.toLowerCase()))) {
+        detectedBranch = b;
+        break;
+      }
+    }
+
+    // Detect service from tags or notes
+    const tagTexts = (c.tags || []).filter(Boolean).map((t: any) => (t?.text || '').toLowerCase());
+    let detectedService = '';
+    if (tagTexts.includes('imp') || notesText.toLowerCase().includes('implant') || (c.snippet && c.snippet.toLowerCase().includes('implant'))) {
+      detectedService = 'Implant';
+    } else if (tagTexts.includes('sứ') || notesText.toLowerCase().includes('sứ') || (c.snippet && c.snippet.toLowerCase().includes('sứ'))) {
+      detectedService = 'Răng Sứ';
+    } else if (tagTexts.includes('cn') || tagTexts.includes('niềng') || notesText.toLowerCase().includes('niềng')) {
+      detectedService = 'Niềng Răng / Chỉnh Nha';
+    } else if (tagTexts.includes('vk') || notesText.toLowerCase().includes('việt kiều')) {
+      detectedService = 'Việt Kiều';
+    } else if (tagTexts.includes('tq')) {
+      detectedService = 'Khám Tổng Quát';
+    }
+
+    return {
+      id: c.id,
+      name: c.from?.name || 'Khách hàng',
+      avatar: c.from?.avatar_url || '',
+      phone,
+      hasPhone: !!phone || !!c.has_phone,
+      snippet: c.snippet || '',
+      insertedAt: c.inserted_at,
+      updatedAt: c.updated_at,
+      messageCount: c.message_count || 0,
+      tags: (c.tags || []).filter(Boolean).map((t: any) => ({
+        id: t.id,
+        text: t.text,
+        color: t.color || '#3b82f6',
+      })),
+      notes: notes.map((n: any) => ({
+        id: n.id,
+        message: n.message,
+        author: n.created_by?.fb_name || 'Tư vấn viên',
+        time: n.created_at,
+      })),
+      branch: detectedBranch || 'Toàn Hệ Thống',
+      service: detectedService || 'Tư Vấn Chung',
+      isWon: tagTexts.includes('#đậu'),
+      isLost: tagTexts.includes('#rớt'),
+      isBooked: tagTexts.includes('ddh'),
+    };
+  });
+
+  const summary = {
+    totalLeads: leads.length,
+    withPhone: leads.filter((l) => l.hasPhone).length,
+    booked: leads.filter((l) => l.isBooked).length,
+    won: leads.filter((l) => l.isWon).length,
+    lost: leads.filter((l) => l.isLost).length,
+    byService: {
+      implant: leads.filter((l) => l.service === 'Implant').length,
+      porcelain: leads.filter((l) => l.service === 'Răng Sứ').length,
+      ortho: leads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
+      vietKieu: leads.filter((l) => l.service === 'Việt Kiều').length,
+      general: leads.filter((l) => l.service === 'Khám Tổng Quát').length,
+    },
+  };
+
+  return { leads, summary };
+}
+
 app.get('/api/pancake/conversations', async (req, res) => {
   try {
     const { token, pageId } = pancakeConfigStore;
@@ -357,105 +479,134 @@ app.get('/api/pancake/conversations', async (req, res) => {
     const pageNumber = Math.max(parseInt((req.query.page_number as string) || '1', 10), 1);
     const search = ((req.query.search as string) || '').toLowerCase().trim();
     const tagFilter = ((req.query.tag as string) || '').toLowerCase().trim();
+    const force = req.query.force === 'true';
 
+    const nowMs = Date.now();
+    const cacheAgeMs = nowMs - pancakeCacheStore.lastFetched;
+    const isCacheFresh = pancakeCacheStore.data && (cacheAgeMs < 4 * 60 * 1000); // 4 phút
+
+    // Trả về cache ngay lập tức nếu dữ liệu còn mới và không yêu cầu force sync
+    if (!force && isCacheFresh && pancakeCacheStore.data) {
+      let filtered = pancakeCacheStore.data.leads;
+      if (search) {
+        filtered = filtered.filter((l) =>
+          l.name.toLowerCase().includes(search) ||
+          l.phone.includes(search) ||
+          l.snippet.toLowerCase().includes(search) ||
+          l.branch.toLowerCase().includes(search) ||
+          l.service.toLowerCase().includes(search)
+        );
+      }
+      if (tagFilter) {
+        filtered = filtered.filter((l) =>
+          l.tags.some((t: any) => t.text.toLowerCase() === tagFilter)
+        );
+      }
+
+      return res.json({
+        success: true,
+        fromCache: true,
+        cacheAgeSeconds: Math.round(cacheAgeMs / 1000),
+        totalInPancake: pancakeCacheStore.data.totalInPancake,
+        returned: filtered.length,
+        pageNumber,
+        summary: pancakeCacheStore.data.summary,
+        leads: filtered,
+        cachedAt: pancakeCacheStore.data.cachedAt,
+      });
+    }
+
+    // Cần fetch mới từ Pancake
     const now = Math.floor(Date.now() / 1000);
     const since = now - days * 86400;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    let rawList: any[] = [];
+    let totalInPancake = 0;
 
-    const resp = await fetch(
-      `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${pageNumber}`,
-      {
-        headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-        signal: controller.signal,
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
+      const resp = await fetch(
+        `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${pageNumber}`,
+        {
+          headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+          signal: controller.signal,
+        }
+      );
+      clearTimeout(timeoutId);
+
+      if (!resp.ok) {
+        throw new Error(`Pancake API returned HTTP ${resp.status}`);
       }
-    );
-    clearTimeout(timeoutId);
 
-    const data: any = await resp.json();
+      const data: any = await resp.json();
+      if (!data.success && data.message) {
+        throw new Error(data.message);
+      }
 
-    if (!data.success && data.message) {
-      return res.status(400).json({ success: false, error: data.message });
+      rawList = Array.isArray(data.conversations) ? data.conversations : [];
+      totalInPancake = data.total || rawList.length;
+
+      // Phân tích và lưu cache
+      const parsed = parsePancakeConversations(rawList);
+      pancakeCacheStore = {
+        lastFetched: Date.now(),
+        data: {
+          totalInPancake,
+          returned: parsed.leads.length,
+          pageNumber,
+          summary: parsed.summary,
+          leads: parsed.leads,
+          cachedAt: new Date().toISOString(),
+        },
+      };
+
+      try {
+        fs.writeFileSync(PANCAKE_CACHE_FILE, JSON.stringify(pancakeCacheStore, null, 2), 'utf-8');
+      } catch (err) {
+        console.warn('Failed to save pancake cache to disk:', err);
+      }
+    } catch (fetchErr: any) {
+      console.warn('Pancake fetch failed, attempting fallback to cache:', fetchErr.message);
+      // Nếu fetch lỗi (timeout mạng, lỗi kết nối), phục hồi từ cache có sẵn
+      if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads) && pancakeCacheStore.data.leads.length > 0) {
+        let filtered = pancakeCacheStore.data.leads;
+        if (search) {
+          filtered = filtered.filter((l) =>
+            l.name.toLowerCase().includes(search) ||
+            l.phone.includes(search) ||
+            l.snippet.toLowerCase().includes(search) ||
+            l.branch.toLowerCase().includes(search) ||
+            l.service.toLowerCase().includes(search)
+          );
+        }
+        if (tagFilter) {
+          filtered = filtered.filter((l) =>
+            l.tags.some((t: any) => t.text.toLowerCase() === tagFilter)
+          );
+        }
+
+        return res.json({
+          success: true,
+          fromCache: true,
+          fallbackNotice: `Đang hiển thị dữ liệu lưu đệm (${fetchErr.message})`,
+          cacheAgeSeconds: Math.round((Date.now() - pancakeCacheStore.lastFetched) / 1000),
+          totalInPancake: pancakeCacheStore.data.totalInPancake,
+          returned: filtered.length,
+          pageNumber,
+          summary: pancakeCacheStore.data.summary,
+          leads: filtered,
+          cachedAt: pancakeCacheStore.data.cachedAt,
+        });
+      }
+
+      // Không có cache nào
+      return res.status(500).json({ success: false, error: fetchErr.message || 'Lỗi kết nối Pancake API' });
     }
 
-    const rawList: any[] = Array.isArray(data.conversations) ? data.conversations : [];
-
-    const branches = [
-      'Cần Thơ', 'Cà Mau', 'Hóc Môn', 'Gò Vấp', 'Quận 5', 'Quận 10', 'Bình Thạnh',
-      'Thủ Đức', 'Bình Dương', 'Biên Hòa', 'Đồng Tháp', 'Vũng Tàu', 'Đà Nẵng',
-      'Kiên Giang', 'An Giang', 'Tây Ninh', 'Bến Tre', 'Long An', 'Hồ Chí Minh'
-    ];
-
-    const leads = rawList.map((c) => {
-      const notes = Array.isArray(c.page_customer?.notes) ? c.page_customer.notes : [];
-      const notesText = notes.map((n: any) => n.message || '').join(' | ');
-
-      // Extract phone number
-      let phone = c.from?.phone_number || '';
-      if (!phone && Array.isArray(c.recent_phone_numbers) && c.recent_phone_numbers.length > 0) {
-        phone = c.recent_phone_numbers[0];
-      }
-      if (!phone) {
-        const phoneMatch = notesText.match(/(0[35789][0-9]{8})/);
-        if (phoneMatch) phone = phoneMatch[1];
-      }
-
-      // Detect branch
-      let detectedBranch = '';
-      for (const b of branches) {
-        if (notesText.toLowerCase().includes(b.toLowerCase()) || 
-            (c.snippet && c.snippet.toLowerCase().includes(b.toLowerCase()))) {
-          detectedBranch = b;
-          break;
-        }
-      }
-
-      // Detect service from tags or notes
-      const tagTexts = (c.tags || []).filter(Boolean).map((t: any) => (t?.text || '').toLowerCase());
-      let detectedService = '';
-      if (tagTexts.includes('imp') || notesText.toLowerCase().includes('implant') || (c.snippet && c.snippet.toLowerCase().includes('implant'))) {
-        detectedService = 'Implant';
-      } else if (tagTexts.includes('sứ') || notesText.toLowerCase().includes('sứ') || (c.snippet && c.snippet.toLowerCase().includes('sứ'))) {
-        detectedService = 'Răng Sứ';
-      } else if (tagTexts.includes('cn') || tagTexts.includes('niềng') || notesText.toLowerCase().includes('niềng')) {
-        detectedService = 'Niềng Răng / Chỉnh Nha';
-      } else if (tagTexts.includes('vk') || notesText.toLowerCase().includes('việt kiều')) {
-        detectedService = 'Việt Kiều';
-      } else if (tagTexts.includes('tq')) {
-        detectedService = 'Khám Tổng Quát';
-      }
-
-      return {
-        id: c.id,
-        name: c.from?.name || 'Khách hàng',
-        avatar: c.from?.avatar_url || '',
-        phone,
-        hasPhone: !!phone || !!c.has_phone,
-        snippet: c.snippet || '',
-        insertedAt: c.inserted_at,
-        updatedAt: c.updated_at,
-        messageCount: c.message_count || 0,
-        tags: (c.tags || []).filter(Boolean).map((t: any) => ({
-          id: t.id,
-          text: t.text,
-          color: t.color || '#3b82f6',
-        })),
-        notes: notes.map((n: any) => ({
-          id: n.id,
-          message: n.message,
-          author: n.created_by?.fb_name || 'Tư vấn viên',
-          time: n.created_at,
-        })),
-        branch: detectedBranch || 'Toàn Hệ Thống',
-        service: detectedService || 'Tư Vấn Chung',
-        isWon: tagTexts.includes('#đậu'),
-        isLost: tagTexts.includes('#rớt'),
-        isBooked: tagTexts.includes('ddh'),
-      };
-    });
-
-    let filtered = leads;
+    // Trả về kết quả mới fetch thành công
+    let filtered = pancakeCacheStore.data?.leads || [];
     if (search) {
       filtered = filtered.filter((l) =>
         l.name.toLowerCase().includes(search) ||
@@ -471,29 +622,15 @@ app.get('/api/pancake/conversations', async (req, res) => {
       );
     }
 
-    // Summary calculation
-    const summary = {
-      totalLeads: leads.length,
-      withPhone: leads.filter((l) => l.hasPhone).length,
-      booked: leads.filter((l) => l.isBooked).length,
-      won: leads.filter((l) => l.isWon).length,
-      lost: leads.filter((l) => l.isLost).length,
-      byService: {
-        implant: leads.filter((l) => l.service === 'Implant').length,
-        porcelain: leads.filter((l) => l.service === 'Răng Sứ').length,
-        ortho: leads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
-        vietKieu: leads.filter((l) => l.service === 'Việt Kiều').length,
-        general: leads.filter((l) => l.service === 'Khám Tổng Quát').length,
-      },
-    };
-
     return res.json({
       success: true,
-      totalInPancake: data.total,
+      fromCache: false,
+      totalInPancake: pancakeCacheStore.data?.totalInPancake || totalInPancake,
       returned: filtered.length,
       pageNumber,
-      summary,
+      summary: pancakeCacheStore.data?.summary,
       leads: filtered,
+      cachedAt: pancakeCacheStore.data?.cachedAt,
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
