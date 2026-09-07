@@ -386,15 +386,28 @@ function parsePancakeConversations(rawList: any[]) {
     const notes = Array.isArray(c.page_customer?.notes) ? c.page_customer.notes : [];
     const notesText = notes.map((n: any) => n.message || '').join(' | ');
 
-    // Extract phone number
-    let phone = c.from?.phone_number || '';
+    // Extract phone number safely as string
+    let phone = '';
+    const rawFromPhone = c.from?.phone_number;
+    if (typeof rawFromPhone === 'string') {
+      phone = rawFromPhone.trim();
+    } else if (rawFromPhone && typeof rawFromPhone === 'object') {
+      phone = String(rawFromPhone.phone_number || rawFromPhone.captured || '').trim();
+    }
+
     if (!phone && Array.isArray(c.recent_phone_numbers) && c.recent_phone_numbers.length > 0) {
-      phone = c.recent_phone_numbers[0];
+      const firstNum = c.recent_phone_numbers[0];
+      if (typeof firstNum === 'string') {
+        phone = firstNum.trim();
+      } else if (firstNum && typeof firstNum === 'object') {
+        phone = String(firstNum.phone_number || firstNum.captured || '').trim();
+      }
     }
     if (!phone) {
       const phoneMatch = notesText.match(/(0[35789][0-9]{8})/);
       if (phoneMatch) phone = phoneMatch[1];
     }
+    phone = typeof phone === 'string' ? phone : '';
 
     // Detect branch
     let detectedBranch = '';

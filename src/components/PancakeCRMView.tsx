@@ -82,6 +82,15 @@ interface PancakeSummary {
   };
 }
 
+export const getCleanPhone = (phone: any): string => {
+  if (!phone) return '';
+  if (typeof phone === 'string') return phone.trim();
+  if (typeof phone === 'object') {
+    return String(phone.phone_number || phone.captured || '').trim();
+  }
+  return String(phone).trim();
+};
+
 export const PancakeCRMView: React.FC = () => {
   const [status, setStatus] = useState<PancakeStatus | null>(null);
   const [leads, setLeads] = useState<PancakeLead[]>([]);
@@ -139,7 +148,16 @@ export const PancakeCRMView: React.FC = () => {
       const convData = await convRes.json();
 
       if (convData.success) {
-        setLeads(convData.leads || []);
+        const rawLeads: any[] = Array.isArray(convData.leads) ? convData.leads : [];
+        const cleanLeads: PancakeLead[] = rawLeads.map((l) => {
+          const cleanPhone = getCleanPhone(l.phone);
+          return {
+            ...l,
+            phone: cleanPhone,
+            hasPhone: Boolean(cleanPhone || l.hasPhone),
+          };
+        });
+        setLeads(cleanLeads);
         setSummary(convData.summary || null);
         setIsFromCache(!!convData.fromCache);
         setCacheAgeSeconds(convData.cacheAgeSeconds || 0);
@@ -566,27 +584,31 @@ export const PancakeCRMView: React.FC = () => {
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-white text-sm hover:text-teal-300 transition">
-                        {item.name}
+                        {String(item.name || 'Khách hàng')}
                       </span>
 
                       {/* Phone pill */}
-                      {item.phone ? (
-                        <button
-                          onClick={() => handleCopy(item.phone, item.id)}
-                          className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold flex items-center gap-1 transition"
-                          title="Nhấp để copy số điện thoại"
-                        >
-                          <Phone className="w-3 h-3 text-emerald-400" />
-                          {item.phone}
-                          {copiedPhone === item.id ? (
-                            <Check className="w-3 h-3 text-emerald-300" />
-                          ) : (
-                            <Copy className="w-2.5 h-2.5 opacity-60" />
-                          )}
-                        </button>
-                      ) : (
-                        <span className="text-[11px] text-slate-500 italic">Chưa có SĐT</span>
-                      )}
+                      {(() => {
+                        const phoneDisplay = getCleanPhone(item.phone);
+                        if (phoneDisplay) {
+                          return (
+                            <button
+                              onClick={() => handleCopy(phoneDisplay, item.id)}
+                              className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold flex items-center gap-1 transition"
+                              title="Nhấp để copy số điện thoại"
+                            >
+                              <Phone className="w-3 h-3 text-emerald-400" />
+                              {phoneDisplay}
+                              {copiedPhone === item.id ? (
+                                <Check className="w-3 h-3 text-emerald-300" />
+                              ) : (
+                                <Copy className="w-2.5 h-2.5 opacity-60" />
+                              )}
+                            </button>
+                          );
+                        }
+                        return <span className="text-[11px] text-slate-500 italic">Chưa có SĐT</span>;
+                      })()}
 
                       {/* Branch badge */}
                       {item.branch && item.branch !== 'Toàn Hệ Thống' && (
