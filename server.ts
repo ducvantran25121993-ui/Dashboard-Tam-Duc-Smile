@@ -77,6 +77,7 @@ try {
 // Pancake in-memory & disk cache store for high performance & fallback
 let pancakeCacheStore: {
   lastFetched: number;
+  days?: number;
   data: {
     totalInPancake: number;
     returned: number;
@@ -87,6 +88,7 @@ let pancakeCacheStore: {
   } | null;
 } = {
   lastFetched: 0,
+  days: 7,
   data: null,
 };
 
@@ -463,7 +465,12 @@ function parsePancakeConversations(rawList: any[]) {
     };
   });
 
-  const summary = {
+  const summary = calculateLeadsSummary(leads);
+  return { leads, summary };
+}
+
+function calculateLeadsSummary(leads: any[]) {
+  return {
     totalLeads: leads.length,
     withPhone: leads.filter((l) => l.hasPhone).length,
     booked: leads.filter((l) => l.isBooked).length,
@@ -477,8 +484,97 @@ function parsePancakeConversations(rawList: any[]) {
       general: leads.filter((l) => l.service === 'Khám Tổng Quát').length,
     },
   };
+}
 
-  return { leads, summary };
+function parseFilterRange(query: any) {
+  const mode = String(query.mode || query.days || '14').toLowerCase().trim();
+  const now = new Date();
+
+  // Helper tính khoảng ngày theo giờ Việt Nam (UTC+7)
+  const getVnDate = (offsetDays = 0) => {
+    const vnTime = new Date(Date.now() + (7 * 60 + new Date().getTimezoneOffset()) * 60 * 1000);
+    const targetDate = new Date(vnTime.getFullYear(), vnTime.getMonth(), vnTime.getDate() + offsetDays);
+    const year = targetDate.getFullYear();
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    const startMs = new Date(`${year}-${month}-${day}T00:00:00+07:00`).getTime();
+    const endMs = new Date(`${year}-${month}-${day}T23:59:59.999+07:00`).getTime();
+    return { startMs, endMs, dateStr: `${day}/${month}/${year}` };
+  };
+
+  if (mode === 'today' || mode === '0') {
+    const { startMs, endMs, dateStr } = getVnDate(0);
+    return {
+      mode: 'today',
+      isToday: true,
+      filterRange: { startMs, endMs, label: `Hôm nay (${dateStr})` },
+      queryDays: 1,
+    };
+  }
+
+  if (mode === 'yesterday') {
+    const { startMs, endMs, dateStr } = getVnDate(-1);
+    return {
+      mode: 'yesterday',
+      isToday: false,
+      filterRange: { startMs, endMs, label: `Hôm qua (${dateStr})` },
+      queryDays: 2,
+    };
+  }
+
+  if (mode === 'month') {
+    const monthParam = (query.month as string) || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [yStr, mStr] = monthParam.split('-');
+    const y = parseInt(yStr, 10) || now.getFullYear();
+    const m = parseInt(mStr, 10) || (now.getMonth() + 1);
+    const lastDay = new Date(y, m, 0).getDate();
+    const startMs = new Date(`${y}-${String(m).padStart(2, '0')}-01T00:00:00+07:00`).getTime();
+    const endMs = new Date(`${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999+07:00`).getTime();
+    return {
+      mode: 'month',
+      isToday: false,
+      filterRange: { startMs, endMs, label: `Tháng ${m}/${y}` },
+      queryDays: 28,
+    };
+  }
+
+  if (mode === 'custom' && query.startDate && query.endDate) {
+    const startMs = new Date(`${query.startDate}T00:00:00+07:00`).getTime();
+    const endMs = new Date(`${query.endDate}T23:59:59.999+07:00`).getTime();
+    return {
+      mode: 'custom',
+      isToday: false,
+      filterRange: { startMs, endMs, label: `${query.startDate} - ${query.endDate}` },
+      queryDays: Math.min(Math.ceil(Math.abs(endMs - startMs) / (86400 * 1000)), 28) || 14,
+    };
+  }
+
+  if (mode === 'all' || mode === '999') {
+    return {
+      mode: 'all',
+      isToday: false,
+      filterRange: null, // Tất cả lịch sử
+      queryDays: 28,
+    };
+  }
+
+  // Số ngày bình thường (3, 7, 14, 30...)
+  const daysNum = Math.min(Math.max(parseInt(mode, 10) || 14, 1), 30);
+  const startMs = Date.now() - daysNum * 86400 * 1000;
+  return {
+    mode: `${daysNum}`,
+    isToday: false,
+    filterRange: { startMs, endMs: Date.now(), label: `${daysNum} ngày qua` },
+    queryDays: Math.min(daysNum, 28),
+  };
+}
+
+function applyFilterRange(leads: any[], filterRange: { startMs: number; endMs: number } | null) {
+  if (!filterRange) return leads;
+  return leads.filter((l) => {
+    const t = new Date(l.updatedAt || l.insertedAt).getTime();
+    return !isNaN(t) && t >= filterRange.startMs && t <= filterRange.endMs;
+  });
 }
 
 app.get('/api/pancake/conversations', async (req, res) => {
@@ -488,7 +584,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Chưa có Token Pancake' });
     }
 
-    const days = Math.min(Math.max(parseInt((req.query.days as string) || '14', 10), 1), 60);
+    const { mode, isToday, filterRange, queryDays } = parseFilterRange(req.query);
     const pageNumber = Math.max(parseInt((req.query.page_number as string) || '1', 10), 1);
     const search = ((req.query.search as string) || '').toLowerCase().trim();
     const tagFilter = ((req.query.tag as string) || '').toLowerCase().trim();
@@ -496,11 +592,15 @@ app.get('/api/pancake/conversations', async (req, res) => {
 
     const nowMs = Date.now();
     const cacheAgeMs = nowMs - pancakeCacheStore.lastFetched;
-    const isCacheFresh = pancakeCacheStore.data && (cacheAgeMs < 4 * 60 * 1000); // 4 phút
+    // Đối với Hôm nay: cache chỉ giữ 15 giây để đảm bảo realtime liên tục. Đối với các mốc khác: giữ 4 phút.
+    const maxCacheAgeMs = isToday ? 15 * 1000 : 4 * 60 * 1000;
+    const isCacheFresh = pancakeCacheStore.data && !force && (cacheAgeMs < maxCacheAgeMs);
 
-    // Trả về cache ngay lập tức nếu dữ liệu còn mới và không yêu cầu force sync
-    if (!force && isCacheFresh && pancakeCacheStore.data) {
-      let filtered = pancakeCacheStore.data.leads;
+    // Trả về từ cache nếu dữ liệu còn mới và không yêu cầu force sync
+    if (isCacheFresh && pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
+      const activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+
+      let filtered = activeLeads;
       if (search) {
         filtered = filtered.filter((l) =>
           l.name.toLowerCase().includes(search) ||
@@ -519,19 +619,24 @@ app.get('/api/pancake/conversations', async (req, res) => {
       return res.json({
         success: true,
         fromCache: true,
+        mode,
+        filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
         cacheAgeSeconds: Math.round(cacheAgeMs / 1000),
-        totalInPancake: pancakeCacheStore.data.totalInPancake,
+        totalInPancake: activeLeads.length,
         returned: filtered.length,
         pageNumber,
-        summary: pancakeCacheStore.data.summary,
+        summary: calculateLeadsSummary(activeLeads),
         leads: filtered,
         cachedAt: pancakeCacheStore.data.cachedAt,
+        serverTime: new Date().toISOString(),
       });
     }
 
-    // Cần fetch mới từ Pancake
+    // Cần fetch mới từ Pancake.
+    // Pancake API giới hạn nghiêm ngặt khoảng ngày gửi lên trong 1 request phải nhỏ hơn 1 tháng (< 30 ngày).
+    const safeDays = Math.min(queryDays, 28);
     const now = Math.floor(Date.now() / 1000);
-    const since = now - days * 86400;
+    const since = now - safeDays * 86400;
 
     let rawList: any[] = [];
     let totalInPancake = 0;
@@ -561,16 +666,54 @@ app.get('/api/pancake/conversations', async (req, res) => {
       rawList = Array.isArray(data.conversations) ? data.conversations : [];
       totalInPancake = data.total || rawList.length;
 
-      // Phân tích và lưu cache
+      // Pancake API giới hạn tối đa 200 hội thoại/trang. Tự động gom thêm các trang tiếp theo để lấy đầy đủ toàn bộ hội thoại:
+      const totalPagesNeeded = Math.min(Math.ceil(totalInPancake / 200), isToday ? 3 : 8);
+      if (totalPagesNeeded > 1 && pageNumber === 1) {
+        const extraPromises = [];
+        for (let p = 2; p <= totalPagesNeeded; p++) {
+          extraPromises.push(
+            fetch(
+              `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${p}`,
+              { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
+            )
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+          );
+        }
+        const results = await Promise.all(extraPromises);
+        for (const r of results) {
+          if (r && Array.isArray(r.conversations)) {
+            rawList = rawList.concat(r.conversations);
+          }
+        }
+      }
+
+      // Phân tích dữ liệu mới
       const parsed = parsePancakeConversations(rawList);
+
+      // Gộp lũy tiến (Upsert) vào danh sách tổng để bảo lưu toàn bộ dữ liệu lịch sử
+      const masterLeadsMap = new Map<string, any>();
+      if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
+        for (const l of pancakeCacheStore.data.leads) {
+          masterLeadsMap.set(l.id, l);
+        }
+      }
+      for (const l of parsed.leads) {
+        masterLeadsMap.set(l.id, l);
+      }
+
+      const allLeads = Array.from(masterLeadsMap.values());
+      allLeads.sort((a, b) => new Date(b.updatedAt || b.insertedAt).getTime() - new Date(a.updatedAt || a.insertedAt).getTime());
+
       pancakeCacheStore = {
         lastFetched: Date.now(),
+        days: 999,
         data: {
-          totalInPancake,
-          returned: parsed.leads.length,
+          totalInPancake: allLeads.length,
+          returned: allLeads.length,
           pageNumber,
-          summary: parsed.summary,
-          leads: parsed.leads,
+          summary: calculateLeadsSummary(allLeads),
+          leads: allLeads,
           cachedAt: new Date().toISOString(),
         },
       };
@@ -580,11 +723,46 @@ app.get('/api/pancake/conversations', async (req, res) => {
       } catch (err) {
         console.warn('Failed to save pancake cache to disk:', err);
       }
+
+      // Lọc theo khoảng thời gian người dùng yêu cầu
+      const activeLeads = applyFilterRange(allLeads, filterRange);
+
+      let filtered = activeLeads;
+      if (search) {
+        filtered = filtered.filter((l) =>
+          l.name.toLowerCase().includes(search) ||
+          l.phone.includes(search) ||
+          l.snippet.toLowerCase().includes(search) ||
+          l.branch.toLowerCase().includes(search) ||
+          l.service.toLowerCase().includes(search)
+        );
+      }
+      if (tagFilter) {
+        filtered = filtered.filter((l) =>
+          l.tags.some((t: any) => t.text.toLowerCase() === tagFilter)
+        );
+      }
+
+      return res.json({
+        success: true,
+        fromCache: false,
+        mode,
+        filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
+        totalInPancake: activeLeads.length,
+        returned: filtered.length,
+        pageNumber,
+        summary: calculateLeadsSummary(activeLeads),
+        leads: filtered,
+        cachedAt: pancakeCacheStore.data.cachedAt,
+        serverTime: new Date().toISOString(),
+      });
     } catch (fetchErr: any) {
       console.warn('Pancake fetch failed, attempting fallback to cache:', fetchErr.message);
       // Nếu fetch lỗi (timeout mạng, lỗi kết nối), phục hồi từ cache có sẵn
       if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads) && pancakeCacheStore.data.leads.length > 0) {
-        let filtered = pancakeCacheStore.data.leads;
+        const activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+
+        let filtered = activeLeads;
         if (search) {
           filtered = filtered.filter((l) =>
             l.name.toLowerCase().includes(search) ||
@@ -603,51 +781,206 @@ app.get('/api/pancake/conversations', async (req, res) => {
         return res.json({
           success: true,
           fromCache: true,
+          mode,
+          filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
           fallbackNotice: `Đang hiển thị dữ liệu lưu đệm (${fetchErr.message})`,
           cacheAgeSeconds: Math.round((Date.now() - pancakeCacheStore.lastFetched) / 1000),
-          totalInPancake: pancakeCacheStore.data.totalInPancake,
+          totalInPancake: activeLeads.length,
           returned: filtered.length,
           pageNumber,
-          summary: pancakeCacheStore.data.summary,
+          summary: calculateLeadsSummary(activeLeads),
           leads: filtered,
           cachedAt: pancakeCacheStore.data.cachedAt,
+          serverTime: new Date().toISOString(),
         });
       }
 
       // Không có cache nào
       return res.status(500).json({ success: false, error: fetchErr.message || 'Lỗi kết nối Pancake API' });
     }
-
-    // Trả về kết quả mới fetch thành công
-    let filtered = pancakeCacheStore.data?.leads || [];
-    if (search) {
-      filtered = filtered.filter((l) =>
-        l.name.toLowerCase().includes(search) ||
-        l.phone.includes(search) ||
-        l.snippet.toLowerCase().includes(search) ||
-        l.branch.toLowerCase().includes(search) ||
-        l.service.toLowerCase().includes(search)
-      );
-    }
-    if (tagFilter) {
-      filtered = filtered.filter((l) =>
-        l.tags.some((t: any) => t.text.toLowerCase() === tagFilter)
-      );
-    }
-
-    return res.json({
-      success: true,
-      fromCache: false,
-      totalInPancake: pancakeCacheStore.data?.totalInPancake || totalInPancake,
-      returned: filtered.length,
-      pageNumber,
-      summary: pancakeCacheStore.data?.summary,
-      leads: filtered,
-      cachedAt: pancakeCacheStore.data?.cachedAt,
-    });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Tiến trình đồng bộ toàn bộ lịch sử (All-time multi-window sync)
+let syncAllHistoryProgress = {
+  isRunning: false,
+  currentWindow: '',
+  totalCollected: 0,
+  windowsCompleted: 0,
+  totalWindows: 6,
+  percent: 0,
+  lastError: null as string | null,
+  finishedAt: null as string | null,
+};
+
+app.get('/api/pancake/sync-all-status', (req, res) => {
+  return res.json({
+    ...syncAllHistoryProgress,
+    cachedTotal: pancakeCacheStore.data?.leads?.length || 0,
+  });
+});
+
+app.post('/api/pancake/sync-all-history', async (req, res) => {
+  if (syncAllHistoryProgress.isRunning) {
+    return res.json({
+      success: true,
+      message: 'Tiến trình đồng bộ toàn bộ lịch sử đang chạy ngầm.',
+      progress: syncAllHistoryProgress,
+    });
+  }
+
+  const { token, pageId } = pancakeConfigStore;
+  if (!token || !pageId) {
+    return res.status(400).json({ success: false, error: 'Chưa cấu hình Token Pancake' });
+  }
+
+  const windowsCount = Math.min(Math.max(Number(req.body.windows) || 24, 1), 36); // Quét tới 24 - 36 đợt (~2-3 năm từ khi tạo Page)
+  const now = Math.floor(Date.now() / 1000);
+
+  syncAllHistoryProgress = {
+    isRunning: true,
+    currentWindow: 'Đang khởi động tiến trình quét toàn bộ lịch sử từ trước đến nay...',
+    totalCollected: pancakeCacheStore.data?.leads?.length || 0,
+    windowsCompleted: 0,
+    totalWindows: windowsCount,
+    percent: 0,
+    lastError: null,
+    finishedAt: null,
+  };
+
+  res.json({
+    success: true,
+    message: `Đã khởi động tiến trình kéo dữ liệu toàn thời gian (${windowsCount} đợt / ~${Math.round(windowsCount * 28 / 30)} tháng).`,
+    totalWindows: windowsCount,
+  });
+
+  // Chạy background an toàn
+  (async () => {
+    try {
+      const allRawMap = new Map<string, any>();
+      let consecutiveZeroCount = 0;
+
+      if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
+        for (const l of pancakeCacheStore.data.leads) {
+          allRawMap.set(l.id, l);
+        }
+      }
+
+      for (let w = 0; w < windowsCount; w++) {
+        const until = now - (w * 28 * 86400);
+        const since = until - (28 * 86400);
+        const dateUntilStr = new Date(until * 1000).toLocaleDateString('vi-VN');
+        const dateSinceStr = new Date(since * 1000).toLocaleDateString('vi-VN');
+
+        syncAllHistoryProgress.currentWindow = `Đợt ${w + 1}/${windowsCount}: ${dateSinceStr} - ${dateUntilStr}`;
+        syncAllHistoryProgress.percent = Math.round(((w) / windowsCount) * 100);
+
+        try {
+          const p1Res = await fetch(
+            `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${until}&page_number=1`,
+            { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
+          );
+
+          if (!p1Res.ok) {
+            console.warn(`Pancake window ${w + 1} HTTP ${p1Res.status}`);
+            continue;
+          }
+
+          const p1Data: any = await p1Res.json();
+          const windowTotal = p1Data.total || 0;
+          let windowRaw: any[] = Array.isArray(p1Data.conversations) ? p1Data.conversations : [];
+
+          const totalPagesNeeded = Math.min(Math.ceil(windowTotal / 200), 8);
+          if (totalPagesNeeded > 1) {
+            for (let p = 2; p <= totalPagesNeeded; p++) {
+              await new Promise((resolve) => setTimeout(resolve, 350)); // Khoảng nghỉ 350ms an toàn rate limit
+              try {
+                const pRes = await fetch(
+                  `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${until}&page_number=${p}`,
+                  { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
+                );
+                if (pRes.ok) {
+                  const pData: any = await pRes.json();
+                  if (Array.isArray(pData.conversations)) {
+                    windowRaw = windowRaw.concat(pData.conversations);
+                  }
+                }
+              } catch (_) {}
+            }
+          }
+
+          // Parse and merge
+          const parsed = parsePancakeConversations(windowRaw);
+          for (const lead of parsed.leads) {
+            allRawMap.set(lead.id, lead);
+          }
+
+          syncAllHistoryProgress.totalCollected = allRawMap.size;
+          syncAllHistoryProgress.windowsCompleted = w + 1;
+          syncAllHistoryProgress.percent = Math.round(((w + 1) / windowsCount) * 100);
+
+          // Cập nhật lưu lũy tiến vào disk
+          const fullLeads = Array.from(allRawMap.values());
+          fullLeads.sort((a, b) => new Date(b.updatedAt || b.insertedAt).getTime() - new Date(a.updatedAt || a.insertedAt).getTime());
+
+          const summary = {
+            totalLeads: fullLeads.length,
+            withPhone: fullLeads.filter((l) => l.hasPhone).length,
+            booked: fullLeads.filter((l) => l.isBooked).length,
+            won: fullLeads.filter((l) => l.isWon).length,
+            lost: fullLeads.filter((l) => l.isLost).length,
+            byService: {
+              implant: fullLeads.filter((l) => l.service === 'Implant').length,
+              porcelain: fullLeads.filter((l) => l.service === 'Răng Sứ').length,
+              ortho: fullLeads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
+              vietKieu: fullLeads.filter((l) => l.service === 'Việt Kiều').length,
+              general: fullLeads.filter((l) => l.service === 'Khám Tổng Quát').length,
+            },
+          };
+
+          pancakeCacheStore = {
+            lastFetched: Date.now(),
+            days: 999,
+            data: {
+              totalInPancake: fullLeads.length,
+              returned: fullLeads.length,
+              pageNumber: 1,
+              summary,
+              leads: fullLeads,
+              cachedAt: new Date().toISOString(),
+            },
+          };
+
+          fs.writeFileSync(PANCAKE_CACHE_FILE, JSON.stringify(pancakeCacheStore, null, 2), 'utf-8');
+
+          if (windowTotal === 0) {
+            consecutiveZeroCount++;
+            if (consecutiveZeroCount >= 3 && w >= 6) {
+              console.log(`Reached earliest history at window ${w + 1} (3 consecutive empty windows)`);
+              break;
+            }
+          } else {
+            consecutiveZeroCount = 0;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 400));
+        } catch (wErr: any) {
+          console.warn(`Window ${w + 1} execution error:`, wErr.message);
+        }
+      }
+
+      syncAllHistoryProgress.isRunning = false;
+      syncAllHistoryProgress.percent = 100;
+      syncAllHistoryProgress.currentWindow = `Đã đồng bộ thành công toàn bộ lịch sử! Tổng cộng: ${allRawMap.size} khách hàng.`;
+      syncAllHistoryProgress.finishedAt = new Date().toISOString();
+    } catch (bgErr: any) {
+      console.error('All-time sync error:', bgErr);
+      syncAllHistoryProgress.isRunning = false;
+      syncAllHistoryProgress.lastError = bgErr.message;
+    }
+  })();
 });
 
 // Image Proxy endpoint to bypass hotlink protection and CORS for competitor banners

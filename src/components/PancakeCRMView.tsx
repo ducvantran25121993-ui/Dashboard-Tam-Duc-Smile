@@ -21,6 +21,11 @@ import {
   AlertCircle,
   TrendingUp,
   ExternalLink,
+  ChevronDown,
+  Play,
+  Pause,
+  CalendarDays,
+  CalendarRange,
 } from 'lucide-react';
 
 interface PancakeTag {
@@ -106,8 +111,39 @@ export const PancakeCRMView: React.FC = () => {
   const [selectedService, setSelectedService] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<'all' | 'phone' | 'booked' | 'won' | 'lost'>('all');
   const [selectedTag, setSelectedTag] = useState<string>('');
-  const [daysRange, setDaysRange] = useState<number>(7);
+  
+  // Date & Time Range Filters
+  const [timeFilterMode, setTimeFilterMode] = useState<string>('today');
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [filterLabel, setFilterLabel] = useState<string>('Hôm nay');
+  const [isMonthPickerOpen, setIsMonthPickerOpen] = useState<boolean>(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(false);
+  const [isRealtimeActive, setIsRealtimeActive] = useState<boolean>(true);
+  const [countdownSeconds, setCountdownSeconds] = useState<number>(15);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>(new Date().toLocaleTimeString('vi-VN'));
+
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(50);
+
+  // All-time history sync state
+  const [isSyncingAll, setIsSyncingAll] = useState<boolean>(false);
+  const [syncAllProgress, setSyncAllProgress] = useState<{
+    isRunning: boolean;
+    currentWindow: string;
+    totalCollected: number;
+    windowsCompleted: number;
+    totalWindows: number;
+    percent: number;
+    lastError?: string | null;
+  } | null>(null);
 
   // Settings Modal
   const [isConfigModalOpen, setIsConfigModalOpen] = useState<boolean>(false);
@@ -133,10 +169,18 @@ export const PancakeCRMView: React.FC = () => {
         console.warn('Pancake status fetch warning:', stErr);
       }
 
-      // 2. Fetch Conversations & Leads safely
-      const convRes = await fetch(
-        `/api/pancake/conversations?days=${daysRange}${force ? '&force=true' : ''}`
-      );
+      // 2. Fetch Conversations & Leads safely with parameters
+      let queryParams = `mode=${timeFilterMode}`;
+      if (timeFilterMode === 'month') {
+        queryParams += `&month=${selectedMonth}`;
+      } else if (timeFilterMode === 'custom' && customStartDate && customEndDate) {
+        queryParams += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      }
+      if (force) {
+        queryParams += '&force=true';
+      }
+
+      const convRes = await fetch(`/api/pancake/conversations?${queryParams}`);
 
       const contentType = convRes.headers.get('content-type') || '';
       if (!contentType.includes('application/json')) {
@@ -161,6 +205,10 @@ export const PancakeCRMView: React.FC = () => {
         setSummary(convData.summary || null);
         setIsFromCache(!!convData.fromCache);
         setCacheAgeSeconds(convData.cacheAgeSeconds || 0);
+        if (convData.filterLabel) {
+          setFilterLabel(convData.filterLabel);
+        }
+        setLastSyncedTime(new Date().toLocaleTimeString('vi-VN'));
       } else {
         setError(convData.error || 'Không thể tải danh sách khách từ Pancake');
       }
@@ -173,13 +221,70 @@ export const PancakeCRMView: React.FC = () => {
     }
   };
 
+  // Re-fetch on filter mode or date changes
   useEffect(() => {
-    fetchPancakeData();
-  }, [daysRange]);
+    fetchPancakeData(true, timeFilterMode === 'today');
+  }, [timeFilterMode, selectedMonth, customStartDate, customEndDate]);
+
+  // Real-time polling effect when 'today' mode is active (mỗi 15s auto-refresh)
+  useEffect(() => {
+    if (timeFilterMode !== 'today' || !isRealtimeActive) return;
+
+    setCountdownSeconds(15);
+    const countdownTimer = setInterval(() => {
+      setCountdownSeconds((prev) => (prev <= 1 ? 15 : prev - 1));
+    }, 1000);
+
+    const realtimeTimer = setInterval(() => {
+      fetchPancakeData(false, true); // silent refresh từ Pancake API
+      setCountdownSeconds(15);
+    }, 15000);
+
+    return () => {
+      clearInterval(countdownTimer);
+      clearInterval(realtimeTimer);
+    };
+  }, [timeFilterMode, isRealtimeActive]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     fetchPancakeData(false, true);
+  };
+
+  const startSyncAllHistory = async (windowsToScan = 28) => {
+    try {
+      setIsSyncingAll(true);
+      const res = await fetch('/api/pancake/sync-all-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ windows: windowsToScan }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || 'Không thể bắt đầu đồng bộ toàn bộ lịch sử');
+        setIsSyncingAll(false);
+        return;
+      }
+
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusRes = await fetch('/api/pancake/sync-all-status');
+          if (statusRes.ok) {
+            const statusData = await statusRes.json();
+            setSyncAllProgress(statusData);
+            if (!statusData.isRunning) {
+              clearInterval(pollInterval);
+              setIsSyncingAll(false);
+              setTimeFilterMode('all');
+              fetchPancakeData(false, false);
+            }
+          }
+        } catch (_) {}
+      }, 1500);
+    } catch (err: any) {
+      alert('Lỗi khởi động đồng bộ: ' + err.message);
+      setIsSyncingAll(false);
+    }
   };
 
   const handleCopy = (text: string, id: string) => {
@@ -250,11 +355,20 @@ export const PancakeCRMView: React.FC = () => {
     return true;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedService, selectedStatusFilter, selectedTag, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
+  const paginatedLeads = filteredLeads.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="space-y-6">
       {/* Top Banner Connection Status */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-teal-950/40 border border-teal-500/30 p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-teal-950/40 border border-teal-500/30 p-6 shadow-xl relative z-30">
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        </div>
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 relative z-10">
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -285,13 +399,23 @@ export const PancakeCRMView: React.FC = () => {
 
           <div className="flex items-center gap-3 self-start lg:self-center flex-wrap">
             <button
+              onClick={() => startSyncAllHistory(28)}
+              disabled={isSyncingAll || syncAllProgress?.isRunning}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-bold flex items-center gap-2 transition shadow-md active:scale-95 disabled:opacity-50"
+              title="Quét và kéo toàn bộ hội thoại từ trước đến nay (từ năm 2024 đến nay) qua nhiều đợt an toàn"
+            >
+              <Layers className={`w-4 h-4 ${isSyncingAll || syncAllProgress?.isRunning ? 'animate-spin' : ''}`} />
+              {isSyncingAll || syncAllProgress?.isRunning ? 'Đang kéo toàn bộ...' : 'Kéo Toàn Bộ Lịch Sử Từ Trước Đến Nay'}
+            </button>
+
+            <button
               onClick={handleRefresh}
-              disabled={isRefreshing}
+              disabled={isRefreshing || isSyncingAll}
               className="px-4 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-sm font-semibold flex items-center gap-2 transition shadow-sm active:scale-95 disabled:opacity-50"
               title="Cập nhật dữ liệu mới nhất từ Pancake"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Đang đồng bộ...' : 'Đồng Bộ Ngay'}
+              {isRefreshing ? 'Đang đồng bộ...' : 'Đồng Bộ Nhanh'}
             </button>
 
             <button
@@ -308,33 +432,312 @@ export const PancakeCRMView: React.FC = () => {
           </div>
         </div>
 
-        {/* Days range selector */}
+        {/* Date & Time Range Selector */}
         <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <span>Khoảng thời gian đồng bộ:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-slate-300">Khoảng thời gian:</span>
+
+            {/* Hôm Nay (Real-time Live) */}
+            <button
+              onClick={() => {
+                setTimeFilterMode('today');
+                setIsMonthPickerOpen(false);
+                setIsDatePickerOpen(false);
+              }}
+              className={`px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 shadow-sm ${
+                timeFilterMode === 'today'
+                  ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400/50'
+                  : 'bg-slate-800/90 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-950/40'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${timeFilterMode === 'today' ? 'bg-slate-950 animate-pulse' : 'bg-emerald-400 animate-ping'}`} />
+              Hôm Nay (Live)
+            </button>
+
+            {/* Hôm Qua */}
+            <button
+              onClick={() => {
+                setTimeFilterMode('yesterday');
+                setIsMonthPickerOpen(false);
+                setIsDatePickerOpen(false);
+              }}
+              className={`px-2.5 py-1.5 rounded-lg font-semibold transition ${
+                timeFilterMode === 'yesterday'
+                  ? 'bg-teal-500 text-slate-950 font-bold shadow-sm'
+                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              Hôm Qua
+            </button>
+
+            {/* Standard Presets */}
             {[
-              { label: '3 Ngày', value: 3 },
-              { label: '7 Ngày', value: 7 },
-              { label: '14 Ngày', value: 14 },
-              { label: '30 Ngày', value: 30 },
+              { label: '3 Ngày', value: '3' },
+              { label: '7 Ngày', value: '7' },
+              { label: '14 Ngày', value: '14' },
+              { label: '30 Ngày', value: '30' },
             ].map((r) => (
               <button
                 key={r.value}
-                onClick={() => setDaysRange(r.value)}
-                className={`px-2.5 py-1 rounded-lg font-semibold transition ${
-                  daysRange === r.value
-                    ? 'bg-teal-500 text-slate-950'
+                onClick={() => {
+                  setTimeFilterMode(r.value);
+                  setIsMonthPickerOpen(false);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-2.5 py-1.5 rounded-lg font-semibold transition ${
+                  timeFilterMode === r.value
+                    ? 'bg-teal-500 text-slate-950 font-bold shadow-sm'
                     : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
               >
                 {r.label}
               </button>
             ))}
+
+            {/* Chọn Tháng (Lịch tháng) */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsMonthPickerOpen(!isMonthPickerOpen);
+                  setIsDatePickerOpen(false);
+                }}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 border ${
+                  timeFilterMode === 'month'
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-sm'
+                    : 'bg-slate-800 text-cyan-400 border-cyan-500/30 hover:bg-slate-700'
+                }`}
+              >
+                <CalendarDays className="w-3.5 h-3.5" />
+                {timeFilterMode === 'month'
+                  ? `Tháng ${selectedMonth.split('-')[1]}/${selectedMonth.split('-')[0]}`
+                  : 'Chọn Tháng 📅'}
+                <ChevronDown className="w-3 h-3 opacity-70" />
+              </button>
+
+              {/* Month Picker Dropdown */}
+              {isMonthPickerOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsMonthPickerOpen(false)}
+                  />
+                  <div className="absolute left-0 top-full mt-2 w-72 p-3.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 animate-in fade-in zoom-in-95">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                      <span className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                        <CalendarDays className="w-3.5 h-3.5 text-cyan-400" />
+                        Chọn Tháng Báo Cáo
+                      </span>
+                      <button
+                        onClick={() => setIsMonthPickerOpen(false)}
+                        className="text-slate-400 hover:text-white text-xs px-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-[11px] text-slate-400 block mb-1">Chọn tháng bất kỳ:</label>
+                        <input
+                          type="month"
+                          value={selectedMonth}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setSelectedMonth(e.target.value);
+                              setTimeFilterMode('month');
+                              setIsMonthPickerOpen(false);
+                            }
+                          }}
+                          className="w-full px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs font-mono focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="text-[11px] text-slate-400 font-medium mb-1.5">Các tháng nhanh:</div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {[
+                            { label: 'Tháng 9/2026 (Này)', value: '2026-09' },
+                            { label: 'Tháng 8/2026', value: '2026-08' },
+                            { label: 'Tháng 7/2026', value: '2026-07' },
+                            { label: 'Tháng 6/2026', value: '2026-06' },
+                            { label: 'Tháng 5/2026', value: '2026-05' },
+                            { label: 'Tháng 4/2026', value: '2026-04' },
+                            { label: 'Tháng 3/2026', value: '2026-03' },
+                            { label: 'Tháng 2/2026', value: '2026-02' },
+                            { label: 'Tháng 1/2026', value: '2026-01' },
+                            { label: 'Tháng 12/2025', value: '2025-12' },
+                          ].map((m) => (
+                            <button
+                              key={m.value}
+                              onClick={() => {
+                                setSelectedMonth(m.value);
+                                setTimeFilterMode('month');
+                                setIsMonthPickerOpen(false);
+                              }}
+                              className={`px-2 py-1.5 text-[11px] rounded-lg text-left transition ${
+                                selectedMonth === m.value && timeFilterMode === 'month'
+                                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                                  : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+                              }`}
+                            >
+                              {m.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Chọn Ngày Tùy Biến (Lịch) */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsDatePickerOpen(!isDatePickerOpen);
+                  setIsMonthPickerOpen(false);
+                }}
+                className={`px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 border ${
+                  timeFilterMode === 'custom'
+                    ? 'bg-indigo-500 text-white border-indigo-400 font-bold shadow-sm'
+                    : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                }`}
+              >
+                <CalendarRange className="w-3.5 h-3.5 text-indigo-400" />
+                {timeFilterMode === 'custom' && customStartDate && customEndDate
+                  ? `${customStartDate.slice(5)} → ${customEndDate.slice(5)}`
+                  : 'Lịch Ngày'}
+              </button>
+
+              {/* Date Range Dropdown */}
+              {isDatePickerOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsDatePickerOpen(false)}
+                  />
+                  <div className="absolute left-0 top-full mt-2 w-72 p-3.5 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 animate-in fade-in zoom-in-95">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3">
+                      <span className="font-bold text-slate-200 text-xs flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                        Chọn Khoảng Ngày Cụ Thể
+                      </span>
+                      <button
+                        onClick={() => setIsDatePickerOpen(false)}
+                        className="text-slate-400 hover:text-white text-xs px-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <div>
+                        <label className="text-[11px] text-slate-400 block mb-1">Từ ngày:</label>
+                        <input
+                          type="date"
+                          value={customStartDate}
+                          onChange={(e) => setCustomStartDate(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs font-mono focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-slate-400 block mb-1">Đến ngày:</label>
+                        <input
+                          type="date"
+                          value={customEndDate}
+                          onChange={(e) => setCustomEndDate(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs font-mono focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (customStartDate && customEndDate) {
+                            setTimeFilterMode('custom');
+                            setIsDatePickerOpen(false);
+                          } else {
+                            alert('Vui lòng chọn cả ngày bắt đầu và kết thúc');
+                          }
+                        }}
+                        className="w-full py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition mt-1"
+                      >
+                        Áp Dụng Khoảng Ngày
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Tất Cả Lịch Sử */}
+            <button
+              onClick={() => {
+                setTimeFilterMode('all');
+                setIsMonthPickerOpen(false);
+                setIsDatePickerOpen(false);
+              }}
+              className={`px-2.5 py-1.5 rounded-lg font-semibold transition ${
+                timeFilterMode === 'all'
+                  ? 'bg-teal-500 text-slate-950 font-bold shadow-sm'
+                  : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+            >
+              Tất Cả Lịch Sử (Đã lưu)
+            </button>
           </div>
-          <div>
-            Đồng bộ lúc: <span className="text-slate-300 font-mono">{new Date().toLocaleTimeString('vi-VN')}</span>
+
+          {/* Real-time Status / Sync Indicator */}
+          <div className="flex items-center gap-3">
+            {timeFilterMode === 'today' && (
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs">
+                <span className="relative flex h-2 w-2">
+                  {isRealtimeActive && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${isRealtimeActive ? 'bg-emerald-500' : 'bg-slate-500'}`}></span>
+                </span>
+                <span className="font-bold text-[11px] tracking-wide">
+                  {isRealtimeActive ? `REAL-TIME (${countdownSeconds}s)` : 'TẠM DỪNG'}
+                </span>
+                <button
+                  onClick={() => setIsRealtimeActive(!isRealtimeActive)}
+                  className="p-0.5 rounded hover:bg-emerald-500/20 text-emerald-300 ml-1"
+                  title={isRealtimeActive ? 'Tạm dừng Real-time' : 'Bật lại Real-time'}
+                >
+                  {isRealtimeActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                </button>
+              </div>
+            )}
+            <div className="text-slate-400 text-xs">
+              Đồng bộ: <span className="text-slate-300 font-mono font-semibold">{lastSyncedTime}</span>
+            </div>
           </div>
         </div>
+
+        {/* Live All-time Progress Banner */}
+        {syncAllProgress && (syncAllProgress.isRunning || isSyncingAll) && (
+          <div className="mt-4 p-4 rounded-xl bg-gradient-to-r from-teal-950/80 to-slate-900 border border-teal-500/40 shadow-xl space-y-2.5 animate-in fade-in">
+            <div className="flex items-center justify-between text-xs flex-wrap gap-2">
+              <span className="font-bold text-teal-300 flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-teal-400 animate-spin" />
+                {syncAllProgress.currentWindow || 'Đang đồng bộ dữ liệu toàn thời gian...'}
+              </span>
+              <span className="font-mono text-teal-300 font-bold px-2 py-0.5 rounded bg-teal-500/20 border border-teal-500/30">
+                {syncAllProgress.totalCollected.toLocaleString('vi-VN')} khách ({syncAllProgress.percent}%)
+              </span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-emerald-400 to-teal-400 h-2 transition-all duration-500 rounded-full"
+                style={{ width: `${Math.max(5, syncAllProgress.percent)}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-slate-400 flex items-center justify-between">
+              <span>Hệ thống tự động chia theo các cửa sổ 28 ngày và gộp loại bỏ trùng lặp. Không ảnh hưởng nhân viên trực chat.</span>
+              <span className="font-medium text-slate-300">{syncAllProgress.windowsCompleted} / {syncAllProgress.totalWindows} đợt</span>
+            </p>
+          </div>
+        )}
       </div>
 
       {/* KPI Cards Summary */}
@@ -345,7 +748,9 @@ export const PancakeCRMView: React.FC = () => {
             <MessageSquare className="w-4 h-4 text-cyan-400" />
           </div>
           <div className="text-2xl font-black text-white">{summary?.totalLeads || leads.length}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Trong {daysRange} ngày qua</div>
+          <div className="text-[11px] text-slate-500 mt-1">
+            {filterLabel}
+          </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/20 bg-emerald-950/10 shadow-md">
@@ -519,8 +924,8 @@ export const PancakeCRMView: React.FC = () => {
           <h3 className="font-bold text-white text-base flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-teal-400" />
             Danh Sách Khách Hàng Đồng Bộ Từ Pancake
-            <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
-              {filteredLeads.length} / {leads.length} khách
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-teal-300 font-mono font-bold border border-slate-700">
+              {filteredLeads.length} / {leads.length} khách (Đã gom đầy đủ tất cả các trang)
             </span>
           </h3>
           <span className="text-xs text-slate-400 hidden sm:inline">
@@ -551,7 +956,7 @@ export const PancakeCRMView: React.FC = () => {
           </div>
         ) : (
           <div className="divide-y divide-slate-800/80">
-            {filteredLeads.map((item) => (
+            {paginatedLeads.map((item) => (
               <div
                 key={item.id}
                 className="p-4 sm:p-5 hover:bg-slate-800/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
@@ -672,6 +1077,51 @@ export const PancakeCRMView: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination Bar */}
+        {!loading && !error && filteredLeads.length > 0 && (
+          <div className="p-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span>Hiển thị:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-500"
+              >
+                <option value={25}>25 / trang</option>
+                <option value={50}>50 / trang</option>
+                <option value={100}>100 / trang</option>
+                <option value={200}>200 / trang</option>
+                <option value={1000}>Tất cả ({filteredLeads.length})</option>
+              </select>
+              <span>
+                (Đang xem {(currentPage - 1) * pageSize + 1} -{' '}
+                {Math.min(currentPage * pageSize, filteredLeads.length)} trong tổng{' '}
+                {filteredLeads.length} khách)
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage <= 1}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                Trang trước
+              </button>
+              <span className="px-3 py-1 text-xs font-mono font-bold text-teal-400">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage >= totalPages}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >
+                Trang sau
+              </button>
+            </div>
           </div>
         )}
       </div>
