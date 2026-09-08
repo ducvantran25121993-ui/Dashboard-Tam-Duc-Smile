@@ -438,6 +438,20 @@ app.get('/api/pancake/status', async (req, res) => {
     const connectedCount = pageStatuses.filter((s) => s.connected).length;
     const primary = pageStatuses[0] || null;
 
+    // Hợp nhất toàn bộ thẻ nhãn từ tất cả các trang đã kết nối
+    const uniqueTagsMap = new Map<string, any>();
+    for (const ps of pageStatuses) {
+      if (Array.isArray(ps.tags)) {
+        for (const t of ps.tags) {
+          const key = (t.text || '').trim().toLowerCase();
+          if (key && !uniqueTagsMap.has(key)) {
+            uniqueTagsMap.set(key, t);
+          }
+        }
+      }
+    }
+    const mergedTags = Array.from(uniqueTagsMap.values());
+
     return res.json({
       connected: connectedCount > 0,
       totalPages: pancakePagesStore.length,
@@ -447,8 +461,8 @@ app.get('/api/pancake/status', async (req, res) => {
       pageId: primary?.id || '',
       pageName: primary?.name || '',
       tokenMasked: primary?.tokenMasked || '',
-      totalTags: primary?.totalTags || 0,
-      tags: primary?.tags || [],
+      totalTags: mergedTags.length,
+      tags: mergedTags,
       autoSync: pancakeConfigStore.autoSync,
       updatedAt: pancakeConfigStore.updatedAt,
     });

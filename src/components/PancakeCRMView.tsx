@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   MessageSquare,
   Phone,
@@ -41,6 +41,7 @@ export interface PancakePageItem {
   active: boolean;
   tokenMasked?: string;
   totalTags?: number;
+  tags?: PancakeTag[];
   connected?: boolean;
 }
 
@@ -415,6 +416,67 @@ export const PancakeCRMView: React.FC = () => {
       setIsAddingPage(false);
     }
   };
+
+  // Tổng hợp đầy đủ tất cả thẻ nhãn: từ status (tất cả các trang) + bất kỳ thẻ nào xuất hiện trong leads
+  const allAvailableTags = useMemo(() => {
+    const tagMap = new Map<string, { id: any; text: string; color: string; count: number }>();
+
+    // 1. Quét thẻ từ các trang Pancake trong status
+    const sourcePages = status?.pages || [];
+    for (const page of sourcePages) {
+      if (Array.isArray(page.tags)) {
+        for (const t of page.tags) {
+          const norm = (t.text || '').trim();
+          if (norm && !tagMap.has(norm.toLowerCase())) {
+            tagMap.set(norm.toLowerCase(), {
+              id: t.id,
+              text: norm,
+              color: t.color || '#08d72d',
+              count: 0,
+            });
+          }
+        }
+      }
+    }
+
+    // Nếu status.tags có
+    if (Array.isArray(status?.tags)) {
+      for (const t of status.tags) {
+        const norm = (t.text || '').trim();
+        if (norm && !tagMap.has(norm.toLowerCase())) {
+          tagMap.set(norm.toLowerCase(), {
+            id: t.id,
+            text: norm,
+            color: t.color || '#08d72d',
+            count: 0,
+          });
+        }
+      }
+    }
+
+    // 2. Quét thẻ từ danh sách leads hiện tại để đếm số lượng khách và gom các thẻ mới (nếu có)
+    for (const lead of leads) {
+      if (Array.isArray(lead.tags)) {
+        for (const lt of lead.tags) {
+          const norm = (lt.text || '').trim();
+          if (!norm) continue;
+          const key = norm.toLowerCase();
+          if (!tagMap.has(key)) {
+            tagMap.set(key, {
+              id: lt.id || key,
+              text: norm,
+              color: lt.color || '#08d72d',
+              count: 1,
+            });
+          } else {
+            tagMap.get(key)!.count += 1;
+          }
+        }
+      }
+    }
+
+    return Array.from(tagMap.values());
+  }, [status, leads]);
 
   // Filter leads
   const filteredLeads = leads.filter((item) => {
@@ -1132,40 +1194,62 @@ export const PancakeCRMView: React.FC = () => {
         </div>
       )}
 
-      {/* Tag cloud from Pancake */}
-      {status?.tags && status.tags.length > 0 && (
+      {/* Tag cloud from Pancake (Đầy đủ tất cả thẻ nhãn) */}
+      {allAvailableTags.length > 0 && (
         <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-md">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-              <TagIcon className="w-3.5 h-3.5 text-cyan-400" />
-              Thẻ Nhãn Pancake (Nhấp để lọc nhanh):
-            </span>
+          <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <TagIcon className="w-3.5 h-3.5 text-cyan-400" />
+                Thẻ Nhãn Pancake (Nhấp để lọc nhanh):
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+                {allAvailableTags.length} thẻ
+              </span>
+            </div>
             {selectedTag && (
               <button
                 onClick={() => setSelectedTag('')}
-                className="text-xs text-rose-400 hover:underline"
+                className="text-xs text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 hover:underline"
               >
-                Hủy lọc thẻ [{selectedTag}]
+                ✕ Hủy lọc thẻ [{selectedTag}]
               </button>
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {status.tags.slice(0, 24).map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedTag(selectedTag === t.text ? '' : t.text)}
-                style={{
-                  backgroundColor: selectedTag === t.text ? t.color : `${t.color}22`,
-                  borderColor: t.color,
-                  color: selectedTag === t.text ? '#ffffff' : '#e2e8f0',
-                }}
-                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border transition ${
-                  selectedTag === t.text ? 'shadow-md scale-105' : 'hover:opacity-80'
-                }`}
-              >
-                {t.text}
-              </button>
-            ))}
+            {allAvailableTags.map((t) => {
+              const isSelected = selectedTag.toLowerCase() === t.text.toLowerCase();
+              return (
+                <button
+                  key={t.id || t.text}
+                  onClick={() => setSelectedTag(isSelected ? '' : t.text)}
+                  style={{
+                    backgroundColor: isSelected ? t.color : `${t.color}20`,
+                    borderColor: t.color,
+                    color: isSelected ? '#ffffff' : '#f1f5f9',
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'shadow-md scale-105 ring-2 ring-white/30 font-bold'
+                      : 'hover:opacity-90 hover:scale-[1.02]'
+                  }`}
+                  title={`Lọc hội thoại gắn thẻ "${t.text}" (${t.count} khách)`}
+                >
+                  <span>{t.text}</span>
+                  {t.count > 0 && (
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                        isSelected
+                          ? 'bg-black/30 text-white'
+                          : 'bg-slate-800/80 text-slate-300'
+                      }`}
+                    >
+                      {t.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
