@@ -1,12 +1,12 @@
 {
-  "lastFetched": 1788858088048,
+  "lastFetched": 1788859636473,
   "days": 999,
   "data": {
-    "totalInPancake": 3536,
-    "returned": 3536,
+    "totalInPancake": 3539,
+    "returned": 3539,
     "pageNumber": 1,
     "summary": {
-      "totalLeads": 3536,
+      "totalLeads": 3539,
       "withPhone": 2066,
       "booked": 826,
       "won": 219,
@@ -16,7 +16,7 @@
           "pageId": "pzl_329635242261010723",
           "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
           "type": "zalo",
-          "totalLeads": 521,
+          "totalLeads": 523,
           "withPhone": 322,
           "booked": 127,
           "won": 27
@@ -34,7 +34,7 @@
           "pageId": "108815332304510",
           "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
           "type": "facebook",
-          "totalLeads": 84,
+          "totalLeads": 85,
           "withPhone": 26,
           "booked": 16,
           "won": 3
@@ -54,10 +54,112 @@
         "porcelain": 317,
         "ortho": 262,
         "vietKieu": 6,
-        "general": 2729
+        "general": 2732
       }
     },
     "leads": [
+      {
+        "id": "pzl_u_329635242261010723_4976697997469260704",
+        "name": "Thảothảo",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/201/41d619099b73033a877491241b13b018.jpg?key=Cyaow6O17sa3okOo7nRoRA&time=1794042895",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Hàm duy trì nhựa trong suốt bên mình giá bao nhiêu",
+        "insertedAt": "2026-09-08T09:14:24.000000",
+        "updatedAt": "2026-09-08T09:24:38.455000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#003eff"
+          }
+        ],
+        "notes": [
+          {
+            "id": "791f6f79-ad76-4de3-a3f1-31f33360fd35",
+            "message": "08.09.26",
+            "author": "Lê Liểu",
+            "time": 1788859213572
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7923064633977788228",
+        "name": "H I E U K E N",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/20/22d49783b5d3182a944b8b23d5ae554f.jpg?key=WteGqxnXKCqdiGdrAKu1Dw&time=1794042539",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Mình cho em xin họ tên + SĐT và khu vực để nhắn giá ưu đãi ni...",
+        "insertedAt": "2026-09-08T09:08:28.000000",
+        "updatedAt": "2026-09-08T09:19:37.151000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#003eff"
+          }
+        ],
+        "notes": [
+          {
+            "id": "2f68a321-a600-4775-afd6-a0303fcee316",
+            "message": "08.09.26",
+            "author": "Lê Liểu",
+            "time": 1788859181030
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_27443590161981136",
+        "name": "Trần Thảo",
+        "avatar": "",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Mình cho em xin họ tên + SĐT và khu vực để nhắn giá ưu đãi ni...",
+        "insertedAt": "2026-09-08T09:02:54.282303",
+        "updatedAt": "2026-09-08T09:19:12.759000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#0d5aff"
+          }
+        ],
+        "notes": [
+          {
+            "id": "0d1585c4-a6df-491b-bb2f-df04c334fd88",
+            "message": "08.09.26",
+            "author": "Lê Liểu",
+            "time": 1788859154925
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
       {
         "id": "pzl_u_329635242261010723_6169323471981938221",
         "name": "Vynh Nguyễn",
@@ -438,10 +540,10 @@
         "avatar": "https://s120-26-ava-talk.zadn.vn/10/2e3455fe6ff272ba999fb6caca7fa7f8.jpg?key=907V2JRGOMmv5oohG0VJOg&time=1794031886",
         "phone": "",
         "hasPhone": false,
-        "snippet": "với lại hút tủy trám lại răng cấm bên phải ở dưới",
+        "snippet": "răng chưa bao h lấy tủy",
         "insertedAt": "2026-09-08T06:10:56.000000",
-        "updatedAt": "2026-09-08T08:59:14.341000",
-        "messageCount": 9,
+        "updatedAt": "2026-09-08T09:26:16.187000",
+        "messageCount": 12,
         "tags": [
           {
             "id": 17,
@@ -1042,7 +1144,7 @@
         "avatar": "https://s120-26-ava-talk.zadn.vn/41/fdb56d2cfd6f3e7bd82acb8e98b1ef4f.jpg?key=FKjaabS1dQ98xoY7TvB1Pg&time=1794014104",
         "phone": "",
         "hasPhone": false,
-        "snippet": "Dạ vậy anh cho em xin họ tên + SDT em lưu thông tin gửi mã ưu...",
+        "snippet": "[👍 Dũng Nguyễn] Dạ vậy anh cho em xin họ tên + SDT em lưu thô...",
         "insertedAt": "2026-09-08T01:14:33.000000",
         "updatedAt": "2026-09-08T03:07:23.290000",
         "messageCount": 31,
@@ -158998,6 +159100,6 @@
         "isBooked": false
       }
     ],
-    "cachedAt": "2026-09-08T09:01:28.051Z"
+    "cachedAt": "2026-09-08T09:27:16.474Z"
   }
 }

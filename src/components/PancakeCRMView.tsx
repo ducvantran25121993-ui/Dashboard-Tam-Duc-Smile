@@ -32,6 +32,7 @@ import {
   Smartphone,
   Share2,
 } from 'lucide-react';
+import { PancakeConversationModal } from './PancakeConversationModal';
 
 export interface PancakePageItem {
   id: string;
@@ -45,20 +46,20 @@ export interface PancakePageItem {
   connected?: boolean;
 }
 
-interface PancakeTag {
+export interface PancakeTag {
   id: number;
   text: string;
   color: string;
 }
 
-interface PancakeNote {
+export interface PancakeNote {
   id: string;
   message: string;
   author: string;
   time: number;
 }
 
-interface PancakeLead {
+export interface PancakeLead {
   id: string;
   name: string;
   avatar: string;
@@ -164,6 +165,7 @@ export const PancakeCRMView: React.FC = () => {
   const [lastSyncedTime, setLastSyncedTime] = useState<string>(new Date().toLocaleTimeString('vi-VN'));
 
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
+  const [selectedConversationLead, setSelectedConversationLead] = useState<PancakeLead | null>(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -1341,8 +1343,8 @@ export const PancakeCRMView: React.FC = () => {
               {filteredLeads.length} / {leads.length} khách (Đã gom đầy đủ tất cả các trang)
             </span>
           </h3>
-          <span className="text-xs text-slate-400 hidden sm:inline">
-            Tự động trích xuất SĐT & Nhánh cơ sở từ ghi chú
+          <span className="text-xs text-teal-400 font-medium hidden sm:inline flex items-center gap-1">
+            💬 Nhấp vào khách hàng để xem chi tiết hội thoại như Pancake
           </span>
         </div>
 
@@ -1372,7 +1374,8 @@ export const PancakeCRMView: React.FC = () => {
             {paginatedLeads.map((item) => (
               <div
                 key={item.id}
-                className="p-4 sm:p-5 hover:bg-slate-800/40 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                onClick={() => setSelectedConversationLead(item)}
+                className="p-4 sm:p-5 hover:bg-slate-800/50 transition flex flex-col lg:flex-row lg:items-center justify-between gap-4 cursor-pointer group border-l-4 border-transparent hover:border-teal-400"
               >
                 {/* Left: Customer info */}
                 <div className="flex items-start gap-3.5 min-w-0">
@@ -1381,7 +1384,7 @@ export const PancakeCRMView: React.FC = () => {
                       <img
                         src={item.avatar}
                         alt={item.name}
-                        className="w-11 h-11 rounded-full object-cover border border-slate-700"
+                        className="w-11 h-11 rounded-full object-cover border border-slate-700 group-hover:border-teal-400/60 transition"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
@@ -1401,7 +1404,7 @@ export const PancakeCRMView: React.FC = () => {
 
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-white text-sm hover:text-teal-300 transition">
+                      <span className="font-bold text-white text-sm group-hover:text-teal-300 transition flex items-center gap-1">
                         {String(item.name || 'Khách hàng')}
                       </span>
 
@@ -1423,7 +1426,10 @@ export const PancakeCRMView: React.FC = () => {
                         if (phoneDisplay) {
                           return (
                             <button
-                              onClick={() => handleCopy(phoneDisplay, item.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopy(phoneDisplay, item.id);
+                              }}
                               className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold flex items-center gap-1 transition"
                               title="Nhấp để copy số điện thoại"
                             >
@@ -1473,7 +1479,7 @@ export const PancakeCRMView: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Right: Tags & Timestamp */}
+                {/* Right: Tags & Timestamp & Action */}
                 <div className="flex flex-col lg:items-end gap-2 flex-shrink-0">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1 lg:justify-end">
@@ -1527,6 +1533,20 @@ export const PancakeCRMView: React.FC = () => {
                       </div>
                     );
                   })()}
+
+                  {/* Quick view button */}
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedConversationLead(item);
+                      }}
+                      className="px-3 py-1 rounded-lg bg-teal-500/15 group-hover:bg-teal-500 text-teal-300 group-hover:text-slate-950 border border-teal-500/30 text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Xem hội thoại</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -1792,6 +1812,14 @@ export const PancakeCRMView: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Pancake Conversation Chat Modal (Xem cụ thể từng hội thoại) */}
+      {selectedConversationLead && (
+        <PancakeConversationModal
+          lead={selectedConversationLead}
+          onClose={() => setSelectedConversationLead(null)}
+        />
       )}
     </div>
   );

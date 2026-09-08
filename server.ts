@@ -1201,6 +1201,79 @@ app.get('/api/pancake/conversations', async (req, res) => {
   }
 });
 
+// Lấy chi tiết toàn bộ tin nhắn của 1 cuộc hội thoại (như giao diện Pancake chat)
+app.get('/api/pancake/conversations/:pageId/:conversationId/messages', async (req, res) => {
+  try {
+    const { pageId, conversationId } = req.params;
+    if (!conversationId) {
+      return res.status(400).json({ success: false, error: 'Thiếu conversationId' });
+    }
+
+    let targetPage = pancakePagesStore.find(
+      (p) => p.id === pageId || (p.alias && p.alias === pageId)
+    );
+
+    // Nếu không tìm thấy page bằng pageId, tìm trang đang active có token
+    if (!targetPage || !targetPage.token) {
+      targetPage = pancakePagesStore.find((p) => p.token && p.active !== false);
+    }
+
+    if (!targetPage || !targetPage.token) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy trang hoặc Token hợp lệ để tải hội thoại' });
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const apiUrl = `https://pages.fm/api/public_api/v1/pages/${targetPage.id}/conversations/${encodeURIComponent(conversationId)}/messages?page_access_token=${targetPage.token}`;
+    const resp = await fetch(apiUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!resp.ok) {
+      return res.status(resp.status).json({
+        success: false,
+        error: `Pancake API phản hồi mã ${resp.status} (${resp.statusText})`,
+      });
+    }
+
+    const data: any = await resp.json();
+
+    // Sắp xếp tin nhắn theo thứ tự thời gian tăng dần (từ cũ đến mới nhất)
+    const rawMessages = Array.isArray(data.messages) ? data.messages : [];
+    const sortedMessages = [...rawMessages].sort((a, b) => {
+      const ta = new Date(a.inserted_at || a.created_at || 0).getTime();
+      const tb = new Date(b.inserted_at || b.created_at || 0).getTime();
+      return ta - tb;
+    });
+
+    return res.json({
+      success: true,
+      page: {
+        id: targetPage.id,
+        name: targetPage.name,
+        type: targetPage.type,
+      },
+      conversationId,
+      messages: sortedMessages,
+      customers: data.customers || [],
+      notes: data.notes || [],
+      convPhoneNumbers: data.conv_phone_numbers || [],
+      tags: data.tags || [],
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.name === 'AbortError' ? 'Hết thời gian chờ phản hồi từ Pancake API' : err.message,
+    });
+  }
+});
+
 // Tiến trình đồng bộ toàn bộ lịch sử (All-time multi-page multi-window sync)
 let syncAllHistoryProgress = {
   isRunning: false,
