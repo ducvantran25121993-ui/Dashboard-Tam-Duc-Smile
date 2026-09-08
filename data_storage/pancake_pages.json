@@ -1,0 +1,32 @@
+[
+  {
+    "id": "pzl_329635242261010723",
+    "name": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+    "alias": "0866802030",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF8zMjk2MzUyNDIyNjEwMTA3MjMiLCJ0aW1lc3RhbXAiOjE3ODg3NjQyNDV9.sb2fG-sOSql9rKgI9u6TYDDRJjYCfkBOgprqUZV1gww",
+    "type": "zalo",
+    "active": true
+  },
+  {
+    "id": "pzl_400255603301941410",
+    "name": "Zalo OA - 0329851079 (Hotline)",
+    "alias": "0329851079",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF80MDAyNTU2MDMzMDE5NDE0MTAiLCJ0aW1lc3RhbXAiOjE3ODg3NzA5NTN9.fK-bF9tKDln_ULoK9oWn-GNIIT9ZY9quWnNc0GTQdnY",
+    "type": "zalo",
+    "active": true
+  },
+  {
+    "id": "108815332304510",
+    "name": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwODgxNTMzMjMwNDUxMCIsInRpbWVzdGFtcCI6MTc4NDg4MzM0OX0.lywqmZ7i42aihdk-w69RR4x5h2B4sLMTArqvApk4IMU",
+    "type": "facebook",
+    "active": true
+  },
+  {
+    "id": "zl_3718988534263433028",
+    "name": "Zalo OA - Nha Khoa Tâm Đức Smile",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InpsXzM3MTg5ODg1MzQyNjM0MzMwMjgiLCJ0aW1lc3RhbXAiOjE3ODg3NzEwNDl9.DJ4l-IMPUejfUk7qPLRF5zMIl3Ju3i38d-YS6wgp43M",
+    "type": "zalo",
+    "active": true
+  }
+]

@@ -53,11 +53,97 @@ const LANDING_PAGES_FILE = path.join(STORAGE_DIR, 'landing_pages.json');
 const PANCAKE_CONFIG_FILE = path.join(STORAGE_DIR, 'pancake_config.json');
 const PANCAKE_CACHE_FILE = path.join(STORAGE_DIR, 'pancake_cache.json');
 
-// Pancake CRM config store
+// Pancake CRM config store & Multi-page store
+interface PancakePageItem {
+  id: string;
+  name: string;
+  alias?: string;
+  token: string;
+  type: 'zalo' | 'facebook';
+  active: boolean;
+  totalTags?: number;
+  tags?: any[];
+  updatedAt?: string;
+}
+
+function extractJwtPageId(token: string): string | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length >= 2) {
+      const payloadStr = Buffer.from(parts[1], 'base64').toString('utf-8');
+      const payload = JSON.parse(payloadStr);
+      if (payload && payload.id) return String(payload.id).trim();
+    }
+  } catch (e) {}
+  return null;
+}
+
+const PANCAKE_PAGES_FILE = path.join(STORAGE_DIR, 'pancake_pages.json');
+
+const DEFAULT_PANCAKE_PAGES: PancakePageItem[] = [
+  {
+    id: 'pzl_329635242261010723',
+    name: 'Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)',
+    alias: '0866802030',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF8zMjk2MzUyNDIyNjEwMTA3MjMiLCJ0aW1lc3RhbXAiOjE3ODg3NjQyNDV9.sb2fG-sOSql9rKgI9u6TYDDRJjYCfkBOgprqUZV1gww',
+    type: 'zalo',
+    active: true,
+  },
+  {
+    id: 'pzl_400255603301941410',
+    name: 'Zalo OA - 0329851079 (Hotline)',
+    alias: '0329851079',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF80MDAyNTU2MDMzMDE5NDE0MTAiLCJ0aW1lc3RhbXAiOjE3ODg3NzA5NTN9.fK-bF9tKDln_ULoK9oWn-GNIIT9ZY9quWnNc0GTQdnY',
+    type: 'zalo',
+    active: true,
+  },
+  {
+    id: '108815332304510',
+    name: 'Fanpage - Răng Tốt Sức Khoẻ Tốt',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEwODgxNTMzMjMwNDUxMCIsInRpbWVzdGFtcCI6MTc4NDg4MzM0OX0.lywqmZ7i42aihdk-w69RR4x5h2B4sLMTArqvApk4IMU',
+    type: 'facebook',
+    active: true,
+  },
+  {
+    id: 'zl_3718988534263433028',
+    name: 'Zalo OA - Nha Khoa Tâm Đức Smile',
+    token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InpsXzM3MTg5ODg1MzQyNjM0MzMwMjgiLCJ0aW1lc3RhbXAiOjE3ODg3NzEwNDl9.DJ4l-IMPUejfUk7qPLRF5zMIl3Ju3i38d-YS6wgp43M',
+    type: 'zalo',
+    active: true,
+  },
+];
+
+let pancakePagesStore: PancakePageItem[] = [...DEFAULT_PANCAKE_PAGES];
+
+try {
+  if (fs.existsSync(PANCAKE_PAGES_FILE)) {
+    const content = fs.readFileSync(PANCAKE_PAGES_FILE, 'utf-8');
+    const parsed = JSON.parse(content);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const existingMap = new Map(parsed.map((p: any) => [p.id, p]));
+      for (const def of DEFAULT_PANCAKE_PAGES) {
+        if (!existingMap.has(def.id)) {
+          parsed.push(def);
+        } else {
+          const ex = existingMap.get(def.id);
+          if (def.token && (!ex.token || ex.token.length < 20)) {
+            ex.token = def.token;
+          }
+        }
+      }
+      pancakePagesStore = parsed;
+    }
+  } else {
+    fs.writeFileSync(PANCAKE_PAGES_FILE, JSON.stringify(DEFAULT_PANCAKE_PAGES, null, 2), 'utf-8');
+  }
+} catch (e) {
+  console.warn('Failed to load pancake pages from disk:', e);
+}
+
 let pancakeConfigStore = {
-  token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InB6bF8zMjk2MzUyNDIyNjEwMTA3MjMiLCJ0aW1lc3RhbXAiOjE3ODg3NjQyNDV9.sb2fG-sOSql9rKgI9u6TYDDRJjYCfkBOgprqUZV1gww',
-  pageId: 'pzl_329635242261010723',
-  pageName: 'Hệ Thống Nha Khoa Tâm Đức Smile (Zalo OA)',
+  token: pancakePagesStore[0]?.token || '',
+  pageId: pancakePagesStore[0]?.id || '',
+  pageName: pancakePagesStore[0]?.name || '',
   autoSync: true,
   updatedAt: new Date().toISOString(),
 };
@@ -313,37 +399,203 @@ app.post('/api/monitor/notifications', (req, res) => {
 // ==========================================
 app.get('/api/pancake/status', async (req, res) => {
   try {
-    const { token, pageId, pageName, autoSync, updatedAt } = pancakeConfigStore;
-    if (!token || !pageId) {
-      return res.json({ connected: false, message: 'Chưa cấu hình Token' });
-    }
+    const pageStatuses = await Promise.all(
+      pancakePagesStore.map(async (p) => {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const resp = await fetch(`https://pages.fm/api/public_api/v1/pages/${p.id}/tags?page_access_token=${p.token}`, {
+            headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          const data: any = await resp.json();
+          const isOk = Boolean(data && Array.isArray(data.tags));
+          return {
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            active: p.active !== false,
+            connected: isOk,
+            totalTags: isOk ? data.tags.length : 0,
+            tags: isOk ? data.tags : [],
+            tokenMasked: p.token ? p.token.slice(0, 15) + '...' + p.token.slice(-8) : '',
+          };
+        } catch (err: any) {
+          return {
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            active: p.active !== false,
+            connected: false,
+            error: err.message,
+            tokenMasked: p.token ? p.token.slice(0, 15) + '...' + p.token.slice(-8) : '',
+          };
+        }
+      })
+    );
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const connectedCount = pageStatuses.filter((s) => s.connected).length;
+    const primary = pageStatuses[0] || null;
 
-    const resp = await fetch(`https://pages.fm/api/public_api/v1/pages/${pageId}/tags?page_access_token=${token}`, {
-      headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-      signal: controller.signal,
+    return res.json({
+      connected: connectedCount > 0,
+      totalPages: pancakePagesStore.length,
+      connectedPages: connectedCount,
+      pages: pageStatuses,
+      // Backward compatibility fields for single page consumers:
+      pageId: primary?.id || '',
+      pageName: primary?.name || '',
+      tokenMasked: primary?.tokenMasked || '',
+      totalTags: primary?.totalTags || 0,
+      tags: primary?.tags || [],
+      autoSync: pancakeConfigStore.autoSync,
+      updatedAt: pancakeConfigStore.updatedAt,
     });
-    clearTimeout(timeoutId);
-
-    const data: any = await resp.json();
-    if (data && Array.isArray(data.tags)) {
-      return res.json({
-        connected: true,
-        pageId,
-        pageName,
-        tokenMasked: token.slice(0, 15) + '...' + token.slice(-8),
-        totalTags: data.tags.length,
-        tags: data.tags,
-        autoSync,
-        updatedAt,
-      });
-    }
-    return res.json({ connected: false, error: data?.message || 'Không thể xác thực Token Pancake' });
   } catch (err: any) {
     return res.json({ connected: false, error: err.message });
   }
+});
+
+// Dedicated Multi-Page CRUD
+app.get('/api/pancake/pages', (req, res) => {
+  return res.json({
+    success: true,
+    pages: pancakePagesStore.map((p) => ({
+      ...p,
+      tokenMasked: p.token ? p.token.slice(0, 15) + '...' + p.token.slice(-8) : '',
+    })),
+  });
+});
+
+app.post('/api/pancake/pages', async (req, res) => {
+  try {
+    const { pageId, token, name, type } = req.body;
+    if (!pageId || !token) {
+      return res.status(400).json({ success: false, error: 'Vui lòng cung cấp Page ID và Token' });
+    }
+
+    const inputId = String(pageId).trim();
+    const cleanToken = String(token).trim();
+    const jwtEmbeddedId = extractJwtPageId(cleanToken);
+
+    // If user provided a phone/alias like "0866802030" and the JWT has the internal "pzl_..." id:
+    let cleanId = inputId;
+    let aliasStr: string | undefined = undefined;
+    if (jwtEmbeddedId && jwtEmbeddedId !== inputId) {
+      cleanId = jwtEmbeddedId;
+      aliasStr = inputId;
+    }
+
+    const cleanType: 'zalo' | 'facebook' = type === 'facebook' || (!cleanId.startsWith('pzl_') && !cleanId.startsWith('zl_') && /^\d+$/.test(cleanId) && !aliasStr)
+      ? 'facebook'
+      : 'zalo';
+
+    const defaultName = aliasStr
+      ? `Zalo OA - ${aliasStr} (Nha Khoa Tâm Đức Smile)`
+      : `Trang Pancake (${cleanId})`;
+    const cleanName = String(name || defaultName).trim();
+
+    // Verify token with Pancake API
+    let tagCount = 0;
+    let tagsList: any[] = [];
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(`https://pages.fm/api/public_api/v1/pages/${cleanId}/tags?page_access_token=${cleanToken}`, {
+        headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      const data: any = await resp.json();
+      if (data && Array.isArray(data.tags)) {
+        tagCount = data.tags.length;
+        tagsList = data.tags;
+      }
+    } catch (verErr: any) {
+      console.warn('Warning when verifying new page token:', verErr.message);
+    }
+
+    const existingIdx = pancakePagesStore.findIndex((p) => p.id === cleanId || (aliasStr && p.alias === aliasStr));
+    const newPageItem: PancakePageItem = {
+      id: cleanId,
+      name: cleanName,
+      alias: aliasStr,
+      token: cleanToken,
+      type: cleanType,
+      active: true,
+      totalTags: tagCount,
+      tags: tagsList,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existingIdx >= 0) {
+      pancakePagesStore[existingIdx] = newPageItem;
+    } else {
+      pancakePagesStore.push(newPageItem);
+    }
+
+    try {
+      fs.writeFileSync(PANCAKE_PAGES_FILE, JSON.stringify(pancakePagesStore, null, 2), 'utf-8');
+    } catch (saveErr) {
+      console.warn('Failed to save pancake pages to disk:', saveErr);
+    }
+
+    return res.json({
+      success: true,
+      message: `Đã thêm/cập nhật thành công trang "${cleanName}"`,
+      page: {
+        ...newPageItem,
+        tokenMasked: cleanToken.slice(0, 15) + '...' + cleanToken.slice(-8),
+      },
+      pages: pancakePagesStore.map((p) => ({
+        ...p,
+        tokenMasked: p.token ? p.token.slice(0, 15) + '...' + p.token.slice(-8) : '',
+      })),
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/pancake/pages/:pageId', (req, res) => {
+  const { pageId } = req.params;
+  const { name, active, token, type } = req.body;
+  const idx = pancakePagesStore.findIndex((p) => p.id === pageId);
+  if (idx < 0) {
+    return res.status(404).json({ success: false, error: 'Không tìm thấy trang' });
+  }
+
+  if (typeof name === 'string' && name.trim()) pancakePagesStore[idx].name = name.trim();
+  if (typeof active === 'boolean') pancakePagesStore[idx].active = active;
+  if (typeof token === 'string' && token.trim()) pancakePagesStore[idx].token = token.trim();
+  if (type === 'zalo' || type === 'facebook') pancakePagesStore[idx].type = type;
+  pancakePagesStore[idx].updatedAt = new Date().toISOString();
+
+  try {
+    fs.writeFileSync(PANCAKE_PAGES_FILE, JSON.stringify(pancakePagesStore, null, 2), 'utf-8');
+  } catch (saveErr) {
+    console.warn('Failed to save pancake pages to disk:', saveErr);
+  }
+
+  return res.json({ success: true, page: pancakePagesStore[idx] });
+});
+
+app.delete('/api/pancake/pages/:pageId', (req, res) => {
+  const { pageId } = req.params;
+  const initLen = pancakePagesStore.length;
+  pancakePagesStore = pancakePagesStore.filter((p) => p.id !== pageId);
+  if (pancakePagesStore.length === initLen) {
+    return res.status(404).json({ success: false, error: 'Không tìm thấy trang để xoá' });
+  }
+
+  try {
+    fs.writeFileSync(PANCAKE_PAGES_FILE, JSON.stringify(pancakePagesStore, null, 2), 'utf-8');
+  } catch (saveErr) {
+    console.warn('Failed to save pancake pages to disk:', saveErr);
+  }
+
+  return res.json({ success: true, message: 'Đã xoá trang khỏi cấu hình', pages: pancakePagesStore });
 });
 
 app.post('/api/pancake/config', (req, res) => {
@@ -362,22 +614,43 @@ app.post('/api/pancake/config', (req, res) => {
   }
   pancakeConfigStore.updatedAt = new Date().toISOString();
 
+  // Also sync with primary page in store
+  const pIdx = pancakePagesStore.findIndex((p) => p.id === pancakeConfigStore.pageId);
+  if (pIdx >= 0) {
+    pancakePagesStore[pIdx].token = pancakeConfigStore.token;
+    pancakePagesStore[pIdx].name = pancakeConfigStore.pageName;
+  } else if (pancakeConfigStore.pageId && pancakeConfigStore.token) {
+    pancakePagesStore.push({
+      id: pancakeConfigStore.pageId,
+      name: pancakeConfigStore.pageName || 'Trang Chính',
+      token: pancakeConfigStore.token,
+      type: pancakeConfigStore.pageId.startsWith('pzl_') || pancakeConfigStore.pageId.startsWith('zl_') ? 'zalo' : 'facebook',
+      active: true,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
   try {
     fs.writeFileSync(PANCAKE_CONFIG_FILE, JSON.stringify(pancakeConfigStore, null, 2), 'utf-8');
+    fs.writeFileSync(PANCAKE_PAGES_FILE, JSON.stringify(pancakePagesStore, null, 2), 'utf-8');
   } catch (err) {
     console.warn('Failed to persist pancake config:', err);
   }
 
-  return res.json({ success: true, config: {
-    pageId: pancakeConfigStore.pageId,
-    pageName: pancakeConfigStore.pageName,
-    tokenMasked: pancakeConfigStore.token.slice(0, 15) + '...' + pancakeConfigStore.token.slice(-8),
-    autoSync: pancakeConfigStore.autoSync,
-    updatedAt: pancakeConfigStore.updatedAt,
-  } });
+  return res.json({
+    success: true,
+    config: {
+      pageId: pancakeConfigStore.pageId,
+      pageName: pancakeConfigStore.pageName,
+      tokenMasked: pancakeConfigStore.token.slice(0, 15) + '...' + pancakeConfigStore.token.slice(-8),
+      autoSync: pancakeConfigStore.autoSync,
+      updatedAt: pancakeConfigStore.updatedAt,
+    },
+    pages: pancakePagesStore,
+  });
 });
 
-function parsePancakeConversations(rawList: any[]) {
+function parsePancakeConversations(rawList: any[], defaultPageMeta?: { id?: string; name?: string; type?: string }) {
   const branches = [
     'Cần Thơ', 'Cà Mau', 'Hóc Môn', 'Gò Vấp', 'Quận 5', 'Quận 10', 'Bình Thạnh',
     'Thủ Đức', 'Bình Dương', 'Biên Hòa', 'Đồng Tháp', 'Vũng Tàu', 'Đà Nẵng',
@@ -436,9 +709,15 @@ function parsePancakeConversations(rawList: any[]) {
       detectedService = 'Khám Tổng Quát';
     }
 
+    // Determine page metadata
+    const leadPageId = c.page_id || defaultPageMeta?.id || '';
+    const matchedPage = pancakePagesStore.find((p) => p.id === leadPageId || (p.alias && p.alias === leadPageId)) || defaultPageMeta;
+    const pageName = matchedPage?.name || c.page_name || 'Trang Pancake';
+    const channelType = matchedPage?.type || (String(leadPageId).startsWith('pzl_') || String(leadPageId).startsWith('zl_') ? 'zalo' : 'facebook');
+
     return {
       id: c.id,
-      name: c.from?.name || 'Khách hàng',
+      name: c.from?.name || c.customers?.[0]?.name || 'Khách hàng',
       avatar: c.from?.avatar_url || '',
       phone,
       hasPhone: !!phone || !!c.has_phone,
@@ -459,9 +738,12 @@ function parsePancakeConversations(rawList: any[]) {
       })),
       branch: detectedBranch || 'Toàn Hệ Thống',
       service: detectedService || 'Tư Vấn Chung',
-      isWon: tagTexts.includes('#đậu'),
-      isLost: tagTexts.includes('#rớt'),
-      isBooked: tagTexts.includes('ddh'),
+      isWon: tagTexts.includes('#đậu') || tagTexts.includes('dau'),
+      isLost: tagTexts.includes('#rớt') || tagTexts.includes('rot'),
+      isBooked: tagTexts.includes('ddh') || tagTexts.includes('hẹn'),
+      pageId: leadPageId,
+      pageName,
+      channelType,
     };
   });
 
@@ -469,28 +751,61 @@ function parsePancakeConversations(rawList: any[]) {
   return { leads, summary };
 }
 
-function calculateLeadsSummary(leads: any[]) {
+function calculateLeadsSummary(leads: any[], pages?: any[]) {
+  const pagesList = pages || pancakePagesStore;
+  const byPage = pagesList.map((p) => {
+    const pageLeads = leads.filter((l) => l.pageId === p.id);
+    return {
+      pageId: p.id,
+      pageName: p.name,
+      type: p.type,
+      totalLeads: pageLeads.length,
+      withPhone: pageLeads.filter((l) => l.hasPhone).length,
+      booked: pageLeads.filter((l) => l.isBooked).length,
+      won: pageLeads.filter((l) => l.isWon).length,
+    };
+  });
+
   return {
     totalLeads: leads.length,
     withPhone: leads.filter((l) => l.hasPhone).length,
     booked: leads.filter((l) => l.isBooked).length,
     won: leads.filter((l) => l.isWon).length,
     lost: leads.filter((l) => l.isLost).length,
+    byPage,
     byService: {
       implant: leads.filter((l) => l.service === 'Implant').length,
       porcelain: leads.filter((l) => l.service === 'Răng Sứ').length,
       ortho: leads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
       vietKieu: leads.filter((l) => l.service === 'Việt Kiều').length,
-      general: leads.filter((l) => l.service === 'Khám Tổng Quát').length,
+      general: leads.filter((l) => l.service === 'Khám Tổng Quát' || l.service === 'Tư Vấn Chung').length,
     },
   };
+}
+
+function parseTimestampMs(ts: string | number | undefined | null): number {
+  if (!ts) return 0;
+  if (typeof ts === 'number') {
+    return ts < 1e11 ? ts * 1000 : ts;
+  }
+  const s = String(ts).trim();
+  if (!s) return 0;
+  if (/^\d+$/.test(s)) {
+    const num = parseInt(s, 10);
+    return num < 1e11 ? num * 1000 : num;
+  }
+  const isoStr = s.endsWith('Z') || s.includes('+') || (s.includes('-') && s.lastIndexOf('-') > 10)
+    ? s
+    : `${s}Z`;
+  const t = new Date(isoStr).getTime();
+  return isNaN(t) ? 0 : t;
 }
 
 function parseFilterRange(query: any) {
   const mode = String(query.mode || query.days || '14').toLowerCase().trim();
   const now = new Date();
 
-  // Helper tính khoảng ngày theo giờ Việt Nam (UTC+7)
+  // Helper tính khoảng ngày theo giờ Việt Nam (UTC+7) chuẩn 00:00:00 - 23:59:59.999
   const getVnDate = (offsetDays = 0) => {
     const vnTime = new Date(Date.now() + (7 * 60 + new Date().getTimezoneOffset()) * 60 * 1000);
     const targetDate = new Date(vnTime.getFullYear(), vnTime.getMonth(), vnTime.getDate() + offsetDays);
@@ -508,7 +823,7 @@ function parseFilterRange(query: any) {
       mode: 'today',
       isToday: true,
       filterRange: { startMs, endMs, label: `Hôm nay (${dateStr})` },
-      queryDays: 1,
+      queryDays: 2,
     };
   }
 
@@ -518,7 +833,7 @@ function parseFilterRange(query: any) {
       mode: 'yesterday',
       isToday: false,
       filterRange: { startMs, endMs, label: `Hôm qua (${dateStr})` },
-      queryDays: 2,
+      queryDays: 3,
     };
   }
 
@@ -558,30 +873,45 @@ function parseFilterRange(query: any) {
     };
   }
 
-  // Số ngày bình thường (3, 7, 14, 30...)
+  // Số ngày theo lịch Việt Nam: 3, 7, 14, 30... ngày qua
   const daysNum = Math.min(Math.max(parseInt(mode, 10) || 14, 1), 30);
-  const startMs = Date.now() - daysNum * 86400 * 1000;
+  const startMs = getVnDate(-(daysNum - 1)).startMs;
+  const endMs = getVnDate(0).endMs;
   return {
     mode: `${daysNum}`,
     isToday: false,
-    filterRange: { startMs, endMs: Date.now(), label: `${daysNum} ngày qua` },
-    queryDays: Math.min(daysNum, 28),
+    filterRange: { startMs, endMs, label: `${daysNum} ngày qua` },
+    queryDays: Math.min(daysNum + 1, 28),
   };
 }
 
 function applyFilterRange(leads: any[], filterRange: { startMs: number; endMs: number } | null) {
   if (!filterRange) return leads;
   return leads.filter((l) => {
-    const t = new Date(l.updatedAt || l.insertedAt).getTime();
-    return !isNaN(t) && t >= filterRange.startMs && t <= filterRange.endMs;
+    // QUY TẮC CỐT LÕI: Hội thoại chia ĐÚNG theo ngày BẮT ĐẦU chat (insertedAt).
+    // - Hôm nay: chỉ tính hội thoại bắt đầu trong ngày hôm nay.
+    // - Khách đã chat hôm qua/ngày trước, hôm nay chat lại -> vẫn tính vào ngày hôm qua/ngày trước đó!
+    const startMs = parseTimestampMs(l.insertedAt) || parseTimestampMs(l.updatedAt);
+    return !isNaN(startMs) && startMs >= filterRange.startMs && startMs <= filterRange.endMs;
   });
 }
 
+// Module-level deduplication lock to avoid spamming Pancake API with overlapping requests
+let activePancakeFetchPromise: Promise<void> | null = null;
+
 app.get('/api/pancake/conversations', async (req, res) => {
   try {
-    const { token, pageId } = pancakeConfigStore;
-    if (!token || !pageId) {
-      return res.status(400).json({ success: false, error: 'Chưa có Token Pancake' });
+    const requestedPageId = String(req.query.pageId || 'all').trim();
+    let targetPages = pancakePagesStore.filter((p) => p.active !== false && p.token);
+    if (requestedPageId !== 'all' && requestedPageId !== '') {
+      const single = pancakePagesStore.find((p) => p.id === requestedPageId || (p.alias && p.alias === requestedPageId));
+      if (single && single.token) {
+        targetPages = [single];
+      }
+    }
+
+    if (targetPages.length === 0) {
+      return res.status(400).json({ success: false, error: 'Chưa có trang Pancake nào được kích hoạt hoặc có Token hợp lệ' });
     }
 
     const { mode, isToday, filterRange, queryDays } = parseFilterRange(req.query);
@@ -598,7 +928,10 @@ app.get('/api/pancake/conversations', async (req, res) => {
 
     // Trả về từ cache nếu dữ liệu còn mới và không yêu cầu force sync
     if (isCacheFresh && pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
-      const activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+      let activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+      if (requestedPageId !== 'all') {
+        activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
+      }
 
       let filtered = activeLeads;
       if (search) {
@@ -607,7 +940,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
           l.phone.includes(search) ||
           l.snippet.toLowerCase().includes(search) ||
           l.branch.toLowerCase().includes(search) ||
-          l.service.toLowerCase().includes(search)
+          l.service.toLowerCase().includes(search) ||
+          (l.pageName && l.pageName.toLowerCase().includes(search))
         );
       }
       if (tagFilter) {
@@ -620,76 +954,96 @@ app.get('/api/pancake/conversations', async (req, res) => {
         success: true,
         fromCache: true,
         mode,
+        selectedPageId: requestedPageId,
         filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
         cacheAgeSeconds: Math.round(cacheAgeMs / 1000),
         totalInPancake: activeLeads.length,
         returned: filtered.length,
         pageNumber,
-        summary: calculateLeadsSummary(activeLeads),
+        summary: calculateLeadsSummary(activeLeads, pancakePagesStore),
         leads: filtered,
         cachedAt: pancakeCacheStore.data.cachedAt,
         serverTime: new Date().toISOString(),
       });
     }
 
-    // Cần fetch mới từ Pancake.
-    // Pancake API giới hạn nghiêm ngặt khoảng ngày gửi lên trong 1 request phải nhỏ hơn 1 tháng (< 30 ngày).
+    // Cần fetch mới từ Pancake qua tất cả trang được chọn
     const safeDays = Math.min(queryDays, 28);
     const now = Math.floor(Date.now() / 1000);
     const since = now - safeDays * 86400;
 
-    let rawList: any[] = [];
-    let totalInPancake = 0;
-
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
-
-      const resp = await fetch(
-        `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${pageNumber}`,
-        {
-          headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-          signal: controller.signal,
-        }
-      );
-      clearTimeout(timeoutId);
-
-      if (!resp.ok) {
-        throw new Error(`Pancake API returned HTTP ${resp.status}`);
-      }
-
-      const data: any = await resp.json();
-      if (!data.success && data.message) {
-        throw new Error(data.message);
-      }
-
-      rawList = Array.isArray(data.conversations) ? data.conversations : [];
-      totalInPancake = data.total || rawList.length;
-
-      // Pancake API giới hạn tối đa 200 hội thoại/trang. Tự động gom thêm các trang tiếp theo để lấy đầy đủ toàn bộ hội thoại:
-      const totalPagesNeeded = Math.min(Math.ceil(totalInPancake / 200), isToday ? 3 : 8);
-      if (totalPagesNeeded > 1 && pageNumber === 1) {
-        const extraPromises = [];
-        for (let p = 2; p <= totalPagesNeeded; p++) {
-          extraPromises.push(
-            fetch(
-              `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${now}&page_number=${p}`,
-              { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
-            )
-              .then((r) => (r.ok ? r.json() : null))
-              .catch(() => null)
-          );
-        }
-        const results = await Promise.all(extraPromises);
-        for (const r of results) {
-          if (r && Array.isArray(r.conversations)) {
-            rawList = rawList.concat(r.conversations);
+    const performPancakeFetch = async () => {
+      const pageFetchPromises = targetPages.map(async (page, index) => {
+        try {
+          // Trì hoãn nhẹ 120ms giữa các trang để không gây nghẽn socket/rate-limit Pancake
+          if (index > 0) {
+            await new Promise((resolve) => setTimeout(resolve, index * 120));
           }
-        }
-      }
 
-      // Phân tích dữ liệu mới
-      const parsed = parsePancakeConversations(rawList);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout hào phóng
+          const resp = await fetch(
+            `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${now}&page_number=${pageNumber}`,
+            {
+              headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+              signal: controller.signal,
+            }
+          );
+          clearTimeout(timeoutId);
+
+          if (!resp.ok) {
+            console.warn(`Pancake API for ${page.name} returned HTTP ${resp.status}`);
+            const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
+            return { page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length };
+          }
+
+          const data: any = await resp.json();
+          let rawList: any[] = Array.isArray(data?.conversations) ? data.conversations : [];
+          const pageTotal = data?.total || rawList.length;
+
+          // Pancake API trả tối đa 200/lần. Chỉ gom thêm trang 2 nếu trang 1 đã đủ 200 bản ghi và không phải chế độ xem hôm nay
+          if (rawList.length >= 200 && pageTotal > 200 && pageNumber === 1 && !isToday) {
+            const totalPagesNeeded = Math.min(Math.ceil(pageTotal / 200), 3);
+            for (let p = 2; p <= totalPagesNeeded; p++) {
+              try {
+                const subController = new AbortController();
+                const subTimeout = setTimeout(() => subController.abort(), 15000);
+                const subResp = await fetch(
+                  `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${now}&page_number=${p}`,
+                  {
+                    headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+                    signal: subController.signal,
+                  }
+                );
+                clearTimeout(subTimeout);
+                if (subResp.ok) {
+                  const subData: any = await subResp.json();
+                  if (Array.isArray(subData.conversations)) {
+                    rawList = rawList.concat(subData.conversations);
+                  }
+                }
+              } catch (_) {
+                // Tiếp tục với dữ liệu đã lấy được
+              }
+            }
+          }
+
+          const parsed = parsePancakeConversations(rawList, {
+            id: page.id,
+            name: page.name,
+            type: page.type,
+          });
+
+          return { page, conversations: rawList, leads: parsed.leads, total: pageTotal };
+        } catch (pageErr: any) {
+          console.warn(`Pancake fetch fallback for ${page.name} (${page.id}):`, pageErr.message);
+          // Graceful fallback: Giữ lại toàn bộ data đã lưu trong cache cho trang này để không bị mất dữ liệu
+          const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
+          return { page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length };
+        }
+      });
+
+      const pageResults = await Promise.all(pageFetchPromises);
 
       // Gộp lũy tiến (Upsert) vào danh sách tổng để bảo lưu toàn bộ dữ liệu lịch sử
       const masterLeadsMap = new Map<string, any>();
@@ -698,12 +1052,21 @@ app.get('/api/pancake/conversations', async (req, res) => {
           masterLeadsMap.set(l.id, l);
         }
       }
-      for (const l of parsed.leads) {
-        masterLeadsMap.set(l.id, l);
+
+      for (const resItem of pageResults) {
+        if (Array.isArray(resItem.leads)) {
+          for (const l of resItem.leads) {
+            masterLeadsMap.set(l.id, l);
+          }
+        }
       }
 
       const allLeads = Array.from(masterLeadsMap.values());
-      allLeads.sort((a, b) => new Date(b.updatedAt || b.insertedAt).getTime() - new Date(a.updatedAt || a.insertedAt).getTime());
+      allLeads.sort((a, b) => {
+        const tA = parseTimestampMs(a.insertedAt) || parseTimestampMs(a.updatedAt);
+        const tB = parseTimestampMs(b.insertedAt) || parseTimestampMs(b.updatedAt);
+        return tB - tA;
+      });
 
       pancakeCacheStore = {
         lastFetched: Date.now(),
@@ -712,7 +1075,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
           totalInPancake: allLeads.length,
           returned: allLeads.length,
           pageNumber,
-          summary: calculateLeadsSummary(allLeads),
+          summary: calculateLeadsSummary(allLeads, pancakePagesStore),
           leads: allLeads,
           cachedAt: new Date().toISOString(),
         },
@@ -723,9 +1086,25 @@ app.get('/api/pancake/conversations', async (req, res) => {
       } catch (err) {
         console.warn('Failed to save pancake cache to disk:', err);
       }
+    };
+
+    try {
+      if (!activePancakeFetchPromise) {
+        activePancakeFetchPromise = performPancakeFetch().finally(() => {
+          activePancakeFetchPromise = null;
+        });
+        await activePancakeFetchPromise;
+      } else {
+        await activePancakeFetchPromise;
+      }
+
+      const allLeads = pancakeCacheStore.data?.leads || [];
 
       // Lọc theo khoảng thời gian người dùng yêu cầu
-      const activeLeads = applyFilterRange(allLeads, filterRange);
+      let activeLeads = applyFilterRange(allLeads, filterRange);
+      if (requestedPageId !== 'all') {
+        activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
+      }
 
       let filtered = activeLeads;
       if (search) {
@@ -734,7 +1113,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
           l.phone.includes(search) ||
           l.snippet.toLowerCase().includes(search) ||
           l.branch.toLowerCase().includes(search) ||
-          l.service.toLowerCase().includes(search)
+          l.service.toLowerCase().includes(search) ||
+          (l.pageName && l.pageName.toLowerCase().includes(search))
         );
       }
       if (tagFilter) {
@@ -747,20 +1127,23 @@ app.get('/api/pancake/conversations', async (req, res) => {
         success: true,
         fromCache: false,
         mode,
+        selectedPageId: requestedPageId,
         filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
         totalInPancake: activeLeads.length,
         returned: filtered.length,
         pageNumber,
-        summary: calculateLeadsSummary(activeLeads),
+        summary: calculateLeadsSummary(activeLeads, pancakePagesStore),
         leads: filtered,
         cachedAt: pancakeCacheStore.data.cachedAt,
         serverTime: new Date().toISOString(),
       });
     } catch (fetchErr: any) {
       console.warn('Pancake fetch failed, attempting fallback to cache:', fetchErr.message);
-      // Nếu fetch lỗi (timeout mạng, lỗi kết nối), phục hồi từ cache có sẵn
       if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads) && pancakeCacheStore.data.leads.length > 0) {
-        const activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+        let activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+        if (requestedPageId !== 'all') {
+          activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
+        }
 
         let filtered = activeLeads;
         if (search) {
@@ -769,7 +1152,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
             l.phone.includes(search) ||
             l.snippet.toLowerCase().includes(search) ||
             l.branch.toLowerCase().includes(search) ||
-            l.service.toLowerCase().includes(search)
+            l.service.toLowerCase().includes(search) ||
+            (l.pageName && l.pageName.toLowerCase().includes(search))
           );
         }
         if (tagFilter) {
@@ -782,20 +1166,20 @@ app.get('/api/pancake/conversations', async (req, res) => {
           success: true,
           fromCache: true,
           mode,
+          selectedPageId: requestedPageId,
           filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
           fallbackNotice: `Đang hiển thị dữ liệu lưu đệm (${fetchErr.message})`,
           cacheAgeSeconds: Math.round((Date.now() - pancakeCacheStore.lastFetched) / 1000),
           totalInPancake: activeLeads.length,
           returned: filtered.length,
           pageNumber,
-          summary: calculateLeadsSummary(activeLeads),
+          summary: calculateLeadsSummary(activeLeads, pancakePagesStore),
           leads: filtered,
           cachedAt: pancakeCacheStore.data.cachedAt,
           serverTime: new Date().toISOString(),
         });
       }
 
-      // Không có cache nào
       return res.status(500).json({ success: false, error: fetchErr.message || 'Lỗi kết nối Pancake API' });
     }
   } catch (err: any) {
@@ -803,7 +1187,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
   }
 });
 
-// Tiến trình đồng bộ toàn bộ lịch sử (All-time multi-window sync)
+// Tiến trình đồng bộ toàn bộ lịch sử (All-time multi-page multi-window sync)
 let syncAllHistoryProgress = {
   isRunning: false,
   currentWindow: '',
@@ -831,20 +1215,20 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
     });
   }
 
-  const { token, pageId } = pancakeConfigStore;
-  if (!token || !pageId) {
-    return res.status(400).json({ success: false, error: 'Chưa cấu hình Token Pancake' });
+  const activePages = pancakePagesStore.filter((p) => p.active !== false && p.token);
+  if (activePages.length === 0) {
+    return res.status(400).json({ success: false, error: 'Chưa có trang nào có Token hợp lệ' });
   }
 
-  const windowsCount = Math.min(Math.max(Number(req.body.windows) || 24, 1), 36); // Quét tới 24 - 36 đợt (~2-3 năm từ khi tạo Page)
+  const windowsCount = Math.min(Math.max(Number(req.body.windows) || 12, 1), 36);
   const now = Math.floor(Date.now() / 1000);
 
   syncAllHistoryProgress = {
     isRunning: true,
-    currentWindow: 'Đang khởi động tiến trình quét toàn bộ lịch sử từ trước đến nay...',
+    currentWindow: `Đang khởi động tiến trình quét toàn bộ ${activePages.length} trang...`,
     totalCollected: pancakeCacheStore.data?.leads?.length || 0,
     windowsCompleted: 0,
-    totalWindows: windowsCount,
+    totalWindows: windowsCount * activePages.length,
     percent: 0,
     lastError: null,
     finishedAt: null,
@@ -852,15 +1236,14 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
 
   res.json({
     success: true,
-    message: `Đã khởi động tiến trình kéo dữ liệu toàn thời gian (${windowsCount} đợt / ~${Math.round(windowsCount * 28 / 30)} tháng).`,
-    totalWindows: windowsCount,
+    message: `Đã khởi động tiến trình kéo dữ liệu toàn thời gian (${activePages.length} trang, ${windowsCount} đợt/trang).`,
+    totalWindows: windowsCount * activePages.length,
   });
 
   // Chạy background an toàn
   (async () => {
     try {
       const allRawMap = new Map<string, any>();
-      let consecutiveZeroCount = 0;
 
       if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
         for (const l of pancakeCacheStore.data.leads) {
@@ -868,117 +1251,103 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
         }
       }
 
-      for (let w = 0; w < windowsCount; w++) {
-        const until = now - (w * 28 * 86400);
-        const since = until - (28 * 86400);
-        const dateUntilStr = new Date(until * 1000).toLocaleDateString('vi-VN');
-        const dateSinceStr = new Date(since * 1000).toLocaleDateString('vi-VN');
+      let completedSteps = 0;
+      const totalSteps = windowsCount * activePages.length;
 
-        syncAllHistoryProgress.currentWindow = `Đợt ${w + 1}/${windowsCount}: ${dateSinceStr} - ${dateUntilStr}`;
-        syncAllHistoryProgress.percent = Math.round(((w) / windowsCount) * 100);
+      for (const page of activePages) {
+        for (let w = 0; w < windowsCount; w++) {
+          const until = now - (w * 28 * 86400);
+          const since = until - (28 * 86400);
+          const dateUntilStr = new Date(until * 1000).toLocaleDateString('vi-VN');
+          const dateSinceStr = new Date(since * 1000).toLocaleDateString('vi-VN');
 
-        try {
-          const p1Res = await fetch(
-            `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${until}&page_number=1`,
-            { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
-          );
+          syncAllHistoryProgress.currentWindow = `[${page.name}] Đợt ${w + 1}/${windowsCount}: ${dateSinceStr} - ${dateUntilStr}`;
+          syncAllHistoryProgress.percent = Math.round((completedSteps / totalSteps) * 100);
 
-          if (!p1Res.ok) {
-            console.warn(`Pancake window ${w + 1} HTTP ${p1Res.status}`);
-            continue;
-          }
+          try {
+            const p1Res = await fetch(
+              `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=1`,
+              { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
+            );
 
-          const p1Data: any = await p1Res.json();
-          const windowTotal = p1Data.total || 0;
-          let windowRaw: any[] = Array.isArray(p1Data.conversations) ? p1Data.conversations : [];
+            if (p1Res.ok) {
+              const p1Data: any = await p1Res.json();
+              const windowTotal = p1Data.total || 0;
+              let windowRaw: any[] = Array.isArray(p1Data.conversations) ? p1Data.conversations : [];
 
-          const totalPagesNeeded = Math.min(Math.ceil(windowTotal / 200), 8);
-          if (totalPagesNeeded > 1) {
-            for (let p = 2; p <= totalPagesNeeded; p++) {
-              await new Promise((resolve) => setTimeout(resolve, 350)); // Khoảng nghỉ 350ms an toàn rate limit
-              try {
-                const pRes = await fetch(
-                  `https://pages.fm/api/public_api/v1/pages/${pageId}/conversations?page_access_token=${token}&since=${since}&until=${until}&page_number=${p}`,
-                  { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
-                );
-                if (pRes.ok) {
-                  const pData: any = await pRes.json();
-                  if (Array.isArray(pData.conversations)) {
-                    windowRaw = windowRaw.concat(pData.conversations);
-                  }
+              const totalPagesNeeded = Math.min(Math.ceil(windowTotal / 200), 5);
+              if (totalPagesNeeded > 1) {
+                for (let p = 2; p <= totalPagesNeeded; p++) {
+                  await new Promise((resolve) => setTimeout(resolve, 300));
+                  try {
+                    const pRes = await fetch(
+                      `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=${p}`,
+                      { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
+                    );
+                    if (pRes.ok) {
+                      const pData: any = await pRes.json();
+                      if (Array.isArray(pData.conversations)) {
+                        windowRaw = windowRaw.concat(pData.conversations);
+                      }
+                    }
+                  } catch (_) {}
                 }
-              } catch (_) {}
+              }
+
+              const parsed = parsePancakeConversations(windowRaw, {
+                id: page.id,
+                name: page.name,
+                type: page.type,
+              });
+              for (const lead of parsed.leads) {
+                allRawMap.set(lead.id, lead);
+              }
             }
+          } catch (err: any) {
+            console.warn(`Window error for ${page.name}:`, err.message);
           }
 
-          // Parse and merge
-          const parsed = parsePancakeConversations(windowRaw);
-          for (const lead of parsed.leads) {
-            allRawMap.set(lead.id, lead);
-          }
-
+          completedSteps++;
+          syncAllHistoryProgress.windowsCompleted = completedSteps;
           syncAllHistoryProgress.totalCollected = allRawMap.size;
-          syncAllHistoryProgress.windowsCompleted = w + 1;
-          syncAllHistoryProgress.percent = Math.round(((w + 1) / windowsCount) * 100);
+          syncAllHistoryProgress.percent = Math.round((completedSteps / totalSteps) * 100);
 
-          // Cập nhật lưu lũy tiến vào disk
-          const fullLeads = Array.from(allRawMap.values());
-          fullLeads.sort((a, b) => new Date(b.updatedAt || b.insertedAt).getTime() - new Date(a.updatedAt || a.insertedAt).getTime());
+          // Cập nhật lũy tiến mỗi 3 đợt
+          if (completedSteps % 3 === 0 || completedSteps === totalSteps) {
+            const fullLeads = Array.from(allRawMap.values());
+            fullLeads.sort((a, b) => {
+              const tA = parseTimestampMs(a.insertedAt) || parseTimestampMs(a.updatedAt);
+              const tB = parseTimestampMs(b.insertedAt) || parseTimestampMs(b.updatedAt);
+              return tB - tA;
+            });
 
-          const summary = {
-            totalLeads: fullLeads.length,
-            withPhone: fullLeads.filter((l) => l.hasPhone).length,
-            booked: fullLeads.filter((l) => l.isBooked).length,
-            won: fullLeads.filter((l) => l.isWon).length,
-            lost: fullLeads.filter((l) => l.isLost).length,
-            byService: {
-              implant: fullLeads.filter((l) => l.service === 'Implant').length,
-              porcelain: fullLeads.filter((l) => l.service === 'Răng Sứ').length,
-              ortho: fullLeads.filter((l) => l.service === 'Niềng Răng / Chỉnh Nha').length,
-              vietKieu: fullLeads.filter((l) => l.service === 'Việt Kiều').length,
-              general: fullLeads.filter((l) => l.service === 'Khám Tổng Quát').length,
-            },
-          };
+            pancakeCacheStore = {
+              lastFetched: Date.now(),
+              days: 999,
+              data: {
+                totalInPancake: fullLeads.length,
+                returned: fullLeads.length,
+                pageNumber: 1,
+                summary: calculateLeadsSummary(fullLeads, pancakePagesStore),
+                leads: fullLeads,
+                cachedAt: new Date().toISOString(),
+              },
+            };
 
-          pancakeCacheStore = {
-            lastFetched: Date.now(),
-            days: 999,
-            data: {
-              totalInPancake: fullLeads.length,
-              returned: fullLeads.length,
-              pageNumber: 1,
-              summary,
-              leads: fullLeads,
-              cachedAt: new Date().toISOString(),
-            },
-          };
-
-          fs.writeFileSync(PANCAKE_CACHE_FILE, JSON.stringify(pancakeCacheStore, null, 2), 'utf-8');
-
-          if (windowTotal === 0) {
-            consecutiveZeroCount++;
-            if (consecutiveZeroCount >= 3 && w >= 6) {
-              console.log(`Reached earliest history at window ${w + 1} (3 consecutive empty windows)`);
-              break;
-            }
-          } else {
-            consecutiveZeroCount = 0;
+            try {
+              fs.writeFileSync(PANCAKE_CACHE_FILE, JSON.stringify(pancakeCacheStore, null, 2), 'utf-8');
+            } catch (_) {}
           }
-
-          await new Promise((resolve) => setTimeout(resolve, 400));
-        } catch (wErr: any) {
-          console.warn(`Window ${w + 1} execution error:`, wErr.message);
         }
       }
 
       syncAllHistoryProgress.isRunning = false;
       syncAllHistoryProgress.percent = 100;
-      syncAllHistoryProgress.currentWindow = `Đã đồng bộ thành công toàn bộ lịch sử! Tổng cộng: ${allRawMap.size} khách hàng.`;
+      syncAllHistoryProgress.currentWindow = `Đã hoàn tất đồng bộ toàn bộ lịch sử ${activePages.length} trang!`;
       syncAllHistoryProgress.finishedAt = new Date().toISOString();
     } catch (bgErr: any) {
-      console.error('All-time sync error:', bgErr);
       syncAllHistoryProgress.isRunning = false;
-      syncAllHistoryProgress.lastError = bgErr.message;
+      syncAllHistoryProgress.lastError = bgErr.message || 'Lỗi đồng bộ lịch sử';
     }
   })();
 });
