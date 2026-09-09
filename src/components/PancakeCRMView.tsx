@@ -597,7 +597,7 @@ export const PancakeCRMView: React.FC = () => {
               )}
             </div>
             <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-              Hệ Thống Đa Kênh Pancake CRM - Nha Khoa Tâm Đức Smile
+              Hệ Thống Đa Kênh Pancake - Nha Khoa Tâm Đức Smile
             </h2>
             <p className="text-slate-400 text-sm mt-1 max-w-2xl">
               Tự động gom hội thoại, số điện thoại, phân loại chuyên khoa (Implant, Sứ, Niềng răng) từ tất cả các Zalo OA và Fanpage Facebook vào một màn hình duy nhất.
