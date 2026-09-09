@@ -131,9 +131,27 @@ export const getCleanPhone = (phone: any): string => {
 
 export const PancakeCRMView: React.FC = () => {
   const [status, setStatus] = useState<PancakeStatus | null>(null);
-  const [leads, setLeads] = useState<PancakeLead[]>([]);
+  const [leads, setLeads] = useState<PancakeLead[]>(() => {
+    try {
+      const saved = localStorage.getItem('tamduc_pancake_leads_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return [];
+  });
   const [summary, setSummary] = useState<PancakeSummary | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('tamduc_pancake_leads_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return false;
+      }
+    } catch (_) {}
+    return true;
+  });
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isFromCache, setIsFromCache] = useState<boolean>(false);
@@ -229,18 +247,35 @@ export const PancakeCRMView: React.FC = () => {
         queryParams += '&force=true';
       }
 
-      const convRes = await fetch(`/api/pancake/conversations?${queryParams}`);
+      let convData: any = null;
+      let lastErr: string | null = null;
+      const maxRetries = 2;
 
-      const contentType = convRes.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        throw new Error(
-          'Máy chủ Pancake đang xử lý tải dữ liệu. Vui lòng bấm "Thử lại ngay" để kết nối.'
-        );
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const convRes = await fetch(`/api/pancake/conversations?${queryParams}`);
+          const contentType = convRes.headers.get('content-type') || '';
+          if (convRes.ok && contentType.includes('application/json')) {
+            convData = await convRes.json();
+            if (convData && convData.success) {
+              lastErr = null;
+              break;
+            } else if (convData && convData.error) {
+              lastErr = convData.error;
+            }
+          } else {
+            lastErr = 'Máy chủ Pancake đang xử lý tải dữ liệu. Vui lòng thử lại sau giây lát.';
+          }
+        } catch (fErr: any) {
+          lastErr = fErr.message || 'Lỗi mạng khi kết nối Pancake API';
+        }
+
+        if (attempt < maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
       }
 
-      const convData = await convRes.json();
-
-      if (convData.success) {
+      if (convData && convData.success) {
         const rawLeads: any[] = Array.isArray(convData.leads) ? convData.leads : [];
         const cleanLeads: PancakeLead[] = rawLeads.map((l) => {
           const cleanPhone = getCleanPhone(l.phone);
@@ -251,6 +286,9 @@ export const PancakeCRMView: React.FC = () => {
           };
         });
         setLeads(cleanLeads);
+        try {
+          localStorage.setItem('tamduc_pancake_leads_v1', JSON.stringify(cleanLeads.slice(0, 300)));
+        } catch (_) {}
         setSummary(convData.summary || null);
         setIsFromCache(!!convData.fromCache);
         setCacheAgeSeconds(convData.cacheAgeSeconds || 0);
@@ -258,8 +296,9 @@ export const PancakeCRMView: React.FC = () => {
           setFilterLabel(convData.filterLabel);
         }
         setLastSyncedTime(new Date().toLocaleTimeString('vi-VN'));
+        setError(null);
       } else {
-        setError(convData.error || 'Không thể tải danh sách khách từ Pancake');
+        setError(lastErr || 'Không thể tải danh sách khách từ Pancake');
       }
     } catch (err: any) {
       console.error('Fetch Pancake error:', err);
@@ -1348,12 +1387,12 @@ export const PancakeCRMView: React.FC = () => {
           </span>
         </div>
 
-        {loading ? (
+        {loading && leads.length === 0 ? (
           <div className="p-16 text-center space-y-3">
             <RefreshCw className="w-8 h-8 text-teal-400 animate-spin mx-auto" />
             <p className="text-sm text-slate-400">Đang đồng bộ dữ liệu từ Pancake Zalo OA...</p>
           </div>
-        ) : error ? (
+        ) : error && leads.length === 0 ? (
           <div className="p-8 text-center space-y-3">
             <AlertCircle className="w-8 h-8 text-rose-400 mx-auto" />
             <p className="text-sm text-rose-300">{error}</p>
@@ -1365,13 +1404,30 @@ export const PancakeCRMView: React.FC = () => {
               Thử lại kết nối ngay
             </button>
           </div>
-        ) : filteredLeads.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-sm">
-            Không tìm thấy hội thoại nào phù hợp với bộ lọc hiện tại.
-          </div>
         ) : (
-          <div className="divide-y divide-slate-800/80">
-            {paginatedLeads.map((item) => (
+          <>
+            {error && (
+              <div className="p-3 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-300 flex items-center justify-between gap-3 px-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Đang hiển thị dữ liệu lưu đệm. {error}</span>
+                </div>
+                <button
+                  onClick={() => fetchPancakeData(true, true)}
+                  className="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-semibold transition flex items-center gap-1 flex-shrink-0"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  Thử kết nối lại
+                </button>
+              </div>
+            )}
+            {filteredLeads.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-sm">
+                Không tìm thấy hội thoại nào phù hợp với bộ lọc hiện tại.
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-800/80">
+                {paginatedLeads.map((item) => (
               <div
                 key={item.id}
                 onClick={() => setSelectedConversationLead(item)}
@@ -1552,9 +1608,11 @@ export const PancakeCRMView: React.FC = () => {
             ))}
           </div>
         )}
+      </>
+    )}
 
         {/* Pagination Bar */}
-        {!loading && !error && filteredLeads.length > 0 && (
+        {!loading && filteredLeads.length > 0 && (
           <div className="p-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80">
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <span>Hiển thị:</span>
