@@ -534,7 +534,7 @@ export default function App() {
                     {activeSidebarTab === 'campaigns' && 'Chiến Dịch Quảng Cáo'}
                     {activeSidebarTab === 'competitor' && 'Theo Dõi Đối Thủ & Auction Insights'}
                     {activeSidebarTab === 'sales_copilot' && 'Sales Copilot AI'}
-                    {activeSidebarTab === 'consultation' && 'Hội Thoại Tư Vấn'}
+                    {activeSidebarTab === 'consultation' && 'Pancake'}
                     {activeSidebarTab === 'innovation' && 'Sáng Tạo & Đổi Mới'}
                     {activeSidebarTab === 'landing_builder' && 'Tạo Landing Page AI (Vision to Code)'}
                     {activeSidebarTab === 'ai_agent' && 'AI — Trợ Lý Tăng Trưởng'}

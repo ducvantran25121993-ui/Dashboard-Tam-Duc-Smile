@@ -97,11 +97,11 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
   },
   {
     id: 'consultation',
-    label: 'Hội Thoại Tư Vấn',
+    label: 'Pancake',
     category: 'Công Cụ Bán Hàng & CSKH',
-    description: 'Phân tích hội thoại, ghi âm và chỉ số đánh giá kỹ năng tư vấn nha khoa.',
+    description: 'Đồng bộ data khách hàng, tin nhắn Zalo/Fanpage, tag dịch vụ & 17 cơ sở từ Pancake CRM.',
     icon: MessageSquare,
-    badge: '98% Điểm',
+    badge: 'Real Time',
   },
   {
     id: 'innovation',
