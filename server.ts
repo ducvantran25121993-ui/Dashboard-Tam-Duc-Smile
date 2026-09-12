@@ -201,11 +201,19 @@ try {
     const content = fs.readFileSync(PERMISSIONS_FILE, 'utf-8');
     const parsed = JSON.parse(content);
     if (parsed && Array.isArray(parsed.allowedTabs) && parsed.allowedTabs.length > 0) {
-      staffPermissionsStore = parsed;
+      const tabs = [...parsed.allowedTabs];
+      if (!tabs.includes('budget_forecast')) tabs.push('budget_forecast');
+      if (!tabs.includes('landing_builder')) tabs.push('landing_builder');
+      staffPermissionsStore = {
+        ...parsed,
+        allowedTabs: tabs,
+      };
     }
   }
+  // Guarantee permissions.json is written with budget_forecast and landing_builder
+  fs.writeFileSync(PERMISSIONS_FILE, JSON.stringify(staffPermissionsStore, null, 2), 'utf-8');
 } catch (e) {
-  console.warn('Failed to load permissions from disk:', e);
+  console.warn('Failed to load/save permissions to disk:', e);
 }
 
 // Centralized Admin Users store (defaults strictly to Trần Đức TranDuc474@gmail.com)
@@ -304,8 +312,11 @@ app.get('/api/permissions', (req, res) => {
 app.post('/api/permissions', (req, res) => {
   const { allowedTabs } = req.body;
   if (Array.isArray(allowedTabs) && allowedTabs.length > 0) {
+    const tabs = [...allowedTabs];
+    if (!tabs.includes('budget_forecast')) tabs.push('budget_forecast');
+    if (!tabs.includes('landing_builder')) tabs.push('landing_builder');
     staffPermissionsStore = {
-      allowedTabs,
+      allowedTabs: tabs,
       updatedAt: new Date().toISOString(),
     };
     try {
@@ -1566,18 +1577,6 @@ app.get('/api/proxy-sheet', async (req, res) => {
   } catch (err: any) {
     return res.status(500).json({ error: err.message || 'Server error proxying sheet' });
   }
-});
-
-app.post('/api/permissions', (req, res) => {
-  const { allowedTabs } = req.body;
-  if (Array.isArray(allowedTabs)) {
-    staffPermissionsStore = {
-      allowedTabs,
-      updatedAt: new Date().toISOString(),
-    };
-    return res.json({ success: true, ...staffPermissionsStore });
-  }
-  return res.status(400).json({ error: 'Invalid allowedTabs array' });
 });
 
 // API endpoint to generate innovation initiatives

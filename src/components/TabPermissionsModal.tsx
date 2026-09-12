@@ -182,8 +182,8 @@ export const TabPermissionsModal: React.FC<TabPermissionsModalProps> = ({
   };
 
   const handleSelectBasicOnly = () => {
-    // Only basic reporting tabs
-    setSelectedTabs(['overview', 'google_ads', 'leads_funnel', 'sales_copilot']);
+    // Basic reporting tabs including budget_forecast & landing_builder
+    setSelectedTabs(['overview', 'google_ads', 'budget_forecast', 'landing_builder', 'leads_funnel', 'sales_copilot']);
   };
 
   const handleResetDefault = () => {

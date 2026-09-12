@@ -47,6 +47,142 @@ export interface SearchTermItem {
   leads: number;
   cpa: number;
   isNegativeTrigger?: boolean;
+  negativeReason?: string;
+  suggestedNegativeWord?: string;
+  isCoreIntent?: boolean;
+}
+
+export interface NegativeIntentRule {
+  words: string[];
+  reason: string;
+  suggestedWord: string;
+}
+
+// Bảng từ điển các cụm từ sai Intent / từ khóa rác thực tế ngành nha khoa
+export const NEGATIVE_INTENT_RULES: NegativeIntentRule[] = [
+  {
+    words: [
+      'là gì', 'như thế nào', 'định nghĩa', 'khái niệm', 'tiểu luận', 'luận văn',
+      'đồ án', 'hình ảnh ghê', 'hình ảnh ghê rợn', 'wikipedia', 'cấu tạo', 'sơ đồ',
+      'giáo trình', 'bài giảng', 'sách', 'tài liệu'
+    ],
+    reason: 'Tra cứu định nghĩa / học thuật (Không có nhu cầu làm răng)',
+    suggestedWord: 'là gì'
+  },
+  {
+    words: [
+      'tại nhà', 'tự làm', 'tự bọc', 'tự chữa', 'tự nhổ', 'tự mài', 'tự chế',
+      'baking soda', 'mẹo hay', 'mẹo chữa', 'mẹo dân gian', 'dân gian', 'chanh muối',
+      'tự lấy cao răng', 'tự niềng răng'
+    ],
+    reason: 'Tự làm / Mẹo dân gian tại nhà (Không đến phòng khám)',
+    suggestedWord: 'tại nhà'
+  },
+  {
+    words: [
+      'tuyển dụng', 'tuyển y tá', 'học nghề', 'học việc', 'việc làm', 'tìm việc',
+      'mức lương', 'lương bao nhiêu', 'thực tập', 'xin việc', 'khóa học', 'đào tạo',
+      'phụ tá nha khoa', 'trợ thủ nha khoa', 'hồ sơ xin việc'
+    ],
+    reason: 'Tuyển dụng / Học nghề / Lương (Sai tệp khách hàng)',
+    suggestedWord: 'tuyển dụng'
+  },
+  {
+    words: [
+      'miễn phí', '0 đồng', '0đ', 'từ thiện', 'cho người nghèo', 'miễn phí ở đâu',
+      'khám miễn phí không mất tiền'
+    ],
+    reason: 'Tìm kiếm miễn phí / Từ thiện',
+    suggestedWord: 'miễn phí'
+  },
+  {
+    words: [
+      'phốt', 'lừa đảo', 'kiện', 'chết người', 'bị bắt', 'tai tiếng', 'bắt đền',
+      'dụ dỗ', 'tẩy chay'
+    ],
+    reason: 'Từ khóa tiêu cực / Nhạy cảm thương hiệu',
+    suggestedWord: 'phốt'
+  },
+  {
+    words: [
+      'cho chó', 'cho mèo', 'thú cưng', 'chó mèo', 'răng hổ', 'răng cá mập',
+      'răng nanh giả cosplay', 'đồ chơi'
+    ],
+    reason: 'Ngoài ngành / Thú cưng / Đồ chơi',
+    suggestedWord: 'thú cưng'
+  }
+];
+
+// Danh sách dịch vụ cốt lõi nha khoa Tâm Đức Smile - TUYỆT ĐỐI KHÔNG ĐƯỢC PHỦ ĐỊNH
+export const CORE_DENTAL_SERVICE_TERMS = [
+  'implant', 'trồng răng', 'cấy ghép implant', 'cắm implant', 'all on 4', 'all on 6',
+  'all-on-4', 'all-on-6', 'straumann', 'dentium', 'biotem', 'trụ răng',
+  'răng sứ', 'bọc sứ', 'dán sứ', 'veneer', 'cercon', 'lava', 'zirconia', 'bắc cầu răng', 'cầu răng',
+  'niềng răng', 'invisalign', 'chỉnh nha', 'mắc cài',
+  'nhổ răng', 'răng khôn', 'piezotome',
+  'tẩy trắng', 'trám răng', 'cạo vôi', 'lấy cao răng', 'chữa tủy',
+  'nha khoa tâm đức', 'tâm đức smile', 'bảng giá', 'giá bao nhiêu', 'chi phí', 'trọn gói'
+];
+
+/**
+ * Đánh giá chính xác cụm từ tìm kiếm thực tế:
+ * - Phát hiện đúng từ sai intent (định nghĩa, tự làm tại nhà, tuyển dụng, tiêu cực)
+ * - Bảo vệ tuyệt đối từ khóa chuyển đổi cốt lõi (không bao giờ gán nhãn rác cho cụm từ có intent mua hàng như "trồng răng implant giá")
+ */
+export function analyzeSearchTermIntent(
+  term: string,
+  cost: number,
+  leads: number,
+  clicks: number
+): {
+  isNegativeTrigger: boolean;
+  negativeReason?: string;
+  suggestedNegativeWord?: string;
+  isCoreIntent?: boolean;
+} {
+  const normalized = term.toLowerCase().trim();
+
+  // 1. Kiểm tra mẫu từ sai Intent / từ khóa rác
+  for (const rule of NEGATIVE_INTENT_RULES) {
+    for (const w of rule.words) {
+      if (normalized.includes(w)) {
+        // Nếu đã có chuyển đổi lead thì không phủ định để bảo toàn khách thật
+        if (leads > 0) {
+          return { isNegativeTrigger: false, isCoreIntent: true };
+        }
+        return {
+          isNegativeTrigger: true,
+          negativeReason: rule.reason,
+          suggestedNegativeWord: w,
+          isCoreIntent: false,
+        };
+      }
+    }
+  }
+
+  // 2. Kiểm tra nếu là cụm từ sản phẩm / dịch vụ cốt lõi
+  const hasCoreService = CORE_DENTAL_SERVICE_TERMS.some(c => normalized.includes(c));
+  if (hasCoreService) {
+    return {
+      isNegativeTrigger: false,
+      isCoreIntent: true,
+    };
+  }
+
+  // 3. Cụm từ quá rộng (Broad keyword bleeding): Chỉ gắn cờ nếu quá chung chung (<= 2 từ) và chi tiêu lớn không ra lead
+  if (leads === 0 && cost >= 300000 && clicks >= 15 && normalized.split(/\s+/).length <= 2) {
+    return {
+      isNegativeTrigger: true,
+      negativeReason: 'Từ khóa quá rộng (Broad), tiêu ngân sách cao nhưng chưa sinh lead',
+      suggestedNegativeWord: term.trim(),
+      isCoreIntent: false,
+    };
+  }
+
+  return {
+    isNegativeTrigger: false,
+    isCoreIntent: false,
+  };
 }
 
 export interface KeywordItem {
@@ -341,6 +477,9 @@ export function generateMockSearchTerms(): SearchTermItem[] {
     const cpa = t.leads > 0 ? Math.round(t.cost / t.leads) : 0;
     const avgCpc = t.clicks > 0 ? Math.round(t.cost / t.clicks) : 0;
     const ctr = t.imp > 0 ? `${((t.clicks / t.imp) * 100).toFixed(2)}%` : '0.00%';
+    const intent = analyzeSearchTermIntent(t.term, t.cost, t.leads, t.clicks);
+    const isNegativeTrigger = t.isNeg !== undefined ? t.isNeg : intent.isNegativeTrigger;
+
     return {
       id: `st-${idx + 1}`,
       campaign: t.camp,
@@ -354,7 +493,10 @@ export function generateMockSearchTerms(): SearchTermItem[] {
       cost: t.cost,
       leads: t.leads,
       cpa,
-      isNegativeTrigger: t.isNeg ?? (t.leads === 0 && t.cost > 400000),
+      isNegativeTrigger,
+      negativeReason: intent.negativeReason || (isNegativeTrigger ? 'Sai Intent / Tra cứu rác' : undefined),
+      suggestedNegativeWord: intent.suggestedNegativeWord,
+      isCoreIntent: intent.isCoreIntent,
     };
   });
 }
@@ -544,6 +686,8 @@ function parseSearchTermsSheet(csvText: string): SearchTermItem[] {
     const avgCpc = clicks > 0 ? Math.round(cost / clicks) : 0;
     const ctr = imp > 0 ? `${((clicks / imp) * 100).toFixed(2)}%` : '0.00%';
 
+    const intent = analyzeSearchTermIntent(term, cost, leads, clicks);
+
     items.push({
       id: `st-${r}`,
       campaign: camp,
@@ -557,7 +701,10 @@ function parseSearchTermsSheet(csvText: string): SearchTermItem[] {
       cost,
       leads,
       cpa,
-      isNegativeTrigger: leads === 0 && cost > 400000,
+      isNegativeTrigger: intent.isNegativeTrigger,
+      negativeReason: intent.negativeReason,
+      suggestedNegativeWord: intent.suggestedNegativeWord,
+      isCoreIntent: intent.isCoreIntent,
     });
   }
 

@@ -85,9 +85,9 @@ export const ROLE_PRESET_TABS: Record<string, SidebarTab[]> = {
   admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'innovation', 'landing_builder', 'ai_agent', 'admin_hub'],
   manager: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'innovation', 'landing_builder', 'ai_agent'],
   marketer: ['overview', 'budget_forecast', 'campaigns', 'competitor', 'leads_funnel', 'innovation', 'landing_builder', 'ai_agent'],
-  sales: ['overview', 'leads_funnel', 'sales_copilot', 'consultation', 'ai_agent'],
-  accountant: ['overview', 'google_ads', 'budget_forecast'],
-  custom: ['overview', 'budget_forecast', 'campaigns', 'leads_funnel'],
+  sales: ['overview', 'budget_forecast', 'leads_funnel', 'sales_copilot', 'consultation', 'landing_builder', 'ai_agent'],
+  accountant: ['overview', 'google_ads', 'budget_forecast', 'landing_builder'],
+  custom: ['overview', 'budget_forecast', 'campaigns', 'leads_funnel', 'landing_builder'],
 };
 
 export const ROLE_LABEL_MAP: Record<string, string> = {
@@ -183,10 +183,16 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((u: any) => ({
-            ...u,
-            allowedTabs: u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer,
-          }));
+          return parsed.map((u: any) => {
+            const tabs = u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer;
+            const merged = [...tabs];
+            if (!merged.includes('budget_forecast')) merged.push('budget_forecast');
+            if (!merged.includes('landing_builder')) merged.push('landing_builder');
+            return {
+              ...u,
+              allowedTabs: merged,
+            };
+          });
         }
       }
     } catch {
@@ -200,7 +206,13 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
     let isMounted = true;
     fetchUsersFromCloud().then((cloudUsers) => {
       if (isMounted && cloudUsers && cloudUsers.length > 0) {
-        setUsers(cloudUsers);
+        const upgraded = cloudUsers.map((u: AdminUser) => {
+          const tabs = [...(u.allowedTabs || [])];
+          if (!tabs.includes('budget_forecast')) tabs.push('budget_forecast');
+          if (!tabs.includes('landing_builder')) tabs.push('landing_builder');
+          return { ...u, allowedTabs: tabs };
+        });
+        setUsers(upgraded);
       }
     });
     return () => {

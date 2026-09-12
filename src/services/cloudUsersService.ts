@@ -44,10 +44,16 @@ export async function fetchUsersFromCloud(): Promise<AdminUser[]> {
       const data = await res.json();
       if (data && Array.isArray(data.users) && data.users.length > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data.users));
-        return data.users.map((u: any) => ({
-          ...u,
-          allowedTabs: u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer,
-        }));
+        return data.users.map((u: any) => {
+          const tabs = u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer;
+          const merged = [...tabs];
+          if (!merged.includes('budget_forecast')) merged.push('budget_forecast');
+          if (!merged.includes('landing_builder')) merged.push('landing_builder');
+          return {
+            ...u,
+            allowedTabs: merged,
+          };
+        });
       }
     }
   } catch (err) {
@@ -60,10 +66,16 @@ export async function fetchUsersFromCloud(): Promise<AdminUser[]> {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed.map((u: any) => ({
-          ...u,
-          allowedTabs: u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer,
-        }));
+        return parsed.map((u: any) => {
+          const tabs = u.allowedTabs || ROLE_PRESET_TABS[u.role] || ROLE_PRESET_TABS.marketer;
+          const merged = [...tabs];
+          if (!merged.includes('budget_forecast')) merged.push('budget_forecast');
+          if (!merged.includes('landing_builder')) merged.push('landing_builder');
+          return {
+            ...u,
+            allowedTabs: merged,
+          };
+        });
       }
     }
   } catch {

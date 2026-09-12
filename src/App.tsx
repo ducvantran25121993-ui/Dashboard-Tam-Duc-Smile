@@ -40,7 +40,7 @@ import { TabPermissionsModal, DEFAULT_STAFF_ALLOWED_TABS } from './components/Ta
 import { CommandPalette } from './components/CommandPalette';
 import { PancakeCRMView } from './components/PancakeCRMView';
 import { ThemeToggle } from './components/ThemeToggle';
-import { fetchPermissionsFromCloud } from './services/cloudPermissionsService';
+import { fetchPermissionsFromCloud, ensureStaffPermissions } from './services/cloudPermissionsService';
 import {
   Menu,
   DollarSign,
@@ -191,19 +191,17 @@ export default function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          if (!parsed.includes('budget_forecast')) {
-            parsed.push('budget_forecast');
-            try {
-              localStorage.setItem('dashboard_staff_allowed_tabs', JSON.stringify(parsed));
-            } catch {}
-          }
-          return parsed;
+          const normalized = ensureStaffPermissions(parsed);
+          try {
+            localStorage.setItem('dashboard_staff_allowed_tabs', JSON.stringify(normalized));
+          } catch {}
+          return normalized;
         }
       }
     } catch {
       // ignore
     }
-    return DEFAULT_STAFF_ALLOWED_TABS;
+    return ensureStaffPermissions(DEFAULT_STAFF_ALLOWED_TABS);
   });
 
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState<boolean>(false);
@@ -263,9 +261,10 @@ export default function App() {
   };
 
   const handleSaveAllowedStaffTabs = (tabs: SidebarTab[]) => {
-    setAllowedStaffTabs(tabs);
+    const normalized = ensureStaffPermissions(tabs);
+    setAllowedStaffTabs(normalized);
     try {
-      localStorage.setItem('dashboard_staff_allowed_tabs', JSON.stringify(tabs));
+      localStorage.setItem('dashboard_staff_allowed_tabs', JSON.stringify(normalized));
     } catch {
       // ignore
     }
@@ -277,9 +276,10 @@ export default function App() {
     async function syncCloudPermissions() {
       const cloudTabs = await fetchPermissionsFromCloud();
       if (isMounted && cloudTabs && Array.isArray(cloudTabs) && cloudTabs.length > 0) {
+        const normalized = ensureStaffPermissions(cloudTabs);
         setAllowedStaffTabs((prev) => {
-          if (JSON.stringify(prev) !== JSON.stringify(cloudTabs)) {
-            return cloudTabs;
+          if (JSON.stringify(prev) !== JSON.stringify(normalized)) {
+            return normalized;
           }
           return prev;
         });
@@ -295,7 +295,7 @@ export default function App() {
         try {
           const parsed = JSON.parse(e.newValue);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            setAllowedStaffTabs(parsed);
+            setAllowedStaffTabs(ensureStaffPermissions(parsed));
           }
         } catch {
           // ignore

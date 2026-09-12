@@ -7,6 +7,15 @@ export interface CloudPermissionsPayload {
   version: number;
 }
 
+export function ensureStaffPermissions(tabs: (SidebarTab | string)[]): SidebarTab[] {
+  const list = (Array.isArray(tabs) ? tabs : []) as SidebarTab[];
+  const set = new Set<SidebarTab>(list);
+  // Guarantee 'budget_forecast' (Ngân Sách Dự Kiến) and 'landing_builder' (Tạo Landing Page AI) are accessible for staff
+  set.add('budget_forecast');
+  set.add('landing_builder');
+  return Array.from(set);
+}
+
 const STORAGE_KEY = 'dashboard_staff_allowed_tabs';
 const LAST_SYNC_KEY = 'dashboard_permissions_last_sync';
 const CLOUD_SYNC_URL = 'https://api.npoint.io/41c48bf39f37c3daaa80'; // Primary lightweight free cloud KV namespace
@@ -30,9 +39,10 @@ export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> 
       if (apiRes.ok) {
         const data = await apiRes.json();
         if (data && Array.isArray(data.allowedTabs) && data.allowedTabs.length > 0) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.allowedTabs));
+          const normalized = ensureStaffPermissions(data.allowedTabs);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
           localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
-          return data.allowedTabs as SidebarTab[];
+          return normalized;
         }
       }
     } catch {
@@ -50,9 +60,10 @@ export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> 
       if (cloudRes.ok) {
         const data: CloudPermissionsPayload = await cloudRes.json();
         if (data && Array.isArray(data.allowedTabs) && data.allowedTabs.length > 0) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data.allowedTabs));
+          const normalized = ensureStaffPermissions(data.allowedTabs);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
           localStorage.setItem(LAST_SYNC_KEY, data.updatedAt || new Date().toISOString());
-          return data.allowedTabs;
+          return normalized;
         }
       }
     } catch {
@@ -68,37 +79,36 @@ export async function fetchPermissionsFromCloud(): Promise<SidebarTab[] | null> 
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Auto-upgrade legacy cache that might miss budget_forecast
-        if (!parsed.includes('budget_forecast')) {
-          parsed.push('budget_forecast');
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }
-        return parsed as SidebarTab[];
+        const normalized = ensureStaffPermissions(parsed);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+        return normalized;
       }
     }
   } catch {
     // ignore
   }
 
-  return DEFAULT_STAFF_ALLOWED_TABS;
+  return ensureStaffPermissions(DEFAULT_STAFF_ALLOWED_TABS);
 }
 
 /**
  * Save permissions to both local storage and Cloud synchronization
  */
 export async function savePermissionsToCloud(tabs: SidebarTab[]): Promise<{ success: boolean; cloudSynced: boolean; message: string }> {
+  const normalized = ensureStaffPermissions(tabs);
+
   // Always save locally first
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tabs));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
     localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
-    window.dispatchEvent(new CustomEvent('permissions_updated', { detail: tabs }));
+    window.dispatchEvent(new CustomEvent('permissions_updated', { detail: normalized }));
   } catch {
     // ignore local storage error
   }
 
   let cloudSuccess = false;
   const payload: CloudPermissionsPayload = {
-    allowedTabs: tabs,
+    allowedTabs: normalized,
     updatedAt: new Date().toISOString(),
     version: Date.now(),
   };

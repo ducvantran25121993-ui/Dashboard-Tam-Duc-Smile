@@ -57,6 +57,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
   const [aiError, setAiError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [copiedNegatives, setCopiedNegatives] = useState(false);
+  const [copiedRootNegatives, setCopiedRootNegatives] = useState(false);
   const [copiedSchedule, setCopiedSchedule] = useState(false);
   const [copiedRsa, setCopiedRsa] = useState(false);
   const [selectedRsaService, setSelectedRsaService] = useState<'implant' | 'porcelain' | 'braces'>('implant');
@@ -845,14 +846,19 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
       });
     }
 
-    // 3. Search Negative Keywords alert
-    const negativeTriggerCount = searchTerms.filter(t => t.isNegativeTrigger).length;
+    // 3. Search Negative Keywords alert - Phát hiện chính xác các cụm từ sai Intent thực tế
+    const negativeTerms = searchTerms.filter(t => t.isNegativeTrigger);
+    const negativeTriggerCount = negativeTerms.length;
     if (negativeTriggerCount > 0) {
+      const topWasteTerms = [...negativeTerms].sort((a, b) => b.cost - a.cost);
+      const sampleTermsText = topWasteTerms.slice(0, 3).map(t => `"${t.searchTerm}"`).join(', ');
+      const totalWastedCost = negativeTerms.reduce((s, t) => s + t.cost, 0);
+
       alerts.push({
         id: 'negative_keywords',
         level: 'warning',
         title: `Phát hiện ${negativeTriggerCount} cụm từ tìm kiếm rác / sai Intent cần phủ định`,
-        description: `Các truy vấn như "miễn phí", "tự làm", "học nghề" đang cắn ngân sách hàng ngày. Bổ sung ngay vào danh sách phủ định giúp tiết kiệm ước tính 15-20% ngân sách tìm kiếm.`,
+        description: `Các truy vấn như ${sampleTermsText}${negativeTriggerCount > 3 ? ` và ${negativeTriggerCount - 3} cụm từ khác` : ''} đã tiêu tốn ${totalWastedCost > 0 ? totalWastedCost.toLocaleString('vi-VN') + ' đ' : 'ngân sách'} nhưng 0 lead (tra cứu định nghĩa, tự làm tại nhà, từ nhạy cảm). Bổ sung ngay vào danh sách phủ định giúp bảo toàn ngân sách.`,
         actionText: 'Rà soát cụm từ rác',
         actionType: 'tab',
         targetTab: 'searchAnalysis',
@@ -2006,7 +2012,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                         </div>
                         <h5 className="text-xs font-bold text-white">Chuyển Dần Sang Cụm Từ "Phrase" & Chính Xác [Exact]</h5>
                         <p className="text-[11px] text-slate-400 leading-relaxed">
-                          Đối sánh mở rộng (Broad Match) dễ kéo click rác tra cứu. Hiện phát hiện <strong className="text-rose-400">{searchTerms.filter(t => t.isNegativeTrigger || (t.cost > 0 && t.leads === 0)).length} cụm từ tìm kiếm rác</strong> cần phủ định ngay để cô lập 80% ngân sách cho cụm từ <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">"trồng răng implant"</code>, <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">"bọc răng sứ uy tín"</code> và chính xác <code className="text-emerald-300 bg-slate-900 px-1 py-0.5 rounded">[bảng giá trồng răng implant tphcm]</code>.
+                          Đối sánh mở rộng (Broad Match) dễ kéo click rác tra cứu. Hiện phát hiện <strong className="text-rose-400">{searchTerms.filter(t => t.isNegativeTrigger).length} cụm từ tìm kiếm rác</strong> cần phủ định ngay để cô lập 80% ngân sách cho cụm từ <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">"trồng răng implant"</code>, <code className="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">"bọc răng sứ uy tín"</code> và chính xác <code className="text-emerald-300 bg-slate-900 px-1 py-0.5 rounded">[bảng giá trồng răng implant tphcm]</code>.
                         </p>
                       </div>
                       <button
@@ -2266,8 +2272,19 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                   return true;
                 });
 
-                const negativeTermsList = searchTerms.filter(t => t.isNegativeTrigger).map(t => t.searchTerm);
+                const negativeTerms = searchTerms.filter(t => t.isNegativeTrigger);
+                const negativeTermsList = negativeTerms.map(t => t.searchTerm);
                 const winningTermsList = searchTerms.filter(t => t.leads >= 5).map(t => `[${t.searchTerm}]`);
+                const totalWastedCost = negativeTerms.reduce((sum, t) => sum + t.cost, 0);
+
+                // Danh sách từ phủ định gốc (dạng phrase ngắn để chặn toàn diện các biến thể tương tự trong Google Ads)
+                const rootNegativeWords = Array.from(
+                  new Set(
+                    negativeTerms
+                      .map(t => t.suggestedNegativeWord)
+                      .filter((w): w is string => Boolean(w))
+                  )
+                );
 
                 const handleCopyNegatives = () => {
                   navigator.clipboard.writeText(negativeTermsList.join('\n'));
@@ -2275,23 +2292,29 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                   setTimeout(() => setCopiedNegatives(false), 2000);
                 };
 
+                const handleCopyRootNegatives = () => {
+                  navigator.clipboard.writeText(rootNegativeWords.map(w => `"${w}"`).join('\n'));
+                  setCopiedRootNegatives(true);
+                  setTimeout(() => setCopiedRootNegatives(false), 2000);
+                };
+
                 return (
                   <div className="space-y-4">
                     {/* Insights & Recommendations Banner */}
                     <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-blue-500/30 space-y-2 text-xs">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className="font-bold text-white flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                          Phân Tích Cụm Từ Tìm Kiếm 7 Ngày (Search Terms Insights)
+                          Chẩn Đoán Cụm Từ Tìm Kiếm Thực Tế & Lọc Phủ Định (Search Terms Insights)
                         </span>
-                        <span className="text-[11px] text-amber-300 font-bold">
-                          Đã phát hiện {negativeTermsList.length} cụm từ cần phủ định & {winningTermsList.length} cụm từ vàng
+                        <span className="text-[11px] text-rose-300 font-bold bg-rose-500/10 border border-rose-500/30 px-2.5 py-0.5 rounded-full">
+                          Phát hiện {negativeTerms.length} cụm từ sai Intent • Lãng phí {totalWastedCost > 0 ? totalWastedCost.toLocaleString('vi-VN') + ' đ' : '0 đ'}
                         </span>
                       </div>
                       <p className="text-slate-400 text-[11px] leading-relaxed">
-                        • <strong>Cụm từ rác:</strong> Các truy vấn chứa <em>"miễn phí", "tự làm", "học sinh", "tuyển dụng"</em> tiêu tốn ~5-8% ngân sách mà không phát sinh lead. Hãy bấm sao chép danh sách phủ định bên dưới để thêm vào tài khoản ngay.
+                        • <strong>Cụm từ rác / Sai Intent ({negativeTerms.length} từ):</strong> Hệ thống quét tự động và phát hiện chính xác các truy vấn tra cứu định nghĩa (<em>"là gì"</em>), mẹo tự làm tại nhà (<em>"tại nhà", "baking soda"</em>), học nghề/tuyển dụng (<em>"lương bao nhiêu"</em>), hoặc nhạy cảm thương hiệu. Phủ định các cụm từ này giúp tiết kiệm ngay {totalWastedCost > 0 ? totalWastedCost.toLocaleString('vi-VN') + ' đ' : 'ngân sách'}.
                         <br />
-                        • <strong>Cụm từ sinh lead cao:</strong> Các truy vấn có chữ <em>"giá", "bảng giá", "tại tphcm", "uy tín"</em> đạt tỷ lệ chuyển đổi form tới 14.5%. Nên tạo Ad Group riêng (STAG) cho các cụm từ này với đối sánh chính xác [Exact Match].
+                        • <strong>Bảo vệ từ khóa cốt lõi:</strong> Các cụm từ dịch vụ có giá trị chuyển đổi cao như <em>"trồng răng implant giá", "răng sứ cercon", "niềng răng invisalign"</em> được bảo vệ tuyệt đối — dù chưa có lead cũng không bị gán nhãn phủ định, thay vào đó khuyến nghị tối ưu trải nghiệm trang đích (CRO).
                       </p>
                     </div>
 
@@ -2377,19 +2400,32 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                               termFilter === 'negative' ? 'bg-rose-600 text-white' : 'text-slate-400 hover:text-slate-200'
                             }`}
                           >
-                            Cảnh Báo Phủ Định ({negativeTermsList.length})
+                            Cảnh Báo Phủ Định ({negativeTerms.length})
                           </button>
                         </div>
                       </div>
 
-                      {negativeTermsList.length > 0 && (
-                        <button
-                          onClick={handleCopyNegatives}
-                          className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer"
-                        >
-                          {copiedNegatives ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                          <span>{copiedNegatives ? 'Đã sao chép!' : `Sao chép ${negativeTermsList.length} từ khóa phủ định`}</span>
-                        </button>
+                      {negativeTerms.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            onClick={handleCopyNegatives}
+                            title="Sao chép toàn bộ danh sách cụm từ tìm kiếm rác đã phát hiện"
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer"
+                          >
+                            {copiedNegatives ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedNegatives ? 'Đã chép cụm từ!' : `Sao chép ${negativeTerms.length} cụm từ rác`}</span>
+                          </button>
+                          {rootNegativeWords.length > 0 && (
+                            <button
+                              onClick={handleCopyRootNegatives}
+                              title="Sao chép từ khóa cụm từ gốc dạng phrase để chặn toàn diện các biến thể tương tự trong Google Ads"
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer"
+                            >
+                              {copiedRootNegatives ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span>{copiedRootNegatives ? 'Đã chép từ gốc!' : `Sao chép ${rootNegativeWords.length} từ gốc ("${rootNegativeWords[0]}")`}</span>
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
 
@@ -2437,16 +2473,32 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                               </td>
                               <td className="py-3 px-3.5 text-center">
                                 {t.isNegativeTrigger ? (
-                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                                    <XCircle className="w-3 h-3 text-rose-400" /> Phủ định ngay
-                                  </span>
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 whitespace-nowrap">
+                                      <XCircle className="w-3 h-3 text-rose-400 shrink-0" /> Phủ định ngay
+                                    </span>
+                                    {t.negativeReason && (
+                                      <span className="text-[9px] text-amber-300/90 font-medium max-w-[150px] truncate" title={t.negativeReason}>
+                                        {t.negativeReason}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : t.isCoreIntent && t.leads === 0 && t.cost > 0 ? (
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 whitespace-nowrap">
+                                      <Sparkles className="w-3 h-3 text-cyan-400 shrink-0" /> Cốt lõi (Tối ưu CRO)
+                                    </span>
+                                    <span className="text-[9px] text-slate-400 font-normal">
+                                      Không phủ định • Chỉnh Landing
+                                    </span>
+                                  </div>
                                 ) : t.leads >= 10 ? (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                                    <Award className="w-3 h-3 text-emerald-400" /> Cụm từ vàng [Exact]
+                                    <Award className="w-3 h-3 text-emerald-400 shrink-0" /> Cụm từ vàng [Exact]
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
-                                    <CheckCircle2 className="w-3 h-3 text-blue-400" /> Giữ & Scale
+                                    <CheckCircle2 className="w-3 h-3 text-blue-400 shrink-0" /> Giữ & Scale
                                   </span>
                                 )}
                               </td>
