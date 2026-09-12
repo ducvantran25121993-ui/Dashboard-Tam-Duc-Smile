@@ -505,8 +505,28 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                   {formatVND(totalProfit, displayUnit)}
                 </td>
                 <td className="py-3.5 px-3 text-center whitespace-nowrap">
-                  <span className="bg-slate-700/80 text-purple-300 px-3 py-1 rounded-full text-xs font-bold border border-slate-600">
-                    {formatPercent(totalRatio)}
+                  <span
+                    className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-black transition-all shadow-sm ${
+                      totalRatio <= 15
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : totalRatio <= 35
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                    }`}
+                    title={`Tỷ lệ chi phí trên doanh thu toàn hệ thống: ${formatPercent(totalRatio)} (${
+                      totalRatio <= 15
+                        ? 'Hiệu quả tối ưu - Đạt KPI'
+                        : totalRatio <= 35
+                        ? 'Mức trung bình'
+                        : 'Chi phí cao cần tối ưu'
+                    })`}
+                  >
+                    {totalRatio <= 15 ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    <span>{formatPercent(totalRatio)}</span>
                   </span>
                 </td>
                 <td className="py-3.5 px-3 text-center text-slate-400 text-xs font-semibold whitespace-nowrap">
