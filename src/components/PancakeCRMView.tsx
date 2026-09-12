@@ -33,6 +33,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { PancakeConversationModal } from './PancakeConversationModal';
+import { useIsLightMode, getPancakeTagStyle } from '../utils/pancakeTagTheme';
 
 export interface PancakePageItem {
   id: string;
@@ -130,6 +131,7 @@ export const getCleanPhone = (phone: any): string => {
 };
 
 export const PancakeCRMView: React.FC = () => {
+  const isLightMode = useIsLightMode();
   const [status, setStatus] = useState<PancakeStatus | null>(null);
   const [leads, setLeads] = useState<PancakeLead[]>(() => {
     try {
@@ -1237,21 +1239,33 @@ export const PancakeCRMView: React.FC = () => {
 
       {/* Tag cloud from Pancake (Đầy đủ tất cả thẻ nhãn) */}
       {allAvailableTags.length > 0 && (
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 shadow-md">
+        <div className={`pancake-tag-box rounded-2xl border p-4 shadow-md transition-colors ${
+          isLightMode
+            ? 'bg-white border-slate-200/90 shadow-slate-200/50'
+            : 'bg-slate-900/90 border-slate-800'
+        }`}>
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <TagIcon className="w-3.5 h-3.5 text-cyan-400" />
+              <span className={`text-xs font-bold flex items-center gap-1.5 ${
+                isLightMode ? 'text-slate-800' : 'text-slate-300'
+              }`}>
+                <TagIcon className={`w-3.5 h-3.5 ${isLightMode ? 'text-cyan-600' : 'text-cyan-400'}`} />
                 Thẻ Nhãn Pancake (Nhấp để lọc nhanh):
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                isLightMode
+                  ? 'bg-slate-100 text-slate-700 border-slate-200'
+                  : 'bg-slate-800 text-slate-400 border-slate-700'
+              }`}>
                 {allAvailableTags.length} thẻ
               </span>
             </div>
             {selectedTag && (
               <button
                 onClick={() => setSelectedTag('')}
-                className="text-xs text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 hover:underline"
+                className={`text-xs font-semibold flex items-center gap-1 hover:underline cursor-pointer ${
+                  isLightMode ? 'text-rose-600 hover:text-rose-700' : 'text-rose-400 hover:text-rose-300'
+                }`}
               >
                 ✕ Hủy lọc thẻ [{selectedTag}]
               </button>
@@ -1260,30 +1274,36 @@ export const PancakeCRMView: React.FC = () => {
           <div className="flex flex-wrap gap-1.5">
             {allAvailableTags.map((t) => {
               const isSelected = selectedTag.toLowerCase() === t.text.toLowerCase();
+              const tagStyle = getPancakeTagStyle(t.color, isSelected, isLightMode);
               return (
                 <button
                   key={t.id || t.text}
                   onClick={() => setSelectedTag(isSelected ? '' : t.text)}
                   style={{
-                    backgroundColor: isSelected ? t.color : `${t.color}20`,
-                    borderColor: t.color,
-                    color: isSelected ? '#ffffff' : '#f1f5f9',
+                    backgroundColor: tagStyle.backgroundColor,
+                    borderColor: tagStyle.borderColor,
+                    color: tagStyle.color,
                   }}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition flex items-center gap-1.5 ${
+                  className={`px-2.5 py-1 rounded-full text-xs transition flex items-center gap-1.5 border ${
                     isSelected
-                      ? 'shadow-md scale-105 ring-2 ring-white/30 font-bold'
-                      : 'hover:opacity-90 hover:scale-[1.02]'
+                      ? 'shadow-md scale-105 ring-2 ring-indigo-500/40 font-bold'
+                      : 'hover:opacity-95 hover:scale-[1.02] font-semibold'
                   }`}
                   title={`Lọc hội thoại gắn thẻ "${t.text}" (${t.count} khách)`}
                 >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: tagStyle.dotColor }}
+                  />
                   <span>{t.text}</span>
                   {t.count > 0 && (
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                        isSelected
-                          ? 'bg-black/30 text-white'
-                          : 'bg-slate-800/80 text-slate-300'
-                      }`}
+                      style={{
+                        backgroundColor: tagStyle.badgeBg,
+                        color: tagStyle.badgeColor,
+                        borderColor: tagStyle.badgeBorder,
+                      }}
+                      className="text-[10px] px-1.5 py-0.2 rounded-full font-bold border shadow-xs"
                     >
                       {t.count}
                     </span>
@@ -1539,19 +1559,26 @@ export const PancakeCRMView: React.FC = () => {
                 <div className="flex flex-col lg:items-end gap-2 flex-shrink-0">
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1 lg:justify-end">
-                    {item.tags.map((t) => (
-                      <span
-                        key={t.id}
-                        style={{
-                          backgroundColor: `${t.color}25`,
-                          borderColor: t.color,
-                          color: '#f8fafc',
-                        }}
-                        className="px-2 py-0.5 rounded-full text-[10px] font-bold border"
-                      >
-                        {t.text}
-                      </span>
-                    ))}
+                    {item.tags.map((t) => {
+                      const tagStyle = getPancakeTagStyle(t.color, false, isLightMode);
+                      return (
+                        <span
+                          key={t.id}
+                          style={{
+                            backgroundColor: tagStyle.backgroundColor,
+                            borderColor: tagStyle.borderColor,
+                            color: tagStyle.color,
+                          }}
+                          className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 shadow-xs"
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: tagStyle.dotColor }}
+                          />
+                          {t.text}
+                        </span>
+                      );
+                    })}
                   </div>
 
                   {/* Conversation timestamps */}

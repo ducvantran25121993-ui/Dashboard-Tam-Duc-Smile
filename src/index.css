@@ -912,4 +912,11 @@ html[data-custom-theme="true"].theme-light .border-slate-700 {
   color: #0f172a !important;
 }
 
+/* Pancake CRM Tag Cloud Box & High Contrast Refinements */
+.theme-light .pancake-tag-box {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
 

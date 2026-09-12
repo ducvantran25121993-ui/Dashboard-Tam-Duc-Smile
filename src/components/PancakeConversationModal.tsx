@@ -20,6 +20,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { PancakeLead, PancakeTag, PancakeNote, getCleanPhone } from './PancakeCRMView';
+import { useIsLightMode, getPancakeTagStyle } from '../utils/pancakeTagTheme';
 
 interface PancakeConversationModalProps {
   lead: PancakeLead | null;
@@ -48,6 +49,7 @@ interface MessageItem {
 }
 
 export const PancakeConversationModal: React.FC<PancakeConversationModalProps> = ({ lead, onClose }) => {
+  const isLightMode = useIsLightMode();
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -521,20 +523,26 @@ export const PancakeConversationModal: React.FC<PancakeConversationModalProps> =
 
               {lead.tags.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
-                  {lead.tags.map((t) => (
-                    <span
-                      key={t.id}
-                      style={{
-                        backgroundColor: `${t.color}25`,
-                        borderColor: t.color,
-                        color: '#f8fafc',
-                      }}
-                      className="px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1 shadow-sm"
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }} />
-                      {t.text}
-                    </span>
-                  ))}
+                  {lead.tags.map((t) => {
+                    const tagStyle = getPancakeTagStyle(t.color, false, isLightMode);
+                    return (
+                      <span
+                        key={t.id}
+                        style={{
+                          backgroundColor: tagStyle.backgroundColor,
+                          borderColor: tagStyle.borderColor,
+                          color: tagStyle.color,
+                        }}
+                        className="px-2.5 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 shadow-xs"
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                          style={{ backgroundColor: tagStyle.dotColor }}
+                        />
+                        {t.text}
+                      </span>
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-xs text-slate-500 italic">Chưa gắn thẻ nhãn nào.</p>
