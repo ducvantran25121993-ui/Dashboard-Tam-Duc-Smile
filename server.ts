@@ -4723,64 +4723,90 @@ function formatToVTTechDate(dStr: string, isEnd = false): string {
   return dStr;
 }
 
-// Internal helper to fetch a specific batch of tickets from VTTech
-async function fetchVTTechBatch(sourceId: number, formattedFrom: string, formattedTo: string, limit = 300): Promise<any[]> {
+// Internal helper to fetch a specific batch of tickets from VTTech with pagination & TypeDate: 3 (Ngày tạo)
+async function fetchVTTechBatch(
+  sourceId: number,
+  formattedFrom: string,
+  formattedTo: string,
+  limit = 300,
+  typeDate = 3
+): Promise<any[]> {
   const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
-  const filterDataObj = {
-    TypeDate: 0, // Bộ lọc "Ngày" chuẩn theo giao diện VTTech
-    Status: 0,
-    Source: Number(sourceId) || 0,
-    SourceDetail: 0,
-    UserID: 0,
-    GroupID: 0,
-    DateFrom: formattedFrom,
-    DateTo: formattedTo,
-  };
 
-  const postData = new URLSearchParams();
-  postData.append('data', JSON.stringify(filterDataObj));
-  postData.append('TicketID', '0');
-  postData.append('idbegin', '0');
-  postData.append('limit', String(limit));
-  postData.append('LevelUser', '3'); // Quyền Tele Level 3 của tài khoản VanDuc
-  postData.append('GroupUser', '0');
+  // Default to past 30 days if dates are blank, since TypeDate: 3 requires a valid date range in VTTech
+  const from = formattedFrom || '2026-08-15 00:00:00';
+  const to = formattedTo || '2026-09-30 23:59:59';
 
-  const response = await fetch(targetUrl, {
-    method: 'POST',
-    headers: {
-      'Accept': '*/*',
-      'Accept-Language': 'vi,en;q=0.9',
-      'Connection': 'keep-alive',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Cookie': vttechConfigStore.cookie,
-      'Origin': vttechConfigStore.baseUrl,
-      'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
-      'SecretKey': vttechConfigStore.secretKey,
-      'X-Requested-With': 'XMLHttpRequest',
-      'XSRF-TOKEN': vttechConfigStore.xsrfToken,
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    },
-    body: postData.toString(),
-    redirect: 'manual',
-  });
+  let allTickets: any[] = [];
+  let idbegin = 0;
+  const maxPages = Math.ceil(limit / 300);
 
-  if (!response.ok) return [];
-  const text = await response.text();
-  if (text.includes('<!DOCTYPE html>') || text.includes('<html')) return [];
-  try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) {
-      if (parsed.length >= 2 && Array.isArray(parsed[1])) return parsed[1];
-      if (parsed.length > 0 && typeof parsed[0] === 'object' && !Array.isArray(parsed[0])) return parsed;
+  for (let page = 0; page < maxPages; page++) {
+    const filterDataObj = {
+      TypeDate: typeDate, // 3: "Ngày tạo" chuẩn theo yêu cầu số liệu chính xác
+      Status: 0,
+      Source: Number(sourceId) || 0,
+      SourceDetail: 0,
+      UserID: 0,
+      GroupID: 0,
+      DateFrom: from,
+      DateTo: to,
+    };
+
+    const postData = new URLSearchParams();
+    postData.append('data', JSON.stringify(filterDataObj));
+    postData.append('TicketID', '0');
+    postData.append('idbegin', String(idbegin));
+    postData.append('limit', '300');
+    postData.append('LevelUser', '3'); // Quyền Tele Level 3 của tài khoản VanDuc
+    postData.append('GroupUser', '0');
+
+    try {
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Accept': '*/*',
+          'Accept-Language': 'vi,en;q=0.9',
+          'Connection': 'keep-alive',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Cookie': vttechConfigStore.cookie,
+          'Origin': vttechConfigStore.baseUrl,
+          'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
+          'SecretKey': vttechConfigStore.secretKey,
+          'X-Requested-With': 'XMLHttpRequest',
+          'XSRF-TOKEN': vttechConfigStore.xsrfToken,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        body: postData.toString(),
+        redirect: 'manual',
+      });
+
+      if (!response.ok) break;
+      const text = await response.text();
+      if (text.includes('<!DOCTYPE html>') || text.includes('<html')) break;
+      const parsed = JSON.parse(text);
+      let batch: any[] = [];
+      if (Array.isArray(parsed)) {
+        if (parsed.length >= 2 && Array.isArray(parsed[1])) batch = parsed[1];
+        else if (parsed.length > 0 && typeof parsed[0] === 'object' && !Array.isArray(parsed[0])) batch = parsed;
+      }
+      if (!batch || batch.length === 0) break;
+      allTickets = allTickets.concat(batch);
+      if (batch.length < 300) break; // End of list
+      idbegin = batch[batch.length - 1].TicketID;
+    } catch (e) {
+      console.warn(`Error fetching VTTech batch for source ${sourceId} page ${page}:`, e);
+      break;
     }
-  } catch (e) {}
-  return [];
+  }
+
+  return allTickets;
 }
 
 // Sync Ticket List from VTTech (Supporting ALL sources + dedicated Web channels)
 app.post('/api/vttech/sync', async (req, res) => {
   try {
-    const { dateFrom, dateTo, limit = 500, sourceID = 0, statusID = 0, branchID = 0, forceRefresh = false } = req.body;
+    const { dateFrom, dateTo, limit = 600, sourceID = 0, statusID = 0, branchID = 0, typeDate = 3 } = req.body;
 
     // Format body parameters for VTTech (support all-time when dates are not specified)
     const formattedFrom = dateFrom ? formatToVTTechDate(dateFrom, false) : '';
@@ -4789,17 +4815,17 @@ app.post('/api/vttech/sync', async (req, res) => {
     let fetchedTickets: any[] = [];
 
     if (Number(sourceID) === 0) {
-      // Fetch in parallel: All sources + dedicated HL WB (31), OL WB (2), KC WB (37)
-      // to ensure high-volume Web and Hotline tickets are completely captured and never crowded out
-      const [allBatch, hlBatch, olBatch, kcBatch] = await Promise.all([
-        fetchVTTechBatch(0, formattedFrom, formattedTo, 300),
-        fetchVTTechBatch(31, formattedFrom, formattedTo, 300),
-        fetchVTTechBatch(2, formattedFrom, formattedTo, 300),
-        fetchVTTechBatch(37, formattedFrom, formattedTo, 300),
+      // Fetch in parallel: All sources + dedicated HL WB (31), OL WB (2), OL-HL (35), KC WB (37)
+      // to ensure all Web and Hotline tickets are completely captured across every date
+      const [hlBatch, olBatch, olhlBatch, generalBatch] = await Promise.all([
+        fetchVTTechBatch(31, formattedFrom, formattedTo, 600, typeDate),
+        fetchVTTechBatch(2, formattedFrom, formattedTo, 900, typeDate),
+        fetchVTTechBatch(35, formattedFrom, formattedTo, 300, typeDate),
+        fetchVTTechBatch(0, formattedFrom, formattedTo, 600, typeDate),
       ]);
-      fetchedTickets = [...allBatch, ...hlBatch, ...olBatch, ...kcBatch];
+      fetchedTickets = [...hlBatch, ...olBatch, ...olhlBatch, ...generalBatch];
     } else {
-      fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, Number(limit) || 300);
+      fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, Number(limit) || 300, typeDate);
     }
 
     // Merge with existing tickets in cache to maintain comprehensive historical + today records

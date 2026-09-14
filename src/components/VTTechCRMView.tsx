@@ -366,22 +366,16 @@ export const VTTechCRMView: React.FC = () => {
     return clean;
   };
 
-  // Check if ticket matches date range (matching Created date, Executed date, or App appointment date, adhering to VTTech CRM "Ngày" behavior)
+  // Check if ticket matches date range - strictly follows Created date (Ngày tạo) for accuracy
   const ticketMatchesDate = (t: VTTechTicket, from: string, to: string): boolean => {
     if (!from && !to) return true;
-    const candidateDates = [
-      parseToDateStr(t.Created),
-      parseToDateStr(t.ExecutedDate),
-      parseToDateStr(t.AppDateFrom),
-      parseToDateStr(t.devideDate),
-    ].filter((d): d is string => Boolean(d));
+    // Lấy chuẩn theo Ngày Tạo (Created) của Ticket
+    const createdDate = parseToDateStr(t.Created) || parseToDateStr(t.ExecutedDate);
+    if (!createdDate) return true;
 
-    if (candidateDates.length === 0) return true;
-    return candidateDates.some((d) => {
-      if (from && d < from) return false;
-      if (to && d > to) return false;
-      return true;
-    });
+    if (from && createdDate < from) return false;
+    if (to && createdDate > to) return false;
+    return true;
   };
 
   // Preset helpers for date filter
@@ -673,29 +667,6 @@ export const VTTechCRMView: React.FC = () => {
                     <span>Quét sau: <strong className="text-emerald-400 font-mono">{countdown}s</strong></span>
                   </span>
                 )}
-
-                <span className="text-slate-600">|</span>
-
-                {/* Interval select buttons */}
-                <div className="flex items-center gap-1">
-                  {[
-                    { label: '30s', val: 30 },
-                    { label: '1p', val: 60 },
-                    { label: '2p', val: 120 },
-                  ].map((it) => (
-                    <button
-                      key={it.val}
-                      onClick={() => handleChangeInterval(it.val)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
-                        syncIntervalSeconds === it.val
-                          ? 'bg-orange-500 text-white font-bold shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                      }`}
-                    >
-                      {it.label}
-                    </button>
-                  ))}
-                </div>
               </>
             )}
           </div>
@@ -877,7 +848,7 @@ export const VTTechCRMView: React.FC = () => {
           <div className="text-[11px] text-slate-400 mt-1 truncate">
             {selectedSource === 'HL WB'
               ? 'Đang lọc riêng Hotline Web'
-              : `Nguồn HL WB (${kpis.hotlineRate}% vé Web)`}
+              : `Nguồn HL WB (${kpis.hotlineRate}% Web)`}
           </div>
         </div>
 
@@ -1036,7 +1007,7 @@ export const VTTechCRMView: React.FC = () => {
             ) : dateFrom === dateTo && dateFrom === getVietnamTodayStr() ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Hôm nay ({dateFrom.split('-').reverse().join('/')})</span>
+                <span>Ngày tạo: Hôm nay ({dateFrom.split('-').reverse().join('/')})</span>
                 <button
                   type="button"
                   onClick={setAllTime}
@@ -1048,7 +1019,7 @@ export const VTTechCRMView: React.FC = () => {
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[11px] font-medium">
-                <span>Lọc: {dateFrom ? dateFrom.split('-').reverse().join('/') : '...'} &rarr; {dateTo ? dateTo.split('-').reverse().join('/') : 'nay'}</span>
+                <span>Ngày tạo: {dateFrom ? dateFrom.split('-').reverse().join('/') : '...'} &rarr; {dateTo ? dateTo.split('-').reverse().join('/') : 'nay'}</span>
                 <button
                   type="button"
                   onClick={setAllTime}
@@ -1171,7 +1142,7 @@ export const VTTechCRMView: React.FC = () => {
                 <th className="px-4 py-3.5">Trạng Thái</th>
                 <th className="px-4 py-3.5">Lịch Hẹn / Cơ Sở</th>
                 <th className="px-4 py-3.5">Nội Dung Tư Vấn</th>
-                <th className="px-4 py-3.5">Thời Gian</th>
+                <th className="px-4 py-3.5">Ngày Tạo</th>
                 <th className="px-4 py-3.5 text-right">Hành Động</th>
               </tr>
             </thead>
