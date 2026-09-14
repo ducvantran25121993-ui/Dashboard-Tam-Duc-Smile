@@ -82,10 +82,10 @@ export interface AdminUser {
 }
 
 export const ROLE_PRESET_TABS: Record<string, SidebarTab[]> = {
-  admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'innovation', 'landing_builder', 'ai_agent', 'admin_hub'],
-  manager: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'innovation', 'landing_builder', 'ai_agent'],
-  marketer: ['overview', 'budget_forecast', 'campaigns', 'competitor', 'leads_funnel', 'innovation', 'landing_builder', 'ai_agent'],
-  sales: ['overview', 'budget_forecast', 'leads_funnel', 'sales_copilot', 'consultation', 'landing_builder', 'ai_agent'],
+  admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent', 'admin_hub'],
+  manager: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent'],
+  marketer: ['overview', 'budget_forecast', 'campaigns', 'competitor', 'leads_funnel', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent'],
+  sales: ['overview', 'budget_forecast', 'leads_funnel', 'sales_copilot', 'consultation', 'vttech_crm', 'landing_builder', 'ai_agent'],
   accountant: ['overview', 'google_ads', 'budget_forecast', 'landing_builder'],
   custom: ['overview', 'budget_forecast', 'campaigns', 'leads_funnel', 'landing_builder'],
 };

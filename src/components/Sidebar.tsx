@@ -17,6 +17,7 @@ import {
   Sliders,
   Wallet,
   Wand2,
+  Ticket,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
@@ -129,6 +130,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: MessageSquare,
       badge: 'Real Time',
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 animate-pulse',
+    },
+    {
+      id: 'vttech_crm',
+      label: 'VTTech CRM',
+      icon: Ticket,
+      badge: 'Ticket Live',
+      badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     },
     {
       id: 'innovation',

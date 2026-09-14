@@ -11,6 +11,7 @@ export type SidebarTab =
   | 'competitor'
   | 'sales_copilot'
   | 'consultation'
+  | 'vttech_crm'
   | 'innovation'
   | 'landing_builder'
   | 'ai_agent'

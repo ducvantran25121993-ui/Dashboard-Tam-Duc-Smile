@@ -27,6 +27,7 @@ import {
   FileCode,
   MessageSquare,
   Wand2,
+  Ticket,
 } from 'lucide-react';
 import { SidebarTab, MonthTab, DisplayUnit } from '../types';
 import { QuarterId } from '../utils/quarterAggregator';
@@ -309,6 +310,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       { id: 'competitor', title: 'Theo Dõi Đối Thủ (Crawl4AI)', subtitle: 'Quét giá, khuyến mãi & thị phần quảng cáo đối thủ', icon: Swords, iconColor: 'text-rose-400 bg-rose-500/10 border-rose-500/30' },
       { id: 'sales_copilot', title: 'Sales Copilot AI', subtitle: 'Kịch bản tư vấn tự động & kỹ thuật chốt ca Implant/Sứ', icon: Bot, iconColor: 'text-purple-400 bg-purple-500/10 border-purple-500/30' },
       { id: 'consultation', title: 'Pancake CRM (Live Zalo OA)', subtitle: 'Đồng bộ data khách hàng, số điện thoại, tag dịch vụ & 17 cơ sở từ Pancake', icon: MessageSquare, iconColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30', keywords: ['pancake', 'crm', 'zalo', 'tin nhan', 'hoi thoai', 'lead', 'sdt'] },
+      { id: 'vttech_crm', title: 'VTTech CRM (Vé & Lịch Hẹn)', subtitle: 'Đồng bộ Ticket, trạng thái hẹn khám, đối soát Gclid và cơ sở từ VTTech Solution', icon: Ticket, iconColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30', keywords: ['vttech', 'ticket', 've', 'lich hen', 'tam duc', 'gclid'] },
       { id: 'innovation', title: 'Sáng Tạo & Đổi Mới (Innovation)', subtitle: 'Đề xuất ý tưởng marketing & tối ưu quy trình', icon: Sparkles, iconColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' },
       { id: 'landing_builder', title: 'Tạo Landing Page AI (Vision to Code)', subtitle: 'Sinh trang đích từ ảnh mẫu & giao diện chuẩn nha khoa', icon: Wand2, iconColor: 'text-pink-400 bg-pink-500/10 border-pink-500/30' },
       { id: 'ai_agent', title: 'AI — Trợ Lý Tăng Trưởng (Gemini 3.7)', subtitle: 'Hỏi đáp chiến lược & trợ lý phân tích dữ liệu marketing', icon: Bot, iconColor: 'text-violet-400 bg-violet-500/10 border-violet-500/30' },

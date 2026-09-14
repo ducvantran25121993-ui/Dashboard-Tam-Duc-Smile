@@ -52,6 +52,55 @@ const BUDGET_SHEET_FILE = path.join(STORAGE_DIR, 'budget_sheet.json');
 const LANDING_PAGES_FILE = path.join(STORAGE_DIR, 'landing_pages.json');
 const PANCAKE_CONFIG_FILE = path.join(STORAGE_DIR, 'pancake_config.json');
 const PANCAKE_CACHE_FILE = path.join(STORAGE_DIR, 'pancake_cache.json');
+const VTTECH_CONFIG_FILE = path.join(STORAGE_DIR, 'vttech_config.json');
+const VTTECH_CACHE_FILE = path.join(STORAGE_DIR, 'vttech_cache.json');
+
+// VTTech CRM Config & Cache store
+let vttechConfigStore = {
+  baseUrl: 'https://nktamduc.vttechsolution.com',
+  cookie: '.AspNetCore.Culture=c%3Den-US%7Cuic%3Dvi; theme-color=orange; theme-menu=left; theme-font=bevietnam; theme-dark=light; .AspNetCore.Antiforgery.cp2NSuYF8d0=CfDJ8J6MRxPzZuFJrPkmpphd1m9ekCc9xL1LW4fkEBPKAUN1uZKuzi5cZyp-VHCq2E1bty9mNg7t5XG0SURSS3GXyq1k0te3pzWRRGTLHLu5JNfWgjx58oUNKvyeDomQoXMx0wdmk_bTwPYuxN2PZoRWEjk; .AspNetCore.Session=CfDJ8J6MRxPzZuFJrPkmpphd1m9vRjyEOjaNotsabAoDFWmVyGtZPrPZXARrXHchnZhXKpmcfLkFeNO4lC%2BBcZFndkWMduTQoz066UJRlA%2BTnYt%2BCEc3Vt3KcXDjYusJwdCkGuiekFX3EbZYoO%2BOEKXUi73Du%2BSVz2Vw4ihX6jFe%2Ba%2Fb; VTTECH_Menu_SideBarIsHide=true; WebToken=eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjpbIlZhbkR1YyIsInZhbmR1YyJdLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ3ZWJhcHAiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE0MTIiLCJCcm9rZXJJRCI6IjAiLCJleHAiOjE3ODk0MTIwMTgsImlzcyI6InZ0dGVjaHNvbHV0aW9uIiwiYXVkIjoidnR0ZWNoc29sdXRpb24ifQ.I7wgCFQfJMwOiwgBVDK2xiE0B6-u41bLdVMaauIjzLY',
+  secretKey: 'bDpiCFwZarlfPcSo4gn6KWNfjr+3qq5QnGXoS2NHgl4spi+Q81iooYQAvR69uAJVvz43pHbbEvuLvJw8vqZrDZIZ3Ths14cePTIdkchy+cM=',
+  xsrfToken: 'CfDJ8J6MRxPzZuFJrPkmpphd1m9C4Q_uN12cOdK3060vPjwNoHy_6KZSfn78JBuNFHvwamhucaul7MHuOS3708ElURZkL-X-_vhEpitkyvQEPufeVlrKIO65jiZzb2pF_fvvcxKmHMfIroV9Uzkt3_lVhIA',
+  webToken: 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjpbIlZhbkR1YyIsInZhbmR1YyJdLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ3ZWJhcHAiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE0MTIiLCJCcm9rZXJJRCI6IjAiLCJleHAiOjE3ODk0MTIwMTgsImlzcyI6InZ0dGVjaHNvbHV0aW9uIiwiYXVkIjoidnR0ZWNoc29sdXRpb24ifQ.I7wgCFQfJMwOiwgBVDK2xiE0B6-u41bLdVMaauIjzLY',
+  userID: 1412,
+  lastSyncTime: '',
+};
+
+try {
+  if (fs.existsSync(VTTECH_CONFIG_FILE)) {
+    const raw = fs.readFileSync(VTTECH_CONFIG_FILE, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (parsed) {
+      vttechConfigStore = { ...vttechConfigStore, ...parsed };
+    }
+  } else {
+    fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+  }
+} catch (e) {
+  console.warn('Failed to load vttech config:', e);
+}
+
+let vttechCacheStore: {
+  lastFetched: number;
+  total: number;
+  data: any[];
+} = {
+  lastFetched: 0,
+  total: 0,
+  data: [],
+};
+
+try {
+  if (fs.existsSync(VTTECH_CACHE_FILE)) {
+    const rawCache = fs.readFileSync(VTTECH_CACHE_FILE, 'utf-8');
+    const parsedCache = JSON.parse(rawCache);
+    if (parsedCache && Array.isArray(parsedCache.data)) {
+      vttechCacheStore = parsedCache;
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load vttech cache:', e);
+}
 
 // Pancake CRM config store & Multi-page store
 interface PancakePageItem {
@@ -4617,6 +4666,160 @@ Hãy tích hợp cải tiến trên vào đúng vị trí hợp lý nhất trong
     return res.status(500).json({ error: 'Không thể nâng cấp lúc này.', details: error.message });
   }
 });
+
+// ==========================================
+// VTTech CRM Integration Endpoints
+// ==========================================
+
+// Get VTTech configuration
+app.get('/api/vttech/config', (req, res) => {
+  return res.json({
+    success: true,
+    config: {
+      baseUrl: vttechConfigStore.baseUrl,
+      cookie: vttechConfigStore.cookie ? `${vttechConfigStore.cookie.slice(0, 30)}...` : '',
+      hasCookie: !!vttechConfigStore.cookie,
+      hasSecretKey: !!vttechConfigStore.secretKey,
+      hasXsrfToken: !!vttechConfigStore.xsrfToken,
+      hasWebToken: !!vttechConfigStore.webToken,
+      userID: vttechConfigStore.userID,
+      lastSyncTime: vttechConfigStore.lastSyncTime || '',
+      cachedCount: vttechCacheStore.data.length,
+    }
+  });
+});
+
+// Update VTTech configuration (cookie, tokens, etc.)
+app.post('/api/vttech/config', (req, res) => {
+  try {
+    const { cookie, secretKey, xsrfToken, webToken, userID, baseUrl } = req.body;
+    if (cookie) vttechConfigStore.cookie = cookie.trim();
+    if (secretKey) vttechConfigStore.secretKey = secretKey.trim();
+    if (xsrfToken) vttechConfigStore.xsrfToken = xsrfToken.trim();
+    if (webToken) vttechConfigStore.webToken = webToken.trim();
+    if (userID) vttechConfigStore.userID = Number(userID);
+    if (baseUrl) vttechConfigStore.baseUrl = baseUrl.trim();
+
+    fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+    return res.json({ success: true, message: 'Đã lưu cấu hình kết nối VTTech thành công!' });
+  } catch (e: any) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Sync Ticket List from VTTech
+app.post('/api/vttech/sync', async (req, res) => {
+  try {
+    const { dateFrom, dateTo, limit = 500, forceRefresh = false } = req.body;
+
+    const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
+    
+    // Format body parameters for VTTech
+    const postData = new URLSearchParams();
+    const filterDataObj: any = {};
+    if (dateFrom) filterDataObj.DateFrom = dateFrom;
+    if (dateTo) filterDataObj.DateTo = dateTo;
+    
+    postData.append('data', JSON.stringify(filterDataObj));
+    postData.append('TicketID', '0');
+    postData.append('idbegin', '0');
+    postData.append('limit', String(limit || 200));
+
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Accept': '*/*',
+        'Accept-Language': 'vi,en;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': vttechConfigStore.cookie,
+        'Origin': vttechConfigStore.baseUrl,
+        'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
+        'SecretKey': vttechConfigStore.secretKey,
+        'X-Requested-With': 'XMLHttpRequest',
+        'XSRF-TOKEN': vttechConfigStore.xsrfToken,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      },
+      body: postData.toString(),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      return res.status(response.status).json({
+        success: false,
+        error: `VTTech server returned HTTP ${response.status}`,
+        details: errText.slice(0, 500),
+      });
+    }
+
+    const jsonText = await response.text();
+    let tickets: any[] = [];
+    try {
+      tickets = JSON.parse(jsonText);
+    } catch (parseErr) {
+      return res.status(500).json({
+        success: false,
+        error: 'Phản hồi từ VTTech không phải dạng JSON hợp lệ',
+        details: jsonText.slice(0, 500),
+      });
+    }
+
+    if (Array.isArray(tickets)) {
+      vttechCacheStore = {
+        lastFetched: Date.now(),
+        total: tickets.length,
+        data: tickets,
+      };
+      vttechConfigStore.lastSyncTime = new Date().toISOString();
+      fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+      fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
+
+      return res.json({
+        success: true,
+        total: tickets.length,
+        cachedAt: vttechConfigStore.lastSyncTime,
+        data: tickets,
+      });
+    }
+
+    return res.json({
+      success: true,
+      total: 0,
+      cachedAt: new Date().toISOString(),
+      data: [],
+      raw: tickets,
+    });
+  } catch (error: any) {
+    console.error('Lỗi khi đồng bộ dữ liệu VTTech:', error);
+    // Return cached data if available
+    if (vttechCacheStore.data.length > 0) {
+      return res.json({
+        success: true,
+        isFallbackCache: true,
+        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị bản lưu gần nhất.`,
+        total: vttechCacheStore.data.length,
+        cachedAt: new Date(vttechCacheStore.lastFetched).toISOString(),
+        data: vttechCacheStore.data,
+      });
+    }
+    return res.status(500).json({
+      success: false,
+      error: 'Không thể kết nối đến VTTech CRM lúc này.',
+      details: error.message,
+    });
+  }
+});
+
+// Get cached tickets
+app.get('/api/vttech/tickets', (req, res) => {
+  return res.json({
+    success: true,
+    total: vttechCacheStore.data.length,
+    cachedAt: vttechConfigStore.lastSyncTime || (vttechCacheStore.lastFetched ? new Date(vttechCacheStore.lastFetched).toISOString() : ''),
+    data: vttechCacheStore.data,
+  });
+});
+
 
 
 // Export for Vercel Serverless Functions

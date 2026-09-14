@@ -39,6 +39,7 @@ import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { TabPermissionsModal, DEFAULT_STAFF_ALLOWED_TABS } from './components/TabPermissionsModal';
 import { CommandPalette } from './components/CommandPalette';
 import { PancakeCRMView } from './components/PancakeCRMView';
+import { VTTechCRMView } from './components/VTTechCRMView';
 import { ThemeToggle } from './components/ThemeToggle';
 import { fetchPermissionsFromCloud, ensureStaffPermissions } from './services/cloudPermissionsService';
 import {
@@ -715,6 +716,8 @@ export default function App() {
           {activeSidebarTab === 'sales_copilot' && <SalesCopilotView />}
 
           {activeSidebarTab === 'consultation' && <PancakeCRMView />}
+
+          {activeSidebarTab === 'vttech_crm' && <VTTechCRMView />}
 
           {activeSidebarTab === 'innovation' && <InnovationView />}
 

@@ -25,6 +25,7 @@ import {
   Globe,
   Loader2,
   Wand2,
+  Ticket,
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { savePermissionsToCloud } from '../services/cloudPermissionsService';
@@ -104,6 +105,14 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     badge: 'Real Time',
   },
   {
+    id: 'vttech_crm',
+    label: 'VTTech CRM (Ticket)',
+    category: 'Công Cụ Bán Hàng & CSKH',
+    description: 'Đồng bộ Ticket, trạng thái hẹn khám, đối soát Gclid/Google Ads và doanh thu điều trị tại các chi nhánh từ VTTech Solution.',
+    icon: Ticket,
+    badge: 'Ticket Live',
+  },
+  {
     id: 'innovation',
     label: 'Sáng Tạo & Đổi Mới',
     category: 'Chiến Lược & Ra Quyết Định',
@@ -142,6 +151,7 @@ export const DEFAULT_STAFF_ALLOWED_TABS: SidebarTab[] = [
   'budget_forecast',
   'campaigns',
   'competitor',
+  'vttech_crm',
   'innovation',
   'landing_builder',
   'ai_agent',

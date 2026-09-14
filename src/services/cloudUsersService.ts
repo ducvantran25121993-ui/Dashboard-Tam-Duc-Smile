@@ -19,6 +19,7 @@ export const DEFAULT_SUPER_ADMIN_USER: AdminUser = {
     'competitor',
     'sales_copilot',
     'consultation',
+    'vttech_crm',
     'innovation',
     'landing_builder',
     'ai_agent',
