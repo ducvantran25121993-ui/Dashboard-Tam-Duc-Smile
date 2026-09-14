@@ -33,7 +33,7 @@ export async function fetchCachedVTTechTickets(): Promise<{ success: boolean; to
   }
 }
 
-export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: string; limit?: number }): Promise<VTTechSyncResponse> {
+export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: string; limit?: number; sourceID?: number }): Promise<VTTechSyncResponse> {
   try {
     const res = await fetch('/api/vttech/sync', {
       method: 'POST',
@@ -55,3 +55,17 @@ export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: 
     };
   }
 }
+
+export async function importVTTechCurl(curlCommand: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const res = await fetch('/api/vttech/import-curl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ curlCommand }),
+    });
+    return await res.json();
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+

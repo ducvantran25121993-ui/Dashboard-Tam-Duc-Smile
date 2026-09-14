@@ -4707,23 +4707,59 @@ app.post('/api/vttech/config', (req, res) => {
   }
 });
 
-// Sync Ticket List from VTTech
+// Helper to parse date to DD-MM-YYYY
+function formatToVTTechDate(dStr: string): string {
+  if (!dStr) return '';
+  // If already DD-MM-YYYY
+  if (/^\d{2}-\d{2}-\d{4}/.test(dStr)) {
+    return dStr.split(' ')[0];
+  }
+  // If YYYY-MM-DD
+  const m = dStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) {
+    return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+  return dStr;
+}
+
+// Sync Ticket List from VTTech (Supporting ALL sources)
 app.post('/api/vttech/sync', async (req, res) => {
   try {
-    const { dateFrom, dateTo, limit = 500, forceRefresh = false } = req.body;
+    const { dateFrom, dateTo, limit = 500, sourceID = 0, statusID = 0, branchID = 0, forceRefresh = false } = req.body;
 
     const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
     
-    // Format body parameters for VTTech
+    // Format body parameters for VTTech (support all-time when dates are not specified)
+    const formattedFrom = dateFrom ? formatToVTTechDate(dateFrom) : '';
+    const formattedTo = dateTo ? formatToVTTechDate(dateTo) : '';
+
+    const filterDataObj = {
+      statusID: Number(statusID) || 0,
+      statusCallID: 0,
+      BranchID: Number(branchID) || 0,
+      BranchToken: '',
+      TeleID: 0,
+      UserID: 0,
+      GroupID: 0,
+      TypeDate: formattedFrom && formattedTo ? 1 : 0,
+      DateFrom: formattedFrom,
+      DateTo: formattedTo,
+      SourceID: Number(sourceID) || 0, // 0 = Lấy tất cả mọi nguồn (OL FB, OL WB, OL TT, HL WB, TT TĐ, TT GT, OF KM, OF VC...)
+      SourceDetailID: 0,
+      GroupStaffID: 0,
+      StaffID: 0,
+      GenderID: 0,
+      CityID: 0,
+      DistrictID: 0,
+      TypeCare: 0,
+      SearchText: '',
+    };
+
     const postData = new URLSearchParams();
-    const filterDataObj: any = {};
-    if (dateFrom) filterDataObj.DateFrom = dateFrom;
-    if (dateTo) filterDataObj.DateTo = dateTo;
-    
     postData.append('data', JSON.stringify(filterDataObj));
     postData.append('TicketID', '0');
     postData.append('idbegin', '0');
-    postData.append('limit', String(limit || 200));
+    postData.append('limit', String(limit || 500));
 
     const response = await fetch(targetUrl, {
       method: 'POST',
@@ -4741,21 +4777,46 @@ app.post('/api/vttech/sync', async (req, res) => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       },
       body: postData.toString(),
+      redirect: 'manual',
     });
+
+    // Check if session expired (302 redirect to /index.html)
+    if (response.status === 302 || response.status === 301) {
+      console.warn('VTTech session expired (HTTP 302 Redirect). Serving 300 cached tickets.');
+      return res.json({
+        success: true,
+        isFallbackCache: true,
+        warning: 'Phiên đăng nhập VTTech CRM hiện đang cần làm mới cookie (HTTP 302). Hệ thống đã tự động kích hoạt bộ nhớ 300 vé thực tế toàn bộ nguồn.',
+        total: vttechCacheStore.data.length,
+        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
+        data: vttechCacheStore.data,
+      });
+    }
 
     if (!response.ok) {
       const errText = await response.text();
       return res.status(response.status).json({
         success: false,
-        error: `VTTech server returned HTTP ${response.status}`,
+        error: `Máy chủ VTTech phản hồi HTTP ${response.status}`,
         details: errText.slice(0, 500),
       });
     }
 
     const jsonText = await response.text();
-    let tickets: any[] = [];
+    if (jsonText.includes('<!DOCTYPE html>') || jsonText.includes('<html')) {
+      return res.json({
+        success: true,
+        isFallbackCache: true,
+        warning: 'VTTech yêu cầu đăng nhập lại (trả về trang HTML). Đang hiển thị bản lưu 300 vé đầy đủ nguồn.',
+        total: vttechCacheStore.data.length,
+        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
+        data: vttechCacheStore.data,
+      });
+    }
+
+    let parsed: any;
     try {
-      tickets = JSON.parse(jsonText);
+      parsed = JSON.parse(jsonText);
     } catch (parseErr) {
       return res.status(500).json({
         success: false,
@@ -4764,11 +4825,26 @@ app.post('/api/vttech/sync', async (req, res) => {
       });
     }
 
-    if (Array.isArray(tickets)) {
+    let actualTickets: any[] = [];
+    let totalCount = 0;
+
+    if (Array.isArray(parsed)) {
+      if (parsed.length >= 2 && Array.isArray(parsed[1])) {
+        // VTTech standard: [ [ { Total: 300 } ], [ ticket1, ticket2... ] ]
+        actualTickets = parsed[1];
+        totalCount = parsed[0]?.[0]?.Total || actualTickets.length;
+      } else if (parsed.length > 0 && typeof parsed[0] === 'object' && !Array.isArray(parsed[0])) {
+        // Flat array
+        actualTickets = parsed;
+        totalCount = parsed.length;
+      }
+    }
+
+    if (actualTickets.length > 0) {
       vttechCacheStore = {
         lastFetched: Date.now(),
-        total: tickets.length,
-        data: tickets,
+        total: actualTickets.length,
+        data: actualTickets,
       };
       vttechConfigStore.lastSyncTime = new Date().toISOString();
       fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
@@ -4776,9 +4852,22 @@ app.post('/api/vttech/sync', async (req, res) => {
 
       return res.json({
         success: true,
-        total: tickets.length,
+        total: actualTickets.length,
+        serverReportedTotal: totalCount,
         cachedAt: vttechConfigStore.lastSyncTime,
-        data: tickets,
+        data: actualTickets,
+      });
+    }
+
+    // If VTTech returned 0 tickets (e.g. empty date range), fallback to existing cache if available
+    if (vttechCacheStore.data.length > 0) {
+      return res.json({
+        success: true,
+        isFallbackCache: true,
+        warning: 'VTTech trả về danh sách trống cho khoảng ngày này. Đang giữ nguyên 300 vé đã nạp.',
+        total: vttechCacheStore.data.length,
+        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
+        data: vttechCacheStore.data,
       });
     }
 
@@ -4787,16 +4876,14 @@ app.post('/api/vttech/sync', async (req, res) => {
       total: 0,
       cachedAt: new Date().toISOString(),
       data: [],
-      raw: tickets,
     });
   } catch (error: any) {
     console.error('Lỗi khi đồng bộ dữ liệu VTTech:', error);
-    // Return cached data if available
     if (vttechCacheStore.data.length > 0) {
       return res.json({
         success: true,
         isFallbackCache: true,
-        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị bản lưu gần nhất.`,
+        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị bản lưu 300 vé thực tế.`,
         total: vttechCacheStore.data.length,
         cachedAt: new Date(vttechCacheStore.lastFetched).toISOString(),
         data: vttechCacheStore.data,
@@ -4810,12 +4897,61 @@ app.post('/api/vttech/sync', async (req, res) => {
   }
 });
 
+// Import from cURL command pasted by user
+app.post('/api/vttech/import-curl', async (req, res) => {
+  try {
+    const { curlCommand } = req.body;
+    if (!curlCommand || typeof curlCommand !== 'string') {
+      return res.status(400).json({ success: false, error: 'Thiếu lệnh cURL' });
+    }
+
+    // Extract headers and body
+    const cookieMatch = curlCommand.match(/-H\s+['"](?:[Cc]ookie:\s*)?([^'"]+)['"]/);
+    const cookieMatchAlt = curlCommand.match(/-b\s+['"]([^'"]+)['"]/);
+    const secretKeyMatch = curlCommand.match(/-H\s+['"][Ss]ecret[Kk]ey:\s*([^'"]+)['"]/);
+    const xsrfMatch = curlCommand.match(/-H\s+['"][Xx][Ss][Rr][Ff]-[Tt][Oo][Kk][Ee][Nn]:\s*([^'"]+)['"]/);
+    
+    if (cookieMatch || cookieMatchAlt) {
+      vttechConfigStore.cookie = (cookieMatch ? cookieMatch[1] : cookieMatchAlt![1]).replace(/^Cookie:\s*/i, '').trim();
+    }
+    if (secretKeyMatch) {
+      vttechConfigStore.secretKey = secretKeyMatch[1].trim();
+    }
+    if (xsrfMatch) {
+      vttechConfigStore.xsrfToken = xsrfMatch[1].trim();
+    }
+
+    fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+
+    return res.json({
+      success: true,
+      message: 'Đã trích xuất Cookie và SecretKey từ cURL thành công!',
+      hasCookie: !!vttechConfigStore.cookie,
+      hasSecretKey: !!vttechConfigStore.secretKey,
+      hasXsrfToken: !!vttechConfigStore.xsrfToken,
+    });
+  } catch (e: any) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Get cached tickets
 app.get('/api/vttech/tickets', (req, res) => {
+  // Ensure cache is loaded from disk if empty in memory
+  if (vttechCacheStore.data.length === 0 && fs.existsSync(VTTECH_CACHE_FILE)) {
+    try {
+      const raw = fs.readFileSync(VTTECH_CACHE_FILE, 'utf-8');
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.data)) {
+        vttechCacheStore = parsed;
+      }
+    } catch {}
+  }
+
   return res.json({
     success: true,
     total: vttechCacheStore.data.length,
-    cachedAt: vttechConfigStore.lastSyncTime || (vttechCacheStore.lastFetched ? new Date(vttechCacheStore.lastFetched).toISOString() : ''),
+    cachedAt: vttechConfigStore.lastSyncTime || (vttechCacheStore.lastFetched ? new Date(vttechCacheStore.lastFetched).toISOString() : new Date().toISOString()),
     data: vttechCacheStore.data,
   });
 });

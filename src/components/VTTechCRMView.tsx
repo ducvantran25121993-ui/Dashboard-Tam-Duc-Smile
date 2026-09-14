@@ -28,6 +28,9 @@ import {
   Tag,
   ArrowUpRight,
   SlidersHorizontal,
+  Globe,
+  Megaphone,
+  Target,
 } from 'lucide-react';
 import { VTTechTicket } from '../types/vttech';
 import {
@@ -35,6 +38,7 @@ import {
   saveVTTechConfig,
   fetchCachedVTTechTickets,
   syncVTTechTickets,
+  importVTTechCurl,
 } from '../services/vttechService';
 
 export const VTTechCRMView: React.FC = () => {
@@ -46,15 +50,20 @@ export const VTTechCRMView: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Search & Filter state
+  const [channelScope, setChannelScope] = useState<'web' | 'all' | 'gclid'>('web');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  // Default to empty for All-Time (toàn thời gian)
   const [dateFrom, setDateFrom] = useState<string>('');
   const [dateTo, setDateTo] = useState<string>('');
 
   // Config modal / expand state
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
+  const [configTab, setConfigTab] = useState<'curl' | 'manual'>('curl');
+  const [curlInput, setCurlInput] = useState<string>('');
+  const [curlLoading, setCurlLoading] = useState<boolean>(false);
   const [configCookie, setConfigCookie] = useState<string>('');
   const [configSecretKey, setConfigSecretKey] = useState<string>('');
   const [configXsrfToken, setConfigXsrfToken] = useState<string>('');
@@ -99,21 +108,24 @@ export const VTTechCRMView: React.FC = () => {
     }
   };
 
-  const handleSync = async () => {
+  const handleSync = async (overrideFrom?: string, overrideTo?: string) => {
     setSyncing(true);
     setErrorMessage('');
     setSuccessMessage('');
     try {
+      const fromVal = overrideFrom !== undefined ? overrideFrom : dateFrom;
+      const toVal = overrideTo !== undefined ? overrideTo : dateTo;
       const res = await syncVTTechTickets({
-        dateFrom: dateFrom ? `${dateFrom} 00:00:00` : undefined,
-        dateTo: dateTo ? `${dateTo} 23:59:59` : undefined,
+        dateFrom: fromVal ? `${fromVal} 00:00:00` : undefined,
+        dateTo: toVal ? `${toVal} 23:59:59` : undefined,
         limit: 500,
       });
 
       if (res.success && res.data) {
         setTickets(res.data);
         setLastSyncTime(res.cachedAt);
-        setSuccessMessage(`Đã đồng bộ thành công ${res.data.length} Ticket từ VTTech Tâm Đức Smile!`);
+        const timeScopeDesc = (!fromVal && !toVal) ? 'toàn thời gian' : `từ ${fromVal || 'bắt đầu'} đến ${toVal || 'nay'}`;
+        setSuccessMessage(`Đã đồng bộ ${res.data.length} Ticket (${timeScopeDesc}) từ VTTech CRM!`);
         setTimeout(() => setSuccessMessage(''), 4000);
       } else {
         throw new Error(res.error || 'Đồng bộ không thành công');
@@ -149,6 +161,30 @@ export const VTTechCRMView: React.FC = () => {
     }
   };
 
+  const handleImportCurl = async () => {
+    if (!curlInput.trim()) {
+      setErrorMessage('Vui lòng dán lệnh cURL từ tab Network (Mạng)');
+      return;
+    }
+    setCurlLoading(true);
+    setErrorMessage('');
+    try {
+      const res = await importVTTechCurl(curlInput);
+      if (res.success) {
+        setSuccessMessage('Đã trích xuất Cookie & Token từ cURL thành công! Đang đồng bộ lại dữ liệu...');
+        setCurlInput('');
+        setIsConfigOpen(false);
+        await handleSync();
+      } else {
+        throw new Error(res.error || 'Không thể trích xuất thông tin từ cURL');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    } finally {
+      setCurlLoading(false);
+    }
+  };
+
   // Extract unique sources & branches for dropdowns
   const availableSources = useMemo(() => {
     const set = new Set<string>();
@@ -158,6 +194,16 @@ export const VTTechCRMView: React.FC = () => {
     return Array.from(set);
   }, [tickets]);
 
+  // Source counts & distribution
+  const sourceStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tickets.forEach((t) => {
+      const s = t.SourceName ? t.SourceName.trim() : 'Khác';
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return counts;
+  }, [tickets]);
+
   const availableStatuses = useMemo(() => {
     const set = new Set<string>();
     tickets.forEach((t) => {
@@ -165,6 +211,92 @@ export const VTTechCRMView: React.FC = () => {
     });
     return Array.from(set);
   }, [tickets]);
+
+  const getSourceBadgeColor = (source: string) => {
+    switch (source) {
+      case 'OL FB':
+        return 'bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25';
+      case 'OL WB':
+        return 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25';
+      case 'OL TT':
+        return 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25';
+      case 'HL WB':
+        return 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25';
+      case 'OL GT':
+        return 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25';
+      case 'TT TĐ':
+        return 'bg-teal-500/15 text-teal-300 border-teal-500/30 hover:bg-teal-500/25';
+      case 'TT GT':
+        return 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25';
+      case 'OF KM':
+        return 'bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25';
+      case 'OF VC':
+        return 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/25';
+      default:
+        return 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700';
+    }
+  };
+
+  // Helper to extract comparable date (YYYY-MM-DD) from ticket
+  const getTicketDate = (t: VTTechTicket): string | null => {
+    if (t.ExecutedDate && t.ExecutedDate.length >= 10) {
+      return t.ExecutedDate.slice(0, 10);
+    }
+    if (t.Created) {
+      const parts = t.Created.trim().split(' ');
+      const datePart = parts.length > 1 ? parts[1] : parts[0];
+      const m = datePart.match(/^(\d{2})-(\d{2})-(\d{4})/);
+      if (m) {
+        return `${m[3]}-${m[2]}-${m[1]}`;
+      }
+    }
+    return null;
+  };
+
+  // Preset helpers for date filter
+  const setAllTime = () => {
+    setDateFrom('');
+    setDateTo('');
+  };
+
+  const setPresetToday = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    setDateFrom(today);
+    setDateTo(today);
+  };
+
+  const setPresetLast7Days = () => {
+    const now = new Date();
+    const d7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    setDateFrom(d7.toISOString().slice(0, 10));
+    setDateTo(now.toISOString().slice(0, 10));
+  };
+
+  const setPresetThisMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    setDateFrom(firstDay.toISOString().slice(0, 10));
+    setDateTo(now.toISOString().slice(0, 10));
+  };
+
+  // Scope Counts for quick switch tabs
+  const scopeCounts = useMemo(() => {
+    const web = tickets.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB').length;
+    const gclid = tickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
+    return {
+      web,
+      all: tickets.length,
+      gclid,
+    };
+  }, [tickets]);
+
+  // Available sources matching the current channelScope
+  const scopedAvailableSources = useMemo(() => {
+    if (channelScope === 'web') {
+      return availableSources.filter((s) => s === 'OL WB' || s === 'HL WB');
+    }
+    return availableSources;
+  }, [channelScope, availableSources]);
 
   // Filtered tickets
   const filteredTickets = useMemo(() => {
@@ -178,20 +310,85 @@ export const VTTechCRMView: React.FC = () => {
         (t.Content && t.Content.toLowerCase().includes(search)) ||
         (t.TicketID && String(t.TicketID).includes(search));
 
-      const matchSource = selectedSource === 'all' || t.SourceName === selectedSource;
+      // Scope match
+      let matchScope = true;
+      if (channelScope === 'web') {
+        if (selectedSource === 'all') {
+          matchScope = t.SourceName === 'OL WB' || t.SourceName === 'HL WB';
+        } else {
+          matchScope = t.SourceName === selectedSource;
+        }
+      } else if (channelScope === 'gclid') {
+        matchScope = Boolean(t.Gclid && t.Gclid.length > 5);
+        if (matchScope && selectedSource !== 'all') {
+          matchScope = t.SourceName === selectedSource;
+        }
+      } else {
+        // all
+        if (selectedSource !== 'all') {
+          matchScope = t.SourceName === selectedSource;
+        }
+      }
+
       const matchStatus = selectedStatus === 'all' || t.StatusName === selectedStatus;
 
-      return matchSearch && matchSource && matchStatus;
-    });
-  }, [tickets, searchTerm, selectedSource, selectedStatus]);
+      // Only filter by date if user explicitly chose dateFrom or dateTo
+      let matchDate = true;
+      if (dateFrom || dateTo) {
+        const ticketDate = getTicketDate(t);
+        if (ticketDate) {
+          if (dateFrom && ticketDate < dateFrom) matchDate = false;
+          if (dateTo && ticketDate > dateTo) matchDate = false;
+        }
+      }
 
-  // Key KPI metrics
+      return matchSearch && matchScope && matchStatus && matchDate;
+    });
+  }, [tickets, searchTerm, channelScope, selectedSource, selectedStatus, dateFrom, dateTo]);
+
+  // Source & Date filtered tickets specifically for KPI summary cards
+  const kpiTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      // Scope match
+      let matchScope = true;
+      if (channelScope === 'web') {
+        if (selectedSource === 'all') {
+          matchScope = t.SourceName === 'OL WB' || t.SourceName === 'HL WB';
+        } else {
+          matchScope = t.SourceName === selectedSource;
+        }
+      } else if (channelScope === 'gclid') {
+        matchScope = Boolean(t.Gclid && t.Gclid.length > 5);
+        if (matchScope && selectedSource !== 'all') {
+          matchScope = t.SourceName === selectedSource;
+        }
+      } else {
+        // all
+        if (selectedSource !== 'all') {
+          matchScope = t.SourceName === selectedSource;
+        }
+      }
+
+      let matchDate = true;
+      if (dateFrom || dateTo) {
+        const ticketDate = getTicketDate(t);
+        if (ticketDate) {
+          if (dateFrom && ticketDate < dateFrom) matchDate = false;
+          if (dateTo && ticketDate > dateTo) matchDate = false;
+        }
+      }
+
+      return matchScope && matchDate;
+    });
+  }, [tickets, channelScope, selectedSource, dateFrom, dateTo]);
+
+  // Key KPI metrics reflecting the selected source & date
   const kpis = useMemo(() => {
-    const total = tickets.length;
-    const booked = tickets.filter((t) => t.IsBook === 1 || (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))).length;
-    const hasGclid = tickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
-    const isNew = tickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('mới')).length;
-    const arrived = tickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('đến')).length;
+    const total = kpiTickets.length;
+    const booked = kpiTickets.filter((t) => t.IsBook === 1 || (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))).length;
+    const hasGclid = kpiTickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
+    const isNew = kpiTickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('mới')).length;
+    const arrived = kpiTickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('đến')).length;
 
     return {
       total,
@@ -201,7 +398,7 @@ export const VTTechCRMView: React.FC = () => {
       isNew,
       arrived,
     };
-  }, [tickets]);
+  }, [kpiTickets]);
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -276,7 +473,7 @@ export const VTTechCRMView: React.FC = () => {
             </button>
 
             <button
-              onClick={handleSync}
+              onClick={() => handleSync()}
               disabled={syncing}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50"
             >
@@ -323,51 +520,157 @@ export const VTTechCRMView: React.FC = () => {
         </div>
       )}
 
+      {/* Quick Switch Tabs for Web & Marketing Channels */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          {/* Tab 1: Kênh Website */}
+          <button
+            onClick={() => {
+              setChannelScope('web');
+              setSelectedSource('all');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              channelScope === 'web'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/25 ring-1 ring-emerald-400/50'
+                : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/80'
+            }`}
+          >
+            <Globe className={`w-4 h-4 ${channelScope === 'web' ? 'text-white' : 'text-emerald-400'}`} />
+            <span>Kênh Website (OL WB + HL WB)</span>
+          </button>
+
+          {/* Tab 2: Toàn Bộ Marketing */}
+          <button
+            onClick={() => {
+              setChannelScope('all');
+              setSelectedSource('all');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              channelScope === 'all'
+                ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg shadow-orange-500/25 ring-1 ring-orange-400/50'
+                : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/80'
+            }`}
+          >
+            <Megaphone className={`w-4 h-4 ${channelScope === 'all' ? 'text-white' : 'text-orange-400'}`} />
+            <span>Toàn Bộ Marketing</span>
+          </button>
+
+          {/* Tab 3: Google Ads GCLID */}
+          <button
+            onClick={() => {
+              setChannelScope('gclid');
+              setSelectedSource('all');
+            }}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+              channelScope === 'gclid'
+                ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-white shadow-lg shadow-amber-500/25 ring-1 ring-amber-400/50'
+                : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/80'
+            }`}
+          >
+            <Target className={`w-4 h-4 ${channelScope === 'gclid' ? 'text-white' : 'text-amber-400'}`} />
+            <span>Google Ads (Có GCLID)</span>
+          </button>
+        </div>
+
+        {/* Current mode badge */}
+        <div className="flex items-center gap-2 text-xs text-slate-400 px-3 py-1.5 bg-slate-950/60 rounded-xl border border-slate-800 shrink-0">
+          <span
+            className={`w-2 h-2 rounded-full animate-pulse ${
+              channelScope === 'web' ? 'bg-emerald-400' : channelScope === 'all' ? 'bg-orange-400' : 'bg-amber-400'
+            }`}
+          />
+          <span>
+            Đang xem:{' '}
+            <strong className="text-slate-200">
+              {channelScope === 'web'
+                ? 'Chuyên sâu Website (OL WB + HL WB)'
+                : channelScope === 'all'
+                ? 'Toàn bộ kênh Marketing'
+                : 'Vé có GCLID Google Ads'}
+            </strong>
+          </span>
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span>Tổng Vé (Ticket)</span>
-            <Database className="w-4 h-4 text-orange-400" />
+            <span className="font-semibold text-slate-300 truncate max-w-[140px]">
+              {selectedSource !== 'all'
+                ? `Vé (${selectedSource})`
+                : channelScope === 'web'
+                ? 'Vé Kênh Website'
+                : channelScope === 'gclid'
+                ? 'Vé Google Ads (GCLID)'
+                : 'Tổng Vé Marketing'}
+            </span>
+            <Database className="w-4 h-4 text-orange-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-white">{kpis.total.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Dữ liệu từ VTTech</div>
+          <div className="text-[11px] text-slate-400 mt-1 truncate">
+            {selectedSource !== 'all'
+              ? `Nguồn: ${selectedSource}`
+              : channelScope === 'web'
+              ? 'Tổng hợp OL WB & HL WB'
+              : channelScope === 'gclid'
+              ? 'Có mã đối soát chuyển đổi'
+              : 'Dữ liệu toàn bộ nguồn'}
+          </div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>Data Mới Tiếp Nhận</span>
-            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-cyan-400">{kpis.isNew.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Cần gọi xử lý ngay</div>
+          <div className="text-[11px] text-slate-400 mt-1 truncate">
+            {selectedSource !== 'all'
+              ? `Mới từ ${selectedSource}`
+              : channelScope === 'web'
+              ? 'Mới từ Website'
+              : 'Cần gọi xử lý ngay'}
+          </div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>Đã Đặt Lịch Hẹn</span>
-            <Calendar className="w-4 h-4 text-emerald-400" />
+            <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">{kpis.booked.toLocaleString()}</div>
-          <div className="text-[11px] text-emerald-400/80 mt-1">Tỷ lệ đặt hẹn: {kpis.bookedRate}%</div>
+          <div className="text-[11px] text-emerald-400/90 mt-1 font-medium">Tỷ lệ đặt: {kpis.bookedRate}%</div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>Đã Đến Khám</span>
-            <Award className="w-4 h-4 text-purple-400" />
+            <Award className="w-4 h-4 text-purple-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-purple-400">{kpis.arrived.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Tại 17 cơ sở Tâm Đức</div>
+          <div className="text-[11px] text-slate-400 mt-1 truncate">
+            {selectedSource !== 'all'
+              ? `Đến từ ${selectedSource}`
+              : channelScope === 'web'
+              ? 'Đến khám từ Website'
+              : 'Tại 17 cơ sở Tâm Đức'}
+          </div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span>GCLID Google Ads</span>
-            <TrendingUp className="w-4 h-4 text-amber-400" />
+            <TrendingUp className="w-4 h-4 text-amber-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-amber-400">{kpis.hasGclid.toLocaleString()}</div>
-          <div className="text-[11px] text-slate-500 mt-1">Có mã đối soát chuyển đổi</div>
+          <div className="text-[11px] text-slate-400 mt-1 truncate">
+            {selectedSource !== 'all'
+              ? `GCLID từ ${selectedSource}`
+              : channelScope === 'web'
+              ? 'GCLID từ Website'
+              : 'Có mã đối soát chuyển đổi'}
+          </div>
         </div>
       </div>
 
@@ -387,14 +690,20 @@ export const VTTechCRMView: React.FC = () => {
           </div>
 
           {/* Filter Source */}
-          <div className="w-full md:w-56">
+          <div className="w-full md:w-64">
             <select
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
               className="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-orange-500"
             >
-              <option value="all">Tất cả Nguồn ({availableSources.length})</option>
-              {availableSources.map((src) => (
+              <option value="all">
+                {channelScope === 'web'
+                  ? 'Tất cả Nguồn Web (OL WB + HL WB)'
+                  : channelScope === 'gclid'
+                  ? 'Tất cả Nguồn có GCLID'
+                  : 'Tất cả Nguồn'}
+              </option>
+              {scopedAvailableSources.map((src) => (
                 <option key={src} value={src}>
                   {src}
                 </option>
@@ -409,7 +718,7 @@ export const VTTechCRMView: React.FC = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-orange-500"
             >
-              <option value="all">Tất cả Trạng Thái ({availableStatuses.length})</option>
+              <option value="all">Tất cả Trạng Thái</option>
               {availableStatuses.map((st) => (
                 <option key={st} value={st}>
                   {st}
@@ -419,44 +728,172 @@ export const VTTechCRMView: React.FC = () => {
           </div>
         </div>
 
+        {/* Source Pills Navigation */}
+        <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-slate-400 mr-1 font-medium flex items-center gap-1">
+            <Tag className="w-3.5 h-3.5 text-orange-400" />
+            {channelScope === 'web' ? 'Nguồn Kênh Web:' : 'Nguồn CRM:'}
+          </span>
+          <button
+            onClick={() => setSelectedSource('all')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+              selectedSource === 'all'
+                ? channelScope === 'web'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                  : 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                : 'bg-slate-950/70 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            {channelScope === 'web'
+              ? `Tất cả Web (${scopeCounts.web})`
+              : `Tất cả (${channelScope === 'gclid' ? scopeCounts.gclid : tickets.length})`}
+          </button>
+          {scopedAvailableSources.map((src) => {
+            const count = sourceStats[src] || 0;
+            const isSelected = selectedSource === src;
+            return (
+              <button
+                key={src}
+                onClick={() => setSelectedSource(isSelected ? 'all' : src)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 ${
+                  isSelected
+                    ? channelScope === 'web'
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
+                      : 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-600/30'
+                    : getSourceBadgeColor(src)
+                }`}
+              >
+                <span>{src}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    isSelected ? 'bg-white/25 text-white' : 'bg-slate-950/60 text-slate-300'
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Date Filter & Counter */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs border-t border-slate-800/60 text-slate-400">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 text-xs border-t border-slate-800/60 text-slate-400">
+          <div className="flex flex-wrap items-center gap-2">
             <span>Hiển thị: <strong className="text-white">{filteredTickets.length}</strong> / {tickets.length} Ticket</span>
-            {(searchTerm || selectedSource !== 'all' || selectedStatus !== 'all') && (
+            
+            {/* Active Time Badge */}
+            {!dateFrom && !dateTo ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Toàn thời gian (Tất cả)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[11px] font-medium">
+                <span>Lọc: {dateFrom ? dateFrom.split('-').reverse().join('/') : '...'} &rarr; {dateTo ? dateTo.split('-').reverse().join('/') : 'nay'}</span>
+                <button
+                  type="button"
+                  onClick={setAllTime}
+                  title="Xóa bộ lọc ngày để xem toàn thời gian"
+                  className="hover:text-white font-bold text-xs"
+                >
+                  &times;
+                </button>
+              </span>
+            )}
+
+            {(searchTerm || selectedSource !== 'all' || selectedStatus !== 'all' || dateFrom || dateTo) && (
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedSource('all');
                   setSelectedStatus('all');
+                  setAllTime();
                 }}
-                className="text-orange-400 hover:underline ml-2"
+                className="text-orange-400 hover:underline ml-1 text-xs"
               >
-                Xóa bộ lọc
+                Xóa tất cả bộ lọc
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span>Lọc ngày tải từ VTTech:</span>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
-            />
-            <span>đến</span>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Presets */}
+            <div className="inline-flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
+              <button
+                type="button"
+                onClick={setAllTime}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
+                  !dateFrom && !dateTo
+                    ? 'bg-orange-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Toàn thời gian
+              </button>
+              <button
+                type="button"
+                onClick={setPresetToday}
+                className={`px-2 py-1 rounded-md font-medium transition-colors ${
+                  dateFrom === dateTo && dateFrom === new Date().toISOString().slice(0, 10)
+                    ? 'bg-orange-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Hôm nay
+              </button>
+              <button
+                type="button"
+                onClick={setPresetLast7Days}
+                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                7 ngày qua
+              </button>
+              <button
+                type="button"
+                onClick={setPresetThisMonth}
+                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors"
+              >
+                Tháng này
+              </button>
+            </div>
+
+            {/* Custom Date Pickers */}
+            <div className="flex items-center gap-1 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                title="Chọn ngày bắt đầu"
+                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
+              />
+              <span className="text-slate-500 text-[11px]">đến</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                title="Chọn ngày kết thúc"
+                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
+              />
+              {(dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  onClick={setAllTime}
+                  title="Về toàn thời gian"
+                  className="text-slate-400 hover:text-white px-1 text-xs font-bold"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+
             <button
-              onClick={handleSync}
-              className="px-2.5 py-1 bg-orange-600/80 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+              onClick={() => handleSync()}
+              disabled={syncing}
+              title={!dateFrom && !dateTo ? 'Tải lại toàn bộ dữ liệu từ VTTech' : 'Tải lại danh sách theo ngày đã chọn'}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-600/90 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg font-medium text-xs shadow-sm transition-colors"
             >
-              Tải lại
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>{!dateFrom && !dateTo ? 'Tải lại (Toàn bộ)' : 'Tải theo ngày'}</span>
             </button>
           </div>
         </div>
@@ -506,11 +943,11 @@ export const VTTechCRMView: React.FC = () => {
               )}
 
               {!loading &&
-                filteredTickets.map((t) => {
+                filteredTickets.map((t, index) => {
                   const hasValidAppointment = t.AppDateFrom && !t.AppDateFrom.startsWith('1900');
                   return (
                     <tr
-                      key={t.TicketID}
+                      key={`${t.TicketID}-${t.CustCode || ''}-${index}`}
                       onClick={() => setSelectedTicket(t)}
                       className="hover:bg-slate-800/40 cursor-pointer transition-colors"
                     >
@@ -546,9 +983,14 @@ export const VTTechCRMView: React.FC = () => {
 
                       {/* Source */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
-                        <span className="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-300 border border-blue-500/30">
+                        <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getSourceBadgeColor(t.SourceName)}`}>
                           {t.SourceName || 'Trực tiếp'}
                         </span>
+                        {t.SourceDetailName && (
+                          <div className="text-[10px] text-slate-400 truncate max-w-[140px] mt-0.5">
+                            {t.SourceDetailName}
+                          </div>
+                        )}
                       </td>
 
                       {/* Status */}
@@ -716,64 +1158,140 @@ export const VTTechCRMView: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSaveConfig} className="p-6 space-y-4">
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Hệ thống hiện tại đã kết nối tự động với tài khoản <strong>Văn Đức (ID: 1412)</strong>. Khi VTTech hết hạn phiên đăng nhập, bạn chỉ cần F12 lấy lại Cookie hoặc Token mới và dán vào đây:
-              </p>
+            {/* Tabs */}
+            <div className="flex border-b border-slate-800 bg-slate-950/50 px-6 pt-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setConfigTab('curl')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                  configTab === 'curl'
+                    ? 'border-orange-500 text-orange-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                ⚡ Dán cURL Từ Network (Nhanh nhất)
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfigTab('manual')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                  configTab === 'manual'
+                    ? 'border-orange-500 text-orange-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Nhập Thủ Công
+              </button>
+            </div>
 
-              <div className="space-y-1">
-                <label className="text-xs text-slate-300 font-medium">Cookie Xác Thực (.AspNetCore.Session & Cookie)</label>
-                <textarea
-                  rows={3}
-                  value={configCookie}
-                  onChange={(e) => setConfigCookie(e.target.value)}
-                  placeholder="Dán toàn bộ Cookie từ cURL nếu cần cập nhật phiên đăng nhập mới..."
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
-                />
-              </div>
+            {configTab === 'curl' ? (
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs text-slate-300">
+                  <div className="font-semibold text-orange-400 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Cách lấy mã cURL nhanh từ Chrome / Edge:</span>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400 leading-relaxed pl-1">
+                    <li>Mở tab VTTech CRM tại trình duyệt & bấm <kbd className="px-1 py-0.5 rounded bg-slate-800 font-mono text-[11px] text-white">F12</kbd> (Network / Mạng).</li>
+                    <li>Tìm yêu cầu <code className="text-orange-300">TicketList/?handler=LoadList</code>.</li>
+                    <li>Chuột phải vào yêu cầu đó &rarr; chọn <strong>Copy</strong> &rarr; <strong>Copy as cURL (bash)</strong>.</li>
+                    <li>Dán toàn bộ vào ô dưới đây và bấm nút bên dưới.</li>
+                  </ol>
+                </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300 font-medium">XSRF-TOKEN</label>
-                  <input
-                    type="text"
-                    value={configXsrfToken}
-                    onChange={(e) => setConfigXsrfToken(e.target.value)}
-                    placeholder="CfDJ8..."
-                    className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
+                <div className="space-y-1.5">
+                  <label className="text-xs text-slate-300 font-medium flex items-center justify-between">
+                    <span>Mã lệnh cURL:</span>
+                    <span className="text-[11px] text-slate-500">Tự động bóc tách Cookie, SecretKey, XSRF</span>
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={curlInput}
+                    onChange={(e) => setCurlInput(e.target.value)}
+                    placeholder="curl 'https://nktamduc.vttechsolution.com/Marketing/TicketList/?handler=LoadList' -H 'Cookie: ...' -H 'SecretKey: ...' ..."
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500 transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300 font-medium">SecretKey Header</label>
-                  <input
-                    type="text"
-                    value={configSecretKey}
-                    onChange={(e) => setConfigSecretKey(e.target.value)}
-                    placeholder="bDpiCF..."
-                    className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
-                  />
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsConfigOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="button"
+                    disabled={curlLoading || !curlInput.trim()}
+                    onClick={handleImportCurl}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-orange-600/30 transition-all"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${curlLoading ? 'animate-spin' : ''}`} />
+                    <span>{curlLoading ? 'Đang trích xuất...' : 'Trích Xuất & Kết Nối Ngay'}</span>
+                  </button>
                 </div>
               </div>
+            ) : (
+              <form onSubmit={handleSaveConfig} className="p-6 space-y-4">
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Hệ thống kết nối trực tiếp với tài khoản <strong>Văn Đức (ID: 1412)</strong>. Bạn có thể tự chỉnh sửa thủ công từng trường:
+                </p>
 
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsConfigOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingConfig}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/30"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{savingConfig ? 'Đang lưu...' : 'Lưu Cấu Hình'}</span>
-                </button>
-              </div>
-            </form>
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 font-medium">Cookie Xác Thực (.AspNetCore.Session & Cookie)</label>
+                  <textarea
+                    rows={3}
+                    value={configCookie}
+                    onChange={(e) => setConfigCookie(e.target.value)}
+                    placeholder="Dán toàn bộ Cookie từ cURL nếu cần cập nhật phiên đăng nhập mới..."
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 font-medium">XSRF-TOKEN</label>
+                    <input
+                      type="text"
+                      value={configXsrfToken}
+                      onChange={(e) => setConfigXsrfToken(e.target.value)}
+                      placeholder="CfDJ8..."
+                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 font-medium">SecretKey Header</label>
+                    <input
+                      type="text"
+                      value={configSecretKey}
+                      onChange={(e) => setConfigSecretKey(e.target.value)}
+                      placeholder="bDpiCF..."
+                      className="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsConfigOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingConfig}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-sm font-semibold shadow-lg shadow-orange-600/30"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{savingConfig ? 'Đang lưu...' : 'Lưu Cấu Hình'}</span>
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
