@@ -67,7 +67,7 @@ export const VTTechCRMView: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string>('');
 
   // Search & Filter state
-  const [channelScope, setChannelScope] = useState<'web' | 'online_web' | 'hotline_web' | 'all' | 'gclid'>('web');
+  const [channelScope, setChannelScope] = useState<'web' | 'all' | 'gclid'>('web');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
@@ -425,12 +425,6 @@ export const VTTechCRMView: React.FC = () => {
     if (channelScope === 'web') {
       return availableSources.filter(isWebSource);
     }
-    if (channelScope === 'online_web') {
-      return availableSources.filter((s) => s === 'OL WB');
-    }
-    if (channelScope === 'hotline_web') {
-      return availableSources.filter((s) => s === 'HL WB');
-    }
     return availableSources;
   }, [channelScope, availableSources]);
 
@@ -454,10 +448,6 @@ export const VTTechCRMView: React.FC = () => {
         } else {
           matchScope = t.SourceName === selectedSource;
         }
-      } else if (channelScope === 'online_web') {
-        matchScope = t.SourceName === 'OL WB';
-      } else if (channelScope === 'hotline_web') {
-        matchScope = t.SourceName === 'HL WB';
       } else if (channelScope === 'gclid') {
         matchScope = Boolean(t.Gclid && t.Gclid.length > 5);
         if (matchScope && selectedSource !== 'all') {
@@ -490,10 +480,6 @@ export const VTTechCRMView: React.FC = () => {
         } else {
           matchScope = t.SourceName === selectedSource;
         }
-      } else if (channelScope === 'online_web') {
-        matchScope = t.SourceName === 'OL WB';
-      } else if (channelScope === 'hotline_web') {
-        matchScope = t.SourceName === 'HL WB';
       } else if (channelScope === 'gclid') {
         matchScope = Boolean(t.Gclid && t.Gclid.length > 5);
         if (matchScope && selectedSource !== 'all') {
@@ -770,56 +756,9 @@ export const VTTechCRMView: React.FC = () => {
           >
             <Globe className={`w-4 h-4 ${channelScope === 'web' ? 'text-white' : 'text-emerald-400'}`} />
             <span>Kênh Website (OL WB + HL WB)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-              channelScope === 'web' ? 'bg-white/25 text-white' : 'bg-slate-800 text-slate-300'
-            }`}>
-              {scopeCounts.web}
-            </span>
           </button>
 
-          {/* Tab 2: Online Web */}
-          <button
-            onClick={() => {
-              setChannelScope('online_web');
-              setSelectedSource('all');
-            }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-              channelScope === 'online_web'
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/50'
-                : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/80'
-            }`}
-          >
-            <Globe className={`w-4 h-4 ${channelScope === 'online_web' ? 'text-white' : 'text-blue-400'}`} />
-            <span>Online Web</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-              channelScope === 'online_web' ? 'bg-white/25 text-white' : 'bg-slate-800 text-slate-300'
-            }`}>
-              {scopeCounts.onlineWeb}
-            </span>
-          </button>
-
-          {/* Tab 3: Hotline Web */}
-          <button
-            onClick={() => {
-              setChannelScope('hotline_web');
-              setSelectedSource('all');
-            }}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-              channelScope === 'hotline_web'
-                ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-lg shadow-sky-500/25 ring-1 ring-sky-400/50'
-                : 'bg-slate-950/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-slate-800/80'
-            }`}
-          >
-            <Phone className={`w-4 h-4 ${channelScope === 'hotline_web' ? 'text-white' : 'text-sky-400'}`} />
-            <span>Hotline Web</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-              channelScope === 'hotline_web' ? 'bg-white/25 text-white' : 'bg-slate-800 text-slate-300'
-            }`}>
-              {scopeCounts.hotlineWeb}
-            </span>
-          </button>
-
-          {/* Tab 4: Toàn Bộ Marketing */}
+          {/* Tab 2: Toàn Bộ Marketing */}
           <button
             onClick={() => {
               setChannelScope('all');
@@ -835,7 +774,7 @@ export const VTTechCRMView: React.FC = () => {
             <span>Toàn Bộ Marketing</span>
           </button>
 
-          {/* Tab 5: Google Ads GCLID */}
+          {/* Tab 3: Google Ads GCLID */}
           <button
             onClick={() => {
               setChannelScope('gclid');
@@ -849,11 +788,6 @@ export const VTTechCRMView: React.FC = () => {
           >
             <Target className={`w-4 h-4 ${channelScope === 'gclid' ? 'text-white' : 'text-amber-400'}`} />
             <span>Google Ads (Có GCLID)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-              channelScope === 'gclid' ? 'bg-white/25 text-white' : 'bg-slate-800 text-slate-300'
-            }`}>
-              {scopeCounts.gclid}
-            </span>
           </button>
         </div>
 
@@ -863,10 +797,6 @@ export const VTTechCRMView: React.FC = () => {
             className={`w-2 h-2 rounded-full animate-pulse ${
               channelScope === 'web'
                 ? 'bg-emerald-400'
-                : channelScope === 'online_web'
-                ? 'bg-blue-400'
-                : channelScope === 'hotline_web'
-                ? 'bg-sky-400'
                 : channelScope === 'all'
                 ? 'bg-orange-400'
                 : 'bg-amber-400'
@@ -877,10 +807,6 @@ export const VTTechCRMView: React.FC = () => {
             <strong className="text-slate-200">
               {channelScope === 'web'
                 ? 'Chuyên sâu Website (OL WB + HL WB)'
-                : channelScope === 'online_web'
-                ? 'Kênh Online Web (OL WB)'
-                : channelScope === 'hotline_web'
-                ? 'Kênh Hotline Web (HL WB)'
                 : channelScope === 'all'
                 ? 'Toàn bộ kênh Marketing'
                 : 'Vé có GCLID Google Ads'}
@@ -917,10 +843,6 @@ export const VTTechCRMView: React.FC = () => {
               ? `Đang lọc: ${selectedSource}`
               : channelScope === 'web'
               ? 'Tổng hợp OL WB & HL WB'
-              : channelScope === 'online_web'
-              ? 'Nguồn Online Web (OL WB)'
-              : channelScope === 'hotline_web'
-              ? 'Nguồn Hotline Web (HL WB)'
               : channelScope === 'gclid'
               ? 'Có mã đối soát chuyển đổi'
               : 'Dữ liệu toàn bộ nguồn'}
@@ -995,7 +917,7 @@ export const VTTechCRMView: React.FC = () => {
           <div className="text-[11px] text-slate-400 mt-1 truncate">
             {selectedSource !== 'all'
               ? `Đến từ ${selectedSource}`
-              : channelScope === 'web' || channelScope === 'online_web' || channelScope === 'hotline_web'
+              : channelScope === 'web'
               ? 'Đến khám từ Website'
               : 'Tại 17 cơ sở Tâm Đức'}
           </div>
@@ -1011,7 +933,7 @@ export const VTTechCRMView: React.FC = () => {
           <div className="text-[11px] text-slate-400 mt-1 truncate">
             {selectedSource !== 'all'
               ? `GCLID từ ${selectedSource}`
-              : channelScope === 'web' || channelScope === 'online_web' || channelScope === 'hotline_web'
+              : channelScope === 'web'
               ? 'GCLID từ Website'
               : 'Có mã đối soát chuyển đổi'}
           </div>
@@ -1043,10 +965,6 @@ export const VTTechCRMView: React.FC = () => {
               <option value="all">
                 {channelScope === 'web'
                   ? 'Tất cả Nguồn Web (OL WB + HL WB)'
-                  : channelScope === 'online_web'
-                  ? 'Nguồn Online Web (OL WB)'
-                  : channelScope === 'hotline_web'
-                  ? 'Nguồn Hotline Web (HL WB)'
                   : channelScope === 'gclid'
                   ? 'Tất cả Nguồn có GCLID'
                   : 'Tất cả Nguồn'}
@@ -1080,13 +998,7 @@ export const VTTechCRMView: React.FC = () => {
         <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center gap-1.5">
           <span className="text-xs text-slate-400 mr-1 font-medium flex items-center gap-1">
             <Tag className="w-3.5 h-3.5 text-orange-400" />
-            {channelScope === 'web'
-              ? 'Nguồn Kênh Web:'
-              : channelScope === 'online_web'
-              ? 'Nguồn Online Web:'
-              : channelScope === 'hotline_web'
-              ? 'Nguồn Hotline Web:'
-              : 'Nguồn CRM:'}
+            {channelScope === 'web' ? 'Nguồn Kênh Web:' : 'Nguồn CRM:'}
           </span>
           <button
             onClick={() => setSelectedSource('all')}
@@ -1094,20 +1006,12 @@ export const VTTechCRMView: React.FC = () => {
               selectedSource === 'all'
                 ? channelScope === 'web'
                   ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                  : channelScope === 'online_web'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : channelScope === 'hotline_web'
-                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                   : 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
                 : 'bg-slate-950/70 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
             {channelScope === 'web'
               ? `Tất cả Web (${scopeCounts.web})`
-              : channelScope === 'online_web'
-              ? `Online Web (${scopeCounts.onlineWeb})`
-              : channelScope === 'hotline_web'
-              ? `Hotline Web (${scopeCounts.hotlineWeb})`
               : `Tất cả (${channelScope === 'gclid' ? scopeCounts.gclid : tickets.length})`}
           </button>
           {scopedAvailableSources.map((src) => {
@@ -1119,7 +1023,7 @@ export const VTTechCRMView: React.FC = () => {
                 onClick={() => setSelectedSource(isSelected ? 'all' : src)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all flex items-center gap-1.5 ${
                   isSelected
-                    ? channelScope === 'web' || channelScope === 'online_web' || channelScope === 'hotline_web'
+                    ? channelScope === 'web'
                       ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
                       : 'bg-orange-600 text-white border-orange-500 shadow-md shadow-orange-600/30'
                     : getSourceBadgeColor(src)
