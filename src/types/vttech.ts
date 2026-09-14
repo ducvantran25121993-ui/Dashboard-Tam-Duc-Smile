@@ -29,6 +29,8 @@ export interface VTTechTicket {
   DistrictName?: string;
   Created: string;
   CreatedBy?: number;
+  devideDate?: string;
+  devideBy?: number;
   TypeName?: string | null;
   ServiceCare?: string;
 }

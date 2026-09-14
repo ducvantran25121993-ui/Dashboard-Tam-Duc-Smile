@@ -4707,144 +4707,120 @@ app.post('/api/vttech/config', (req, res) => {
   }
 });
 
-// Helper to parse date to DD-MM-YYYY
-function formatToVTTechDate(dStr: string): string {
+// Helper to parse date to YYYY-MM-DD HH:mm:ss for VTTech SQL Server
+function formatToVTTechDate(dStr: string, isEnd = false): string {
   if (!dStr) return '';
-  // If already DD-MM-YYYY
-  if (/^\d{2}-\d{2}-\d{4}/.test(dStr)) {
-    return dStr.split(' ')[0];
-  }
   // If YYYY-MM-DD
-  const m = dStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) {
-    return `${m[3]}-${m[2]}-${m[1]}`;
+  const m1 = dStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m1) {
+    return isEnd ? `${m1[1]}-${m1[2]}-${m1[3]} 23:59:59` : `${m1[1]}-${m1[2]}-${m1[3]} 00:00:00`;
+  }
+  // If DD-MM-YYYY
+  const m2 = dStr.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (m2) {
+    return isEnd ? `${m2[3]}-${m2[2]}-${m2[1]} 23:59:59` : `${m2[3]}-${m2[2]}-${m2[1]} 00:00:00`;
   }
   return dStr;
 }
 
-// Sync Ticket List from VTTech (Supporting ALL sources)
+// Internal helper to fetch a specific batch of tickets from VTTech
+async function fetchVTTechBatch(sourceId: number, formattedFrom: string, formattedTo: string, limit = 300): Promise<any[]> {
+  const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
+  const filterDataObj = {
+    TypeDate: 0, // Bộ lọc "Ngày" chuẩn theo giao diện VTTech
+    Status: 0,
+    Source: Number(sourceId) || 0,
+    SourceDetail: 0,
+    UserID: 0,
+    GroupID: 0,
+    DateFrom: formattedFrom,
+    DateTo: formattedTo,
+  };
+
+  const postData = new URLSearchParams();
+  postData.append('data', JSON.stringify(filterDataObj));
+  postData.append('TicketID', '0');
+  postData.append('idbegin', '0');
+  postData.append('limit', String(limit));
+  postData.append('LevelUser', '3'); // Quyền Tele Level 3 của tài khoản VanDuc
+  postData.append('GroupUser', '0');
+
+  const response = await fetch(targetUrl, {
+    method: 'POST',
+    headers: {
+      'Accept': '*/*',
+      'Accept-Language': 'vi,en;q=0.9',
+      'Connection': 'keep-alive',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cookie': vttechConfigStore.cookie,
+      'Origin': vttechConfigStore.baseUrl,
+      'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
+      'SecretKey': vttechConfigStore.secretKey,
+      'X-Requested-With': 'XMLHttpRequest',
+      'XSRF-TOKEN': vttechConfigStore.xsrfToken,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+    body: postData.toString(),
+    redirect: 'manual',
+  });
+
+  if (!response.ok) return [];
+  const text = await response.text();
+  if (text.includes('<!DOCTYPE html>') || text.includes('<html')) return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) {
+      if (parsed.length >= 2 && Array.isArray(parsed[1])) return parsed[1];
+      if (parsed.length > 0 && typeof parsed[0] === 'object' && !Array.isArray(parsed[0])) return parsed;
+    }
+  } catch (e) {}
+  return [];
+}
+
+// Sync Ticket List from VTTech (Supporting ALL sources + dedicated Web channels)
 app.post('/api/vttech/sync', async (req, res) => {
   try {
     const { dateFrom, dateTo, limit = 500, sourceID = 0, statusID = 0, branchID = 0, forceRefresh = false } = req.body;
 
-    const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
-    
     // Format body parameters for VTTech (support all-time when dates are not specified)
-    const formattedFrom = dateFrom ? formatToVTTechDate(dateFrom) : '';
-    const formattedTo = dateTo ? formatToVTTechDate(dateTo) : '';
+    const formattedFrom = dateFrom ? formatToVTTechDate(dateFrom, false) : '';
+    const formattedTo = dateTo ? formatToVTTechDate(dateTo, true) : '';
 
-    const filterDataObj = {
-      statusID: Number(statusID) || 0,
-      statusCallID: 0,
-      BranchID: Number(branchID) || 0,
-      BranchToken: '',
-      TeleID: 0,
-      UserID: 0,
-      GroupID: 0,
-      TypeDate: formattedFrom && formattedTo ? 1 : 0,
-      DateFrom: formattedFrom,
-      DateTo: formattedTo,
-      SourceID: Number(sourceID) || 0, // 0 = Lấy tất cả mọi nguồn (OL FB, OL WB, OL TT, HL WB, TT TĐ, TT GT, OF KM, OF VC...)
-      SourceDetailID: 0,
-      GroupStaffID: 0,
-      StaffID: 0,
-      GenderID: 0,
-      CityID: 0,
-      DistrictID: 0,
-      TypeCare: 0,
-      SearchText: '',
-    };
+    let fetchedTickets: any[] = [];
 
-    const postData = new URLSearchParams();
-    postData.append('data', JSON.stringify(filterDataObj));
-    postData.append('TicketID', '0');
-    postData.append('idbegin', '0');
-    postData.append('limit', String(limit || 500));
+    if (Number(sourceID) === 0) {
+      // Fetch in parallel: All sources + dedicated HL WB (31), OL WB (2), KC WB (37)
+      // to ensure high-volume Web and Hotline tickets are completely captured and never crowded out
+      const [allBatch, hlBatch, olBatch, kcBatch] = await Promise.all([
+        fetchVTTechBatch(0, formattedFrom, formattedTo, 300),
+        fetchVTTechBatch(31, formattedFrom, formattedTo, 300),
+        fetchVTTechBatch(2, formattedFrom, formattedTo, 300),
+        fetchVTTechBatch(37, formattedFrom, formattedTo, 300),
+      ]);
+      fetchedTickets = [...allBatch, ...hlBatch, ...olBatch, ...kcBatch];
+    } else {
+      fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, Number(limit) || 300);
+    }
 
-    const response = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'Accept': '*/*',
-        'Accept-Language': 'vi,en;q=0.9',
-        'Connection': 'keep-alive',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Cookie': vttechConfigStore.cookie,
-        'Origin': vttechConfigStore.baseUrl,
-        'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
-        'SecretKey': vttechConfigStore.secretKey,
-        'X-Requested-With': 'XMLHttpRequest',
-        'XSRF-TOKEN': vttechConfigStore.xsrfToken,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      },
-      body: postData.toString(),
-      redirect: 'manual',
+    // Merge with existing tickets in cache to maintain comprehensive historical + today records
+    const ticketMap = new Map<number, any>();
+    if (Array.isArray(vttechCacheStore.data)) {
+      vttechCacheStore.data.forEach((t: any) => {
+        if (t && t.TicketID) ticketMap.set(t.TicketID, t);
+      });
+    }
+
+    fetchedTickets.forEach((t: any) => {
+      if (t && t.TicketID) ticketMap.set(t.TicketID, t);
     });
 
-    // Check if session expired (302 redirect to /index.html)
-    if (response.status === 302 || response.status === 301) {
-      console.warn('VTTech session expired (HTTP 302 Redirect). Serving 300 cached tickets.');
-      return res.json({
-        success: true,
-        isFallbackCache: true,
-        warning: 'Phiên đăng nhập VTTech CRM hiện đang cần làm mới cookie (HTTP 302). Hệ thống đã tự động kích hoạt bộ nhớ 300 vé thực tế toàn bộ nguồn.',
-        total: vttechCacheStore.data.length,
-        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
-        data: vttechCacheStore.data,
-      });
-    }
+    const mergedTickets = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(response.status).json({
-        success: false,
-        error: `Máy chủ VTTech phản hồi HTTP ${response.status}`,
-        details: errText.slice(0, 500),
-      });
-    }
-
-    const jsonText = await response.text();
-    if (jsonText.includes('<!DOCTYPE html>') || jsonText.includes('<html')) {
-      return res.json({
-        success: true,
-        isFallbackCache: true,
-        warning: 'VTTech yêu cầu đăng nhập lại (trả về trang HTML). Đang hiển thị bản lưu 300 vé đầy đủ nguồn.',
-        total: vttechCacheStore.data.length,
-        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
-        data: vttechCacheStore.data,
-      });
-    }
-
-    let parsed: any;
-    try {
-      parsed = JSON.parse(jsonText);
-    } catch (parseErr) {
-      return res.status(500).json({
-        success: false,
-        error: 'Phản hồi từ VTTech không phải dạng JSON hợp lệ',
-        details: jsonText.slice(0, 500),
-      });
-    }
-
-    let actualTickets: any[] = [];
-    let totalCount = 0;
-
-    if (Array.isArray(parsed)) {
-      if (parsed.length >= 2 && Array.isArray(parsed[1])) {
-        // VTTech standard: [ [ { Total: 300 } ], [ ticket1, ticket2... ] ]
-        actualTickets = parsed[1];
-        totalCount = parsed[0]?.[0]?.Total || actualTickets.length;
-      } else if (parsed.length > 0 && typeof parsed[0] === 'object' && !Array.isArray(parsed[0])) {
-        // Flat array
-        actualTickets = parsed;
-        totalCount = parsed.length;
-      }
-    }
-
-    if (actualTickets.length > 0) {
+    if (mergedTickets.length > 0) {
       vttechCacheStore = {
         lastFetched: Date.now(),
-        total: actualTickets.length,
-        data: actualTickets,
+        total: mergedTickets.length,
+        data: mergedTickets,
       };
       vttechConfigStore.lastSyncTime = new Date().toISOString();
       fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
@@ -4852,22 +4828,10 @@ app.post('/api/vttech/sync', async (req, res) => {
 
       return res.json({
         success: true,
-        total: actualTickets.length,
-        serverReportedTotal: totalCount,
+        total: mergedTickets.length,
+        serverReportedTotal: mergedTickets.length,
         cachedAt: vttechConfigStore.lastSyncTime,
-        data: actualTickets,
-      });
-    }
-
-    // If VTTech returned 0 tickets (e.g. empty date range), fallback to existing cache if available
-    if (vttechCacheStore.data.length > 0) {
-      return res.json({
-        success: true,
-        isFallbackCache: true,
-        warning: 'VTTech trả về danh sách trống cho khoảng ngày này. Đang giữ nguyên 300 vé đã nạp.',
-        total: vttechCacheStore.data.length,
-        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
-        data: vttechCacheStore.data,
+        data: mergedTickets,
       });
     }
 
@@ -4883,7 +4847,7 @@ app.post('/api/vttech/sync', async (req, res) => {
       return res.json({
         success: true,
         isFallbackCache: true,
-        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị bản lưu 300 vé thực tế.`,
+        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị dữ liệu lưu trữ.`,
         total: vttechCacheStore.data.length,
         cachedAt: new Date(vttechCacheStore.lastFetched).toISOString(),
         data: vttechCacheStore.data,

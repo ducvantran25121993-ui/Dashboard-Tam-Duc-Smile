@@ -31,6 +31,11 @@ import {
   Globe,
   Megaphone,
   Target,
+  Zap,
+  BellRing,
+  Radio,
+  Play,
+  Pause,
 } from 'lucide-react';
 import { VTTechTicket } from '../types/vttech';
 import {
@@ -40,6 +45,17 @@ import {
   syncVTTechTickets,
   importVTTechCurl,
 } from '../services/vttechService';
+
+// Helper to get today's date in YYYY-MM-DD (Vietnam time GMT+7)
+const getVietnamTodayStr = (): string => {
+  const d = new Date();
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const vnTime = new Date(utc + 7 * 3600000);
+  const year = vnTime.getFullYear();
+  const month = String(vnTime.getMonth() + 1).padStart(2, '0');
+  const day = String(vnTime.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const VTTechCRMView: React.FC = () => {
   const [tickets, setTickets] = useState<VTTechTicket[]>([]);
@@ -55,9 +71,21 @@ export const VTTechCRMView: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  // Default to empty for All-Time (toàn thời gian)
-  const [dateFrom, setDateFrom] = useState<string>('');
-  const [dateTo, setDateTo] = useState<string>('');
+  // Default to Today ("Hôm nay") when entering the app
+  const [dateFrom, setDateFrom] = useState<string>(() => getVietnamTodayStr());
+  const [dateTo, setDateTo] = useState<string>(() => getVietnamTodayStr());
+
+  // Real-time Auto-Sync state
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState<boolean>(true);
+  const [syncIntervalSeconds, setSyncIntervalSeconds] = useState<number>(30);
+  const [countdown, setCountdown] = useState<number>(30);
+  const [isBackgroundSyncing, setIsBackgroundSyncing] = useState<boolean>(false);
+  const [newTicketAlert, setNewTicketAlert] = useState<{
+    message: string;
+    count: number;
+    webCount: number;
+    ticket?: VTTechTicket;
+  } | null>(null);
 
   // Config modal / expand state
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
@@ -135,6 +163,74 @@ export const VTTechCRMView: React.FC = () => {
     } finally {
       setSyncing(false);
     }
+  };
+
+  // Background Real-time auto-sync
+  const triggerBackgroundSync = async () => {
+    if (isBackgroundSyncing || syncing) return;
+    setIsBackgroundSyncing(true);
+    try {
+      const res = await syncVTTechTickets({
+        dateFrom: dateFrom ? `${dateFrom} 00:00:00` : undefined,
+        dateTo: dateTo ? `${dateTo} 23:59:59` : undefined,
+        limit: 500,
+      });
+
+      if (res.success && Array.isArray(res.data)) {
+        // Detect newly arrived tickets
+        setTickets((prev) => {
+          const prevMap = new Set(prev.map((t) => t.TicketID));
+          const newItems = res.data.filter((t) => !prevMap.has(t.TicketID));
+          if (newItems.length > 0) {
+            const webNew = newItems.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB');
+            setNewTicketAlert({
+              message: `Vừa nhận ${newItems.length} vé mới (${webNew.length > 0 ? `${webNew.length} từ Kênh Web` : newItems[0].SourceName})`,
+              count: newItems.length,
+              webCount: webNew.length,
+              ticket: newItems[0],
+            });
+            // Auto hide alert after 10s
+            setTimeout(() => {
+              setNewTicketAlert((curr) => (curr?.count === newItems.length ? null : curr));
+            }, 10000);
+          }
+          return res.data;
+        });
+
+        if (res.cachedAt) {
+          setLastSyncTime(res.cachedAt);
+        }
+      }
+    } catch (e) {
+      console.warn('Real-time background sync warning:', e);
+    } finally {
+      setIsBackgroundSyncing(false);
+    }
+  };
+
+  // Real-time interval timer
+  useEffect(() => {
+    if (!isRealTimeEnabled) {
+      setCountdown(syncIntervalSeconds);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          triggerBackgroundSync();
+          return syncIntervalSeconds;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isRealTimeEnabled, syncIntervalSeconds, dateFrom, dateTo, syncing, isBackgroundSyncing]);
+
+  const handleChangeInterval = (secs: number) => {
+    setSyncIntervalSeconds(secs);
+    setCountdown(secs);
   };
 
   const handleSaveConfig = async (e: React.FormEvent) => {
@@ -237,20 +333,55 @@ export const VTTechCRMView: React.FC = () => {
     }
   };
 
-  // Helper to extract comparable date (YYYY-MM-DD) from ticket
-  const getTicketDate = (t: VTTechTicket): string | null => {
-    if (t.ExecutedDate && t.ExecutedDate.length >= 10) {
-      return t.ExecutedDate.slice(0, 10);
-    }
-    if (t.Created) {
-      const parts = t.Created.trim().split(' ');
-      const datePart = parts.length > 1 ? parts[1] : parts[0];
-      const m = datePart.match(/^(\d{2})-(\d{2})-(\d{4})/);
-      if (m) {
-        return `${m[3]}-${m[2]}-${m[1]}`;
-      }
-    }
+  // Helper to check if a source belongs to Web channels
+  const isWebSource = (source?: string): boolean => {
+    return source === 'OL WB' || source === 'HL WB' || source === 'KC WB';
+  };
+
+  // Helper to extract comparable date (YYYY-MM-DD) from date string
+  const parseToDateStr = (raw?: string | null): string | null => {
+    if (!raw || raw.startsWith('1900')) return null;
+    const clean = raw.trim();
+    // ISO format: 2026-09-14...
+    const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    // Vietnamese format: 14-09-2026 or 13:25 14-09-2026
+    const vnMatch = clean.match(/(\d{2})-(\d{2})-(\d{4})/);
+    if (vnMatch) return `${vnMatch[3]}-${vnMatch[2]}-${vnMatch[1]}`;
     return null;
+  };
+
+  // Format date time for display (e.g., 13:25 14/09/2026)
+  const formatTicketDateTime = (raw?: string | null): string => {
+    if (!raw || raw.startsWith('1900')) return '—';
+    const clean = raw.trim();
+    const parts = clean.split(' ');
+    if (parts.length >= 2 && parts[1].includes('-')) {
+      return `${parts[0]} ${parts[1].replace(/-/g, '/')}`;
+    }
+    const m = clean.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/);
+    if (m) {
+      return `${m[4]}:${m[5]} ${m[3]}/${m[2]}/${m[1]}`;
+    }
+    return clean;
+  };
+
+  // Check if ticket matches date range (matching Created date, Executed date, or App appointment date, adhering to VTTech CRM "Ngày" behavior)
+  const ticketMatchesDate = (t: VTTechTicket, from: string, to: string): boolean => {
+    if (!from && !to) return true;
+    const candidateDates = [
+      parseToDateStr(t.Created),
+      parseToDateStr(t.ExecutedDate),
+      parseToDateStr(t.AppDateFrom),
+      parseToDateStr(t.devideDate),
+    ].filter((d): d is string => Boolean(d));
+
+    if (candidateDates.length === 0) return true;
+    return candidateDates.some((d) => {
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      return true;
+    });
   };
 
   // Preset helpers for date filter
@@ -260,7 +391,7 @@ export const VTTechCRMView: React.FC = () => {
   };
 
   const setPresetToday = () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getVietnamTodayStr();
     setDateFrom(today);
     setDateTo(today);
   };
@@ -281,7 +412,7 @@ export const VTTechCRMView: React.FC = () => {
 
   // Scope Counts for quick switch tabs
   const scopeCounts = useMemo(() => {
-    const web = tickets.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB').length;
+    const web = tickets.filter((t) => isWebSource(t.SourceName)).length;
     const gclid = tickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
     return {
       web,
@@ -293,7 +424,7 @@ export const VTTechCRMView: React.FC = () => {
   // Available sources matching the current channelScope
   const scopedAvailableSources = useMemo(() => {
     if (channelScope === 'web') {
-      return availableSources.filter((s) => s === 'OL WB' || s === 'HL WB');
+      return availableSources.filter(isWebSource);
     }
     return availableSources;
   }, [channelScope, availableSources]);
@@ -314,7 +445,7 @@ export const VTTechCRMView: React.FC = () => {
       let matchScope = true;
       if (channelScope === 'web') {
         if (selectedSource === 'all') {
-          matchScope = t.SourceName === 'OL WB' || t.SourceName === 'HL WB';
+          matchScope = isWebSource(t.SourceName);
         } else {
           matchScope = t.SourceName === selectedSource;
         }
@@ -332,15 +463,8 @@ export const VTTechCRMView: React.FC = () => {
 
       const matchStatus = selectedStatus === 'all' || t.StatusName === selectedStatus;
 
-      // Only filter by date if user explicitly chose dateFrom or dateTo
-      let matchDate = true;
-      if (dateFrom || dateTo) {
-        const ticketDate = getTicketDate(t);
-        if (ticketDate) {
-          if (dateFrom && ticketDate < dateFrom) matchDate = false;
-          if (dateTo && ticketDate > dateTo) matchDate = false;
-        }
-      }
+      // Filter by date matching any relevant ticket date
+      const matchDate = ticketMatchesDate(t, dateFrom, dateTo);
 
       return matchSearch && matchScope && matchStatus && matchDate;
     });
@@ -353,7 +477,7 @@ export const VTTechCRMView: React.FC = () => {
       let matchScope = true;
       if (channelScope === 'web') {
         if (selectedSource === 'all') {
-          matchScope = t.SourceName === 'OL WB' || t.SourceName === 'HL WB';
+          matchScope = isWebSource(t.SourceName);
         } else {
           matchScope = t.SourceName === selectedSource;
         }
@@ -369,14 +493,7 @@ export const VTTechCRMView: React.FC = () => {
         }
       }
 
-      let matchDate = true;
-      if (dateFrom || dateTo) {
-        const ticketDate = getTicketDate(t);
-        if (ticketDate) {
-          if (dateFrom && ticketDate < dateFrom) matchDate = false;
-          if (dateTo && ticketDate > dateTo) matchDate = false;
-        }
-      }
+      const matchDate = ticketMatchesDate(t, dateFrom, dateTo);
 
       return matchScope && matchDate;
     });
@@ -385,6 +502,26 @@ export const VTTechCRMView: React.FC = () => {
   // Key KPI metrics reflecting the selected source & date
   const kpis = useMemo(() => {
     const total = kpiTickets.length;
+
+    // Hotline Web tickets (HL WB) in current date scope
+    const hotlineWebTickets = tickets.filter((t) => {
+      const matchSource = t.SourceName === 'HL WB';
+      const matchScope = channelScope === 'gclid' ? Boolean(t.Gclid && t.Gclid.length > 5) : true;
+      const matchDate = ticketMatchesDate(t, dateFrom, dateTo);
+      return matchSource && matchScope && matchDate;
+    });
+    const hotlineWeb = hotlineWebTickets.length;
+
+    // Total web tickets in current date scope for percentage
+    const webTotalTickets = tickets.filter((t) => {
+      const matchSource = isWebSource(t.SourceName);
+      const matchScope = channelScope === 'gclid' ? Boolean(t.Gclid && t.Gclid.length > 5) : true;
+      const matchDate = ticketMatchesDate(t, dateFrom, dateTo);
+      return matchSource && matchScope && matchDate;
+    });
+    const webTotal = webTotalTickets.length;
+    const hotlineRate = webTotal > 0 ? Math.round((hotlineWeb / webTotal) * 100) : 0;
+
     const booked = kpiTickets.filter((t) => t.IsBook === 1 || (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))).length;
     const hasGclid = kpiTickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
     const isNew = kpiTickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('mới')).length;
@@ -392,13 +529,16 @@ export const VTTechCRMView: React.FC = () => {
 
     return {
       total,
+      hotlineWeb,
+      webTotal,
+      hotlineRate,
       booked,
       bookedRate: total > 0 ? Math.round((booked / total) * 100) : 0,
       hasGclid,
       isNew,
       arrived,
     };
-  }, [kpiTickets]);
+  }, [tickets, kpiTickets, channelScope, dateFrom, dateTo]);
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -483,9 +623,9 @@ export const VTTechCRMView: React.FC = () => {
           </div>
         </div>
 
-        {/* Sync Status Info */}
-        <div className="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-          <div className="flex items-center gap-4">
+        {/* Sync Status Info & Real-time Bar */}
+        <div className="mt-4 pt-4 border-t border-slate-700/50 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="flex flex-wrap items-center gap-4">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Máy chủ VTTech: <strong className="text-slate-200">nktamduc.vttechsolution.com</strong>
@@ -493,15 +633,106 @@ export const VTTechCRMView: React.FC = () => {
             <span>
               Người thao tác: <strong className="text-slate-200">Văn Đức (ID: 1412)</strong>
             </span>
+            {lastSyncTime && (
+              <span className="flex items-center gap-1 text-slate-400">
+                <Clock className="w-3.5 h-3.5 text-slate-500" />
+                Lần đồng bộ gần nhất: <strong className="text-slate-300">{new Date(lastSyncTime).toLocaleTimeString('vi-VN')}</strong>
+              </span>
+            )}
           </div>
-          {lastSyncTime && (
-            <span className="flex items-center gap-1 text-slate-400">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              Lần đồng bộ gần nhất: <strong className="text-slate-300">{new Date(lastSyncTime).toLocaleString('vi-VN')}</strong>
-            </span>
-          )}
+
+          {/* Real-time Widget Controls */}
+          <div className="flex flex-wrap items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800">
+            {/* Real-time status toggle */}
+            <button
+              onClick={() => setIsRealTimeEnabled(!isRealTimeEnabled)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
+                isRealTimeEnabled
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30'
+                  : 'bg-slate-800 text-slate-400 border border-slate-700 hover:text-slate-200'
+              }`}
+              title={isRealTimeEnabled ? 'Bấm để tạm dừng chế độ Real-time' : 'Bấm để bật chế độ Real-time'}
+            >
+              <Zap className={`w-3.5 h-3.5 ${isRealTimeEnabled ? 'text-emerald-400 animate-pulse' : 'text-slate-500'}`} />
+              <span>Real-time: {isRealTimeEnabled ? 'BẬT' : 'TẮT'}</span>
+            </button>
+
+            {isRealTimeEnabled && (
+              <>
+                <span className="text-slate-600">|</span>
+
+                {/* Background sync indicator or countdown */}
+                {isBackgroundSyncing ? (
+                  <span className="flex items-center gap-1.5 text-amber-300 font-medium animate-pulse">
+                    <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />
+                    <span>Đang quét CRM...</span>
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 text-slate-300">
+                    <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+                    <span>Quét sau: <strong className="text-emerald-400 font-mono">{countdown}s</strong></span>
+                  </span>
+                )}
+
+                <span className="text-slate-600">|</span>
+
+                {/* Interval select buttons */}
+                <div className="flex items-center gap-1">
+                  {[
+                    { label: '30s', val: 30 },
+                    { label: '1p', val: 60 },
+                    { label: '2p', val: 120 },
+                  ].map((it) => (
+                    <button
+                      key={it.val}
+                      onClick={() => handleChangeInterval(it.val)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all ${
+                        syncIntervalSeconds === it.val
+                          ? 'bg-orange-500 text-white font-bold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                      }`}
+                    >
+                      {it.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Real-time New Ticket Alert Notification */}
+      {newTicketAlert && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-cyan-600/20 border border-emerald-500/40 flex items-center justify-between gap-3 text-emerald-200 text-sm shadow-lg shadow-emerald-950/40">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+              <BellRing className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="font-bold text-white flex items-center gap-2">
+                <span>⚡ Real-time: {newTicketAlert.message}</span>
+                {newTicketAlert.webCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500 text-slate-950 font-black tracking-wider uppercase">
+                    Kênh Website
+                  </span>
+                )}
+              </div>
+              {newTicketAlert.ticket && (
+                <div className="text-xs text-emerald-300/90 mt-0.5">
+                  Khách: <strong>{newTicketAlert.ticket.TicketName || 'Khách hàng'}</strong> | SĐT: {newTicketAlert.ticket.Phone || '---'} | Nguồn: <span className="font-semibold text-white">{newTicketAlert.ticket.SourceName}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => setNewTicketAlert(null)}
+            className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 text-xs font-medium border border-emerald-500/30 shrink-0 cursor-pointer"
+          >
+            Đã xem
+          </button>
+        </div>
+      )}
 
       {/* Alert Banners */}
       {errorMessage && (
@@ -594,23 +825,30 @@ export const VTTechCRMView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
+        {/* Card 1: Tổng Quan */}
+        <div 
+          onClick={() => {
+            if (selectedSource !== 'all') {
+              setSelectedSource('all');
+            }
+          }}
+          className={`bg-slate-900/60 border rounded-xl p-4 shadow-sm transition-all cursor-pointer hover:border-orange-500/50 group ${
+            selectedSource === 'all'
+              ? 'border-orange-500/50 ring-1 ring-orange-500/30'
+              : 'border-slate-800 hover:border-slate-700'
+          }`}
+          title="Bấm để xem toàn bộ danh sách"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span className="font-semibold text-slate-300 truncate max-w-[140px]">
-              {selectedSource !== 'all'
-                ? `Vé (${selectedSource})`
-                : channelScope === 'web'
-                ? 'Vé Kênh Website'
-                : channelScope === 'gclid'
-                ? 'Vé Google Ads (GCLID)'
-                : 'Tổng Vé Marketing'}
+            <span className="font-semibold text-slate-200 group-hover:text-white transition-colors truncate max-w-[140px]">
+              Tổng Quan
             </span>
-            <Database className="w-4 h-4 text-orange-400 shrink-0" />
+            <Database className="w-4 h-4 text-orange-400 shrink-0 group-hover:scale-110 transition-transform" />
           </div>
           <div className="text-2xl font-bold text-white">{kpis.total.toLocaleString()}</div>
           <div className="text-[11px] text-slate-400 mt-1 truncate">
             {selectedSource !== 'all'
-              ? `Nguồn: ${selectedSource}`
+              ? `Đang lọc: ${selectedSource}`
               : channelScope === 'web'
               ? 'Tổng hợp OL WB & HL WB'
               : channelScope === 'gclid'
@@ -619,18 +857,27 @@ export const VTTechCRMView: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 shadow-sm transition-all hover:border-slate-700">
+        {/* Card 2: Hotline Web */}
+        <div 
+          onClick={() => {
+            setSelectedSource((prev) => (prev === 'HL WB' ? 'all' : 'HL WB'));
+          }}
+          className={`bg-slate-900/60 border rounded-xl p-4 shadow-sm transition-all cursor-pointer group ${
+            selectedSource === 'HL WB'
+              ? 'border-sky-500/60 bg-sky-950/30 ring-1 ring-sky-500/50'
+              : 'border-slate-800 hover:border-sky-500/50'
+          }`}
+          title="Bấm để lọc riêng Hotline Web (HL WB)"
+        >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
-            <span>Data Mới Tiếp Nhận</span>
-            <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+            <span className="font-semibold text-sky-300 group-hover:text-sky-200 transition-colors">Hotline Web</span>
+            <Phone className="w-4 h-4 text-sky-400 shrink-0 group-hover:scale-110 transition-transform" />
           </div>
-          <div className="text-2xl font-bold text-cyan-400">{kpis.isNew.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-sky-400">{kpis.hotlineWeb.toLocaleString()}</div>
           <div className="text-[11px] text-slate-400 mt-1 truncate">
-            {selectedSource !== 'all'
-              ? `Mới từ ${selectedSource}`
-              : channelScope === 'web'
-              ? 'Mới từ Website'
-              : 'Cần gọi xử lý ngay'}
+            {selectedSource === 'HL WB'
+              ? 'Đang lọc riêng Hotline Web'
+              : `Nguồn HL WB (${kpis.hotlineRate}% vé Web)`}
           </div>
         </div>
 
@@ -783,9 +1030,21 @@ export const VTTechCRMView: React.FC = () => {
             
             {/* Active Time Badge */}
             {!dateFrom && !dateTo ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-medium">
                 Toàn thời gian (Tất cả)
+              </span>
+            ) : dateFrom === dateTo && dateFrom === getVietnamTodayStr() ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Hôm nay ({dateFrom.split('-').reverse().join('/')})</span>
+                <button
+                  type="button"
+                  onClick={setAllTime}
+                  title="Xóa bộ lọc để xem toàn thời gian"
+                  className="hover:text-white font-bold text-xs ml-0.5"
+                >
+                  &times;
+                </button>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/30 text-[11px] font-medium">
@@ -834,7 +1093,7 @@ export const VTTechCRMView: React.FC = () => {
                 type="button"
                 onClick={setPresetToday}
                 className={`px-2 py-1 rounded-md font-medium transition-colors ${
-                  dateFrom === dateTo && dateFrom === new Date().toISOString().slice(0, 10)
+                  dateFrom === dateTo && dateFrom === getVietnamTodayStr()
                     ? 'bg-orange-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
@@ -1028,8 +1287,8 @@ export const VTTechCRMView: React.FC = () => {
                       </td>
 
                       {/* Created Time */}
-                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-400">
-                        {t.Created ? new Date(t.Created).toLocaleDateString('vi-VN') : '—'}
+                      <td className="px-4 py-3.5 whitespace-nowrap text-xs text-slate-300 font-mono">
+                        {formatTicketDateTime(t.Created)}
                       </td>
 
                       {/* Action */}
