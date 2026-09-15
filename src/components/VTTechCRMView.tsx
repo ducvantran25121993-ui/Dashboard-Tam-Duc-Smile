@@ -1569,12 +1569,9 @@ export const VTTechCRMView: React.FC = () => {
                 : 'bg-slate-950/70 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            {channelScope === 'web'
-              ? `Tất cả Web (${scopeCounts.web})`
-              : `Tất cả (${channelScope === 'gclid' ? scopeCounts.gclid : tickets.length})`}
+            {channelScope === 'web' ? 'Tất cả Web' : 'Tất cả'}
           </button>
           {scopedAvailableSources.map((src) => {
-            const count = sourceStats[src] || 0;
             const isSelected = selectedSource === src;
             return (
               <button
@@ -1589,13 +1586,6 @@ export const VTTechCRMView: React.FC = () => {
                 }`}
               >
                 <span>{src}</span>
-                <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isSelected ? 'bg-white/25 text-white' : 'bg-slate-950/60 text-slate-300'
-                  }`}
-                >
-                  {count}
-                </span>
               </button>
             );
           })}
@@ -1698,7 +1688,7 @@ export const VTTechCRMView: React.FC = () => {
                 }`}
                 title="Xem vé ngày hôm nay"
               >
-                Hôm nay ({todayTicketCount})
+                Hôm nay
               </button>
               <button
                 type="button"
@@ -1735,7 +1725,7 @@ export const VTTechCRMView: React.FC = () => {
                 }`}
                 title="Xem toàn bộ dữ liệu CRM"
               >
-                Toàn bộ ({tickets.length.toLocaleString()})
+                Toàn bộ
               </button>
             </div>
 
