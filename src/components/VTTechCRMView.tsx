@@ -37,6 +37,8 @@ import {
   Radio,
   Play,
   Pause,
+  ChevronLeft,
+  BarChart3,
 } from 'lucide-react';
 import { VTTechTicket } from '../types/vttech';
 import {
@@ -58,6 +60,73 @@ const getVietnamTodayStr = (): string => {
   return `${year}-${month}-${day}`;
 };
 
+// Shift date string (YYYY-MM-DD) by delta days
+const shiftDateStr = (dateStr: string, deltaDays: number): string => {
+  if (!dateStr) return getVietnamTodayStr();
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + deltaDays);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Get yesterday's date in YYYY-MM-DD (Vietnam time GMT+7)
+const getYesterdayStr = (): string => {
+  return shiftDateStr(getVietnamTodayStr(), -1);
+};
+
+// Vietnamese day of the week
+const getDayOfWeekVN = (dateStr: string): string => {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  return days[date.getDay()] || '';
+};
+
+// Interface for Daily Breakdown Summary
+interface DailySummary {
+  date: string;
+  formattedDate: string;
+  dayOfWeek: string;
+  total: number;
+  webTotal: number;
+  onlineWeb: number;
+  hotlineWeb: number;
+  booked: number;
+  bookedRate: number;
+  arrived: number;
+  arrivedRate: number;
+  gclidCount: number;
+}
+
+// Helper to extract comparable date (YYYY-MM-DD) from date string
+const parseToDateStr = (raw?: string | null): string | null => {
+  if (!raw || raw.startsWith('1900')) return null;
+  const clean = raw.trim();
+  const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  const vnMatch = clean.match(/(\d{2})[/-](\d{2})[/-](\d{4})/);
+  if (vnMatch) return `${vnMatch[3]}-${vnMatch[2]}-${vnMatch[1]}`;
+  return null;
+};
+
+// Helper to check if a source belongs to Web channels
+const isWebSource = (source?: string): boolean => {
+  return source === 'OL WB' || source === 'HL WB' || source === 'KC WB';
+};
+
+// Helper to get newest date with tickets based on Created date (Ngày tạo)
+const getLatestDateFromTickets = (list: VTTechTicket[]): string => {
+  for (const t of list) {
+    const d = parseToDateStr(t.Created);
+    if (d) return d;
+  }
+  return getVietnamTodayStr();
+};
+
 export const VTTechCRMView: React.FC = () => {
   const [tickets, setTickets] = useState<VTTechTicket[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -66,13 +135,16 @@ export const VTTechCRMView: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
 
+  // Primary View Mode: Danh Sách Ticket Theo Ngày vs Báo Cáo Thống Kê Theo Ngày
+  const [mainViewMode, setMainViewMode] = useState<'tickets' | 'daily_report'>('tickets');
+
   // Search & Filter state
   const [channelScope, setChannelScope] = useState<'web' | 'all' | 'gclid'>('web');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  // Default to Today ("Hôm nay") when entering the app
+  // Default to today view so user immediately sees real-time stats for today
   const [dateFrom, setDateFrom] = useState<string>(() => getVietnamTodayStr());
   const [dateTo, setDateTo] = useState<string>(() => getVietnamTodayStr());
 
@@ -119,6 +191,9 @@ export const VTTechCRMView: React.FC = () => {
       if (cacheRes.data && cacheRes.data.length > 0) {
         setTickets(cacheRes.data);
         setLastSyncTime(cacheRes.cachedAt);
+
+        // Keep all-time view on initial load so user immediately sees all 3,051 tickets & 1,294 web tickets
+        // User can click any day preset anytime
       } else {
         // Auto-sync if cache is empty
         handleSync();
@@ -217,6 +292,13 @@ export const VTTechCRMView: React.FC = () => {
     }
 
     const timer = setInterval(() => {
+      // Tự động cập nhật theo ngày mới khi bước sang ngày mới theo giờ Việt Nam
+      const todayStr = getVietnamTodayStr();
+      if (dateFrom && dateTo && dateFrom === dateTo && dateFrom !== todayStr) {
+        setDateFrom(todayStr);
+        setDateTo(todayStr);
+      }
+
       setCountdown((prev) => {
         if (prev <= 1) {
           triggerBackgroundSync();
@@ -334,24 +416,6 @@ export const VTTechCRMView: React.FC = () => {
     }
   };
 
-  // Helper to check if a source belongs to Web channels
-  const isWebSource = (source?: string): boolean => {
-    return source === 'OL WB' || source === 'HL WB' || source === 'KC WB';
-  };
-
-  // Helper to extract comparable date (YYYY-MM-DD) from date string
-  const parseToDateStr = (raw?: string | null): string | null => {
-    if (!raw || raw.startsWith('1900')) return null;
-    const clean = raw.trim();
-    // ISO format: 2026-09-14...
-    const isoMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-    // Vietnamese format: 14-09-2026 or 13:25 14-09-2026
-    const vnMatch = clean.match(/(\d{2})-(\d{2})-(\d{4})/);
-    if (vnMatch) return `${vnMatch[3]}-${vnMatch[2]}-${vnMatch[1]}`;
-    return null;
-  };
-
   // Format date time for display (e.g., 13:25 14/09/2026)
   const formatTicketDateTime = (raw?: string | null): string => {
     if (!raw || raw.startsWith('1900')) return '—';
@@ -370,25 +434,93 @@ export const VTTechCRMView: React.FC = () => {
   // Check if ticket matches date range - strictly follows Created date (Ngày tạo) for accuracy
   const ticketMatchesDate = (t: VTTechTicket, from: string, to: string): boolean => {
     if (!from && !to) return true;
-    // Lấy chuẩn theo Ngày Tạo (Created) của Ticket
-    const createdDate = parseToDateStr(t.Created) || parseToDateStr(t.ExecutedDate);
-    if (!createdDate) return true;
+    // Lấy chuẩn 100% theo Ngày Tạo (Created) của Ticket
+    const createdDate = parseToDateStr(t.Created);
+    if (!createdDate) return false;
 
     if (from && createdDate < from) return false;
     if (to && createdDate > to) return false;
     return true;
   };
 
-  // Preset helpers for date filter
-  const setAllTime = () => {
-    setDateFrom('');
-    setDateTo('');
+  // Latest available date that contains tickets
+  const latestAvailableDate = useMemo(() => {
+    return getLatestDateFromTickets(tickets);
+  }, [tickets]);
+
+  // Ticket count for today
+  const todayTicketCount = useMemo(() => {
+    const today = getVietnamTodayStr();
+    return tickets.filter((t) => ticketMatchesDate(t, today, today)).length;
+  }, [tickets]);
+
+  // Ticket count for the latest available date
+  const latestDayTicketCount = useMemo(() => {
+    if (!latestAvailableDate) return 0;
+    return tickets.filter((t) => ticketMatchesDate(t, latestAvailableDate, latestAvailableDate)).length;
+  }, [tickets, latestAvailableDate]);
+
+  // Global All-Time CRM stats for always-available context
+  const allTimeStats = useMemo(() => {
+    const web = tickets.filter((t) => isWebSource(t.SourceName)).length;
+    const onlineWeb = tickets.filter((t) => t.SourceName === 'OL WB').length;
+    const hotlineWeb = tickets.filter((t) => t.SourceName === 'HL WB').length;
+    const booked = tickets.filter((t) => 
+      (t.IsBook && t.IsBook > 0) || 
+      (t.AppDateFrom && !t.AppDateFrom.startsWith('1900')) || 
+      (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))
+    ).length;
+    const arrived = tickets.filter((t) => 
+      (t.StatusName && t.StatusName.toLowerCase().includes('đến')) ||
+      (t.TypeStatusScheduleID !== undefined && [2, 3, 4].includes(t.TypeStatusScheduleID))
+    ).length;
+    const gclid = tickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
+    return {
+      total: tickets.length,
+      web,
+      onlineWeb,
+      hotlineWeb,
+      booked,
+      arrived,
+      gclid,
+    };
+  }, [tickets]);
+
+  // Daily Navigation & Presets
+  const goToPrevDay = () => {
+    const current = (dateFrom && dateFrom === dateTo) ? dateFrom : (dateFrom || dateTo || latestAvailableDate || getVietnamTodayStr());
+    const prev = shiftDateStr(current, -1);
+    setDateFrom(prev);
+    setDateTo(prev);
+  };
+
+  const goToNextDay = () => {
+    const current = (dateFrom && dateFrom === dateTo) ? dateFrom : (dateFrom || dateTo || latestAvailableDate || getVietnamTodayStr());
+    const next = shiftDateStr(current, 1);
+    setDateFrom(next);
+    setDateTo(next);
   };
 
   const setPresetToday = () => {
     const today = getVietnamTodayStr();
     setDateFrom(today);
     setDateTo(today);
+  };
+
+  const setPresetYesterday = () => {
+    const yesterday = getYesterdayStr();
+    setDateFrom(yesterday);
+    setDateTo(yesterday);
+  };
+
+  const setPresetSpecificDay = (dateStr: string) => {
+    setDateFrom(dateStr);
+    setDateTo(dateStr);
+  };
+
+  const setAllTime = () => {
+    setDateFrom('');
+    setDateTo('');
   };
 
   const setPresetLast7Days = () => {
@@ -404,6 +536,83 @@ export const VTTechCRMView: React.FC = () => {
     setDateFrom(firstDay.toISOString().slice(0, 10));
     setDateTo(now.toISOString().slice(0, 10));
   };
+
+  // Aggregated Daily Statistics across all dates for the "Báo Cáo Theo Ngày" view
+  const dailySummaries = useMemo<DailySummary[]>(() => {
+    const dayMap = new Map<string, {
+      date: string;
+      total: number;
+      webTotal: number;
+      onlineWeb: number;
+      hotlineWeb: number;
+      booked: number;
+      arrived: number;
+      gclidCount: number;
+    }>();
+
+    tickets.forEach((t) => {
+      if (selectedBranch !== 'all' && t.AppBranch !== selectedBranch) return;
+      if (channelScope === 'web' && !isWebSource(t.SourceName)) return;
+      if (channelScope === 'gclid' && (!t.Gclid || t.Gclid.length <= 5)) return;
+
+      const dt = parseToDateStr(t.Created);
+      if (!dt) return;
+
+      if (!dayMap.has(dt)) {
+        dayMap.set(dt, {
+          date: dt,
+          total: 0,
+          webTotal: 0,
+          onlineWeb: 0,
+          hotlineWeb: 0,
+          booked: 0,
+          arrived: 0,
+          gclidCount: 0,
+        });
+      }
+
+      const stat = dayMap.get(dt)!;
+      stat.total++;
+      if (isWebSource(t.SourceName)) stat.webTotal++;
+      if (t.SourceName === 'OL WB') stat.onlineWeb++;
+      if (t.SourceName === 'HL WB') stat.hotlineWeb++;
+
+      if (
+        (t.IsBook && t.IsBook > 0) ||
+        (t.AppDateFrom && !t.AppDateFrom.startsWith('1900')) ||
+        (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))
+      ) {
+        stat.booked++;
+      }
+
+      if (
+        (t.StatusName && t.StatusName.toLowerCase().includes('đến')) ||
+        (t.TypeStatusScheduleID !== undefined && [2, 3, 4].includes(t.TypeStatusScheduleID))
+      ) {
+        stat.arrived++;
+      }
+
+      if (t.Gclid && t.Gclid.length > 5) {
+        stat.gclidCount++;
+      }
+    });
+
+    const sortedList = Array.from(dayMap.values()).sort((a, b) => b.date.localeCompare(a.date));
+
+    return sortedList.map((s) => {
+      const bookedRate = s.total > 0 ? Math.round((s.booked / s.total) * 100) : 0;
+      const arrivedRate = s.booked > 0 ? Math.round((s.arrived / s.booked) * 100) : 0;
+      const parts = s.date.split('-');
+      const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return {
+        ...s,
+        formattedDate,
+        dayOfWeek: getDayOfWeekVN(s.date),
+        bookedRate,
+        arrivedRate,
+      };
+    });
+  }, [tickets, channelScope, selectedBranch]);
 
   // Scope Counts for quick switch tabs
   const scopeCounts = useMemo(() => {
@@ -425,8 +634,14 @@ export const VTTechCRMView: React.FC = () => {
     if (channelScope === 'web') {
       return availableSources.filter(isWebSource);
     }
+    if (channelScope === 'gclid') {
+      const gclidSources = new Set(
+        tickets.filter((t) => t.Gclid && t.Gclid.length > 5 && t.SourceName).map((t) => t.SourceName.trim())
+      );
+      return availableSources.filter((src) => gclidSources.has(src));
+    }
     return availableSources;
-  }, [channelScope, availableSources]);
+  }, [channelScope, availableSources, tickets]);
 
   // Filtered tickets
   const filteredTickets = useMemo(() => {
@@ -531,10 +746,18 @@ export const VTTechCRMView: React.FC = () => {
     const onlineRate = webTotal > 0 ? Math.round((onlineWeb / webTotal) * 100) : 0;
     const hotlineRate = webTotal > 0 ? Math.round((hotlineWeb / webTotal) * 100) : 0;
 
-    const booked = kpiTickets.filter((t) => t.IsBook === 1 || (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))).length;
+    const booked = kpiTickets.filter((t) => 
+      (t.IsBook && t.IsBook > 0) || 
+      (t.AppDateFrom && !t.AppDateFrom.startsWith('1900')) || 
+      (t.StatusName && t.StatusName.toLowerCase().includes('lịch hẹn'))
+    ).length;
     const hasGclid = kpiTickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
     const isNew = kpiTickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('mới')).length;
-    const arrived = kpiTickets.filter((t) => t.StatusName && t.StatusName.toLowerCase().includes('đến')).length;
+    const arrived = kpiTickets.filter((t) => 
+      (t.StatusName && t.StatusName.toLowerCase().includes('đến')) ||
+      (t.ExecuteStatus && t.ExecuteStatus.toLowerCase().includes('đến')) ||
+      (t.TypeStatusScheduleID !== undefined && [2, 3, 4].includes(t.TypeStatusScheduleID))
+    ).length;
 
     return {
       total,
@@ -815,9 +1038,51 @@ export const VTTechCRMView: React.FC = () => {
         </div>
       </div>
 
+      {/* Global CRM Data Reference Strip */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 text-slate-300">
+          <span className="flex items-center gap-1.5 font-semibold text-white">
+            <Database className="w-3.5 h-3.5 text-orange-400" />
+            Tổng Dữ Liệu CRM: <strong className="text-orange-400 font-bold">{allTimeStats.total.toLocaleString()} Ticket</strong>
+          </span>
+          <span className="text-slate-600 hidden sm:inline">•</span>
+          <span className="text-slate-300">
+            Kênh Website: <strong className="text-emerald-400 font-semibold">{allTimeStats.web.toLocaleString()}</strong> ({allTimeStats.onlineWeb.toLocaleString()} OL WB + {allTimeStats.hotlineWeb.toLocaleString()} HL WB)
+          </span>
+          <span className="text-slate-600 hidden sm:inline">•</span>
+          <span className="text-slate-300">
+            Đã đặt hẹn: <strong className="text-emerald-400 font-semibold">{allTimeStats.booked.toLocaleString()}</strong>
+          </span>
+          <span className="text-slate-600 hidden md:inline">•</span>
+          <span className="text-slate-300 hidden md:inline">
+            Đã đến khám: <strong className="text-purple-400 font-semibold">{allTimeStats.arrived.toLocaleString()}</strong>
+          </span>
+          <span className="text-slate-600 hidden lg:inline">•</span>
+          <span className="text-slate-300 hidden lg:inline">
+            Google Ads GCLID: <strong className="text-amber-400 font-semibold">{allTimeStats.gclid.toLocaleString()}</strong>
+          </span>
+        </div>
+
+        {(!dateFrom && !dateTo) ? (
+          <span className="text-[11px] text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Đang hiển thị toàn thời gian ({allTimeStats.total.toLocaleString()} vé)
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={setAllTime}
+            className="text-[11px] text-orange-400 hover:text-orange-300 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+          >
+            <span>Bấm xem toàn bộ {allTimeStats.total.toLocaleString()} vé CRM</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {/* Card 1: Đặt Hẹn (Đổi từ Tổng Quan theo yêu cầu) */}
+        {/* Card 1: Tổng Ticket */}
         <div 
           onClick={() => {
             if (selectedSource !== 'all') {
@@ -829,20 +1094,26 @@ export const VTTechCRMView: React.FC = () => {
               ? 'border-emerald-500/50 ring-1 ring-emerald-500/30'
               : 'border-slate-800 hover:border-slate-700'
           }`}
-          title="Bấm để xem toàn bộ danh sách khách đặt hẹn"
+          title="Bấm để xem toàn bộ danh sách ticket"
         >
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1">
             <span className="font-semibold text-emerald-300 group-hover:text-emerald-200 transition-colors truncate max-w-[140px]">
-              Đặt Hẹn
+              {channelScope === 'web'
+                ? 'Tổng Ticket Web'
+                : channelScope === 'gclid'
+                ? 'Tổng Ticket Google Ads'
+                : 'Tổng Ticket CRM'}
             </span>
-            <CalendarCheck className="w-4 h-4 text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
+            <Ticket className="w-4 h-4 text-emerald-400 shrink-0 group-hover:scale-110 transition-transform" />
           </div>
-          <div className="text-2xl font-bold text-white">{kpis.total.toLocaleString()}</div>
+          <div className="text-2xl font-bold text-white flex items-baseline gap-2">
+            <span>{kpis.total.toLocaleString()}</span>
+          </div>
           <div className="text-[11px] text-slate-400 mt-1 truncate">
             {selectedSource !== 'all'
               ? `Đang lọc: ${selectedSource}`
               : channelScope === 'web'
-              ? 'Tổng hợp OL WB & HL WB'
+              ? `${kpis.onlineWeb.toLocaleString()} OL WB • ${kpis.hotlineWeb.toLocaleString()} HL WB`
               : channelScope === 'gclid'
               ? 'Có mã đối soát chuyển đổi'
               : 'Dữ liệu toàn bộ nguồn'}
@@ -904,7 +1175,9 @@ export const VTTechCRMView: React.FC = () => {
             <Calendar className="w-4 h-4 text-emerald-400 shrink-0" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">{kpis.booked.toLocaleString()}</div>
-          <div className="text-[11px] text-emerald-400/90 mt-1 font-medium">Tỷ lệ đặt: {kpis.bookedRate}%</div>
+          <div className="text-[11px] text-emerald-400/90 mt-1 font-medium">
+            Tỷ lệ đặt: {kpis.bookedRate}%
+          </div>
         </div>
 
         {/* Card 5: Đã Đến Khám */}
@@ -919,7 +1192,7 @@ export const VTTechCRMView: React.FC = () => {
               ? `Đến từ ${selectedSource}`
               : channelScope === 'web'
               ? 'Đến khám từ Website'
-              : 'Tại 17 cơ sở Tâm Đức'}
+              : 'Tại các cơ sở Tâm Đức'}
           </div>
         </div>
 
@@ -940,8 +1213,294 @@ export const VTTechCRMView: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
+      {/* Content View: Either Daily Report OR Ticket Table */}
+      {mainViewMode === 'daily_report' ? (
+        <div className="space-y-6">
+          {/* Daily Report KPI Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+              <span className="text-xs text-slate-400 font-medium">Số Ngày Ghi Nhận Vé</span>
+              <div className="text-2xl font-bold text-white flex items-baseline gap-2">
+                <span>{dailySummaries.length}</span>
+                <span className="text-xs text-slate-400 font-normal">ngày</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Toàn bộ chu kỳ lưu trữ trong CRM</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+              <span className="text-xs text-slate-400 font-medium">Ngày Cao Điểm Nhất</span>
+              <div className="text-2xl font-bold text-orange-400 flex items-baseline gap-2">
+                <span>{dailySummaries.length > 0 ? Math.max(...dailySummaries.map((d) => d.total)) : 0}</span>
+                <span className="text-xs text-slate-400 font-normal">ticket</span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                {dailySummaries.length > 0
+                  ? `Ngày ${dailySummaries.reduce((prev, curr) => (curr.total > prev.total ? curr : prev), dailySummaries[0]).formattedDate}`
+                  : '—'}
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+              <span className="text-xs text-slate-400 font-medium">Trung Bình Ticket / Ngày</span>
+              <div className="text-2xl font-bold text-emerald-400 flex items-baseline gap-2">
+                <span>
+                  {dailySummaries.length > 0
+                    ? Math.round(dailySummaries.reduce((sum, d) => sum + d.total, 0) / dailySummaries.length)
+                    : 0}
+                </span>
+                <span className="text-xs text-slate-400 font-normal">ticket/ngày</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Theo phạm vi kênh hiện tại</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-1">
+              <span className="text-xs text-slate-400 font-medium">Tỷ Lệ Đặt Hẹn Bình Quân</span>
+              <div className="text-2xl font-bold text-teal-400 flex items-baseline gap-2">
+                <span>
+                  {dailySummaries.length > 0
+                    ? Math.round(
+                        (dailySummaries.reduce((sum, d) => sum + d.booked, 0) /
+                          Math.max(1, dailySummaries.reduce((sum, d) => sum + d.total, 0))) *
+                          100
+                      )
+                    : 0}%
+                </span>
+                <span className="text-xs text-slate-400 font-normal">đã đặt hẹn</span>
+              </div>
+              <p className="text-[11px] text-slate-500">Trên tổng lượng khách tiếp nhận</p>
+            </div>
+          </div>
+
+          {/* Visual Trend Chart: 14 ngày gần nhất */}
+          {dailySummaries.length > 0 && (
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-orange-400" />
+                    <span>Biểu Đồ Lượng Ticket 14 Ngày Gần Nhất</span>
+                  </h3>
+                  <p className="text-xs text-slate-400">Bấm vào cột của bất kỳ ngày nào để xem danh sách chi tiết các vé</p>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <span className="flex items-center gap-1.5 text-slate-300">
+                    <span className="w-3 h-3 rounded bg-emerald-500 inline-block" />
+                    Kênh Website (OL WB + HL WB)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-slate-400">
+                    <span className="w-3 h-3 rounded bg-slate-700 inline-block" />
+                    Kênh Khác
+                  </span>
+                </div>
+              </div>
+
+              {/* Chart Bars */}
+              <div className="pt-6 pb-2 overflow-x-auto">
+                <div className="flex items-end gap-2 sm:gap-3 min-w-[650px] h-48 border-b border-slate-800 pb-2">
+                  {(() => {
+                    const recentDays = [...dailySummaries].slice(0, 14).reverse();
+                    const maxTotal = Math.max(...recentDays.map((d) => d.total), 1);
+
+                    return recentDays.map((d) => {
+                      const heightPercent = Math.max(12, Math.round((d.total / maxTotal) * 100));
+                      const webPercent = d.total > 0 ? Math.round((d.webTotal / d.total) * 100) : 0;
+                      const isToday = d.date === getVietnamTodayStr();
+                      const isYesterday = d.date === getYesterdayStr();
+
+                      return (
+                        <div
+                          key={d.date}
+                          onClick={() => {
+                            setPresetSpecificDay(d.date);
+                            setMainViewMode('tickets');
+                          }}
+                          className="flex-1 flex flex-col items-center gap-1.5 group cursor-pointer"
+                          title={`Ngày ${d.formattedDate}: ${d.total} vé (${d.webTotal} web, ${d.booked} hẹn). Bấm để xem.`}
+                        >
+                          <span className="text-[10px] font-bold text-slate-300 group-hover:text-orange-400 transition-colors">
+                            {d.total}
+                          </span>
+
+                          <div
+                            className="w-full bg-slate-800/80 rounded-t-lg overflow-hidden flex flex-col justify-end transition-all group-hover:ring-2 group-hover:ring-orange-400/50"
+                            style={{ height: `${heightPercent}%` }}
+                          >
+                            {/* Web portion */}
+                            <div
+                              className="w-full bg-emerald-500 group-hover:bg-emerald-400 transition-colors"
+                              style={{ height: `${webPercent}%` }}
+                            />
+                            {/* Other portion */}
+                            <div
+                              className="w-full bg-slate-700 group-hover:bg-slate-600 transition-colors"
+                              style={{ height: `${100 - webPercent}%` }}
+                            />
+                          </div>
+
+                          <div className="text-center">
+                            <span
+                              className={`block text-[10px] font-semibold ${
+                                isToday ? 'text-emerald-400' : isYesterday ? 'text-amber-400' : 'text-slate-400'
+                              }`}
+                            >
+                              {d.formattedDate.slice(0, 5)}
+                            </span>
+                            <span className="block text-[9px] text-slate-500">
+                              {d.dayOfWeek.replace('Thứ ', 'T')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Daily Table */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-white text-base">Bảng Tổng Hợp Chi Tiết Từng Ngày</h3>
+                <p className="text-xs text-slate-400">
+                  Thống kê đầy đủ số lượng tiếp nhận, kênh Website, tỷ lệ đặt lịch hẹn và tỷ lệ đến khám từng ngày
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMainViewMode('tickets')}
+                className="px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <Ticket className="w-3.5 h-3.5" />
+                <span>Xem Danh Sách Vé</span>
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-slate-300">
+                <thead className="bg-slate-950/90 text-xs uppercase text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3.5">Ngày</th>
+                    <th className="px-4 py-3.5">Thứ</th>
+                    <th className="px-4 py-3.5 text-center">Tổng Ticket</th>
+                    <th className="px-4 py-3.5">Kênh Website</th>
+                    <th className="px-4 py-3.5">Đã Đặt Lịch Hẹn</th>
+                    <th className="px-4 py-3.5">Đã Đến Khám</th>
+                    <th className="px-4 py-3.5 text-center">Google Ads (GCLID)</th>
+                    <th className="px-4 py-3.5 text-right">Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {dailySummaries.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
+                        Chưa có dữ liệu thống kê theo ngày.
+                      </td>
+                    </tr>
+                  )}
+
+                  {dailySummaries.map((day) => {
+                    const isToday = day.date === getVietnamTodayStr();
+                    const isYesterday = day.date === getYesterdayStr();
+
+                    return (
+                      <tr
+                        key={day.date}
+                        className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                        onClick={() => {
+                          setPresetSpecificDay(day.date);
+                          setMainViewMode('tickets');
+                        }}
+                      >
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">{day.formattedDate}</span>
+                            {isToday && (
+                              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                                Hôm nay
+                              </span>
+                            )}
+                            {isYesterday && (
+                              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                                Hôm qua
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap text-slate-400 text-xs">
+                          {day.dayOfWeek}
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap text-center">
+                          <span className="font-bold text-base text-white">{day.total}</span>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-emerald-400">{day.webTotal} vé</span>
+                              <span className="text-[11px] text-slate-500">
+                                ({day.total > 0 ? Math.round((day.webTotal / day.total) * 100) : 0}%)
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-400">
+                              OL: <strong className="text-slate-200">{day.onlineWeb}</strong> | HL: <strong className="text-slate-200">{day.hotlineWeb}</strong>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-teal-300">{day.booked}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-teal-500/10 text-teal-400 border border-teal-500/20 font-medium">
+                              {day.bookedRate}%
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-emerald-300">{day.arrived}</span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+                              {day.arrivedRate}% hẹn
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap text-center">
+                          <span className={`font-mono text-xs font-semibold ${day.gclidCount > 0 ? 'text-amber-400' : 'text-slate-600'}`}>
+                            {day.gclidCount}
+                          </span>
+                        </td>
+
+                        <td className="px-4 py-3.5 whitespace-nowrap text-right">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPresetSpecificDay(day.date);
+                              setMainViewMode('tickets');
+                            }}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-orange-600 hover:text-white text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            <span>Xem {day.total} vé</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Filter Toolbar */}
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-3">
         <div className="flex flex-col md:flex-row gap-3">
           {/* Search Box */}
           <div className="relative flex-1">
@@ -1095,43 +1654,88 @@ export const VTTechCRMView: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* Day Navigation Stepper */}
+            <div className="inline-flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button
+                type="button"
+                onClick={goToPrevDay}
+                title="Lùi 1 ngày"
+                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-1.5 px-2.5 text-xs font-semibold text-slate-200">
+                <Calendar className="w-3.5 h-3.5 text-orange-400" />
+                <span>
+                  {dateFrom && dateFrom === dateTo
+                    ? `${dateFrom.split('-').reverse().join('/')} (${getDayOfWeekVN(dateFrom)})`
+                    : dateFrom || dateTo
+                    ? `${dateFrom ? dateFrom.split('-').reverse().join('/') : '...'} - ${dateTo ? dateTo.split('-').reverse().join('/') : 'nay'}`
+                    : 'Toàn thời gian'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={goToNextDay}
+                title="Tiến 1 ngày"
+                className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Quick Presets */}
             <div className="inline-flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[11px]">
               <button
                 type="button"
-                onClick={setAllTime}
-                className={`px-2.5 py-1 rounded-md font-medium transition-colors ${
-                  !dateFrom && !dateTo
-                    ? 'bg-orange-600 text-white shadow-sm'
+                onClick={setPresetToday}
+                className={`px-3 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  dateFrom === dateTo && dateFrom === getVietnamTodayStr()
+                    ? 'bg-orange-600 text-white shadow-sm font-bold'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
+                title="Xem vé ngày hôm nay"
               >
-                Toàn thời gian
+                Hôm nay ({todayTicketCount})
               </button>
               <button
                 type="button"
-                onClick={setPresetToday}
-                className={`px-2 py-1 rounded-md font-medium transition-colors ${
-                  dateFrom === dateTo && dateFrom === getVietnamTodayStr()
-                    ? 'bg-orange-600 text-white shadow-sm'
+                onClick={setPresetYesterday}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  dateFrom === dateTo && dateFrom === getYesterdayStr()
+                    ? 'bg-orange-600 text-white shadow-sm font-bold'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                Hôm nay
+                Hôm qua
               </button>
               <button
                 type="button"
                 onClick={setPresetLast7Days}
-                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors"
+                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
               >
-                7 ngày qua
+                7 ngày
               </button>
               <button
                 type="button"
                 onClick={setPresetThisMonth}
-                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors"
+                className="px-2 py-1 rounded-md font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
               >
                 Tháng này
+              </button>
+              <button
+                type="button"
+                onClick={setAllTime}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  !dateFrom && !dateTo
+                    ? 'bg-orange-600 text-white shadow-sm font-bold'
+                    : 'text-emerald-400 hover:text-emerald-300 font-semibold'
+                }`}
+                title="Xem toàn bộ dữ liệu CRM"
+              >
+                Toàn bộ ({tickets.length.toLocaleString()})
               </button>
             </div>
 
@@ -1157,7 +1761,7 @@ export const VTTechCRMView: React.FC = () => {
                   type="button"
                   onClick={setAllTime}
                   title="Về toàn thời gian"
-                  className="text-slate-400 hover:text-white px-1 text-xs font-bold"
+                  className="text-slate-400 hover:text-white px-1 text-xs font-bold cursor-pointer"
                 >
                   &times;
                 </button>
@@ -1168,10 +1772,10 @@ export const VTTechCRMView: React.FC = () => {
               onClick={() => handleSync()}
               disabled={syncing}
               title={!dateFrom && !dateTo ? 'Tải lại toàn bộ dữ liệu từ VTTech' : 'Tải lại danh sách theo ngày đã chọn'}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-600/90 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg font-medium text-xs shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-600/90 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg font-medium text-xs shadow-sm transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-              <span>{!dateFrom && !dateTo ? 'Tải lại (Toàn bộ)' : 'Tải theo ngày'}</span>
+              <span>{!dateFrom && !dateTo ? 'Tải lại' : 'Tải ngày này'}</span>
             </button>
           </div>
         </div>
@@ -1208,13 +1812,71 @@ export const VTTechCRMView: React.FC = () => {
 
               {!loading && filteredTickets.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-slate-500">
-                    <div className="max-w-md mx-auto space-y-3">
-                      <Ticket className="w-12 h-12 text-slate-600 mx-auto" />
-                      <p className="text-slate-300 font-medium">Chưa có ticket nào phù hợp với bộ lọc</p>
-                      <p className="text-xs text-slate-500">
-                        Bấm nút <strong>"Đồng Bộ VTTech Ngay"</strong> ở trên để kéo dữ liệu mới nhất về.
-                      </p>
+                  <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
+                    <div className="max-w-xl mx-auto space-y-4">
+                      <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+                        <Calendar className="w-7 h-7" />
+                      </div>
+
+                      <div>
+                        <p className="text-slate-100 font-bold text-base sm:text-lg">
+                          Chưa có ticket nào phù hợp với bộ lọc hiện tại
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-lg mx-auto">
+                          Hệ thống CRM đang quản lý {tickets.length.toLocaleString()} ticket ({allTimeStats.web.toLocaleString()} vé Web). Bấm nút bên dưới để xem toàn bộ hoặc tải lại dữ liệu.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={setPresetToday}
+                          className="px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shadow-lg shadow-orange-600/30 transition-all cursor-pointer inline-flex items-center gap-2"
+                        >
+                          <Calendar className="w-4 h-4" />
+                          <span>Xem Hôm Nay ({todayTicketCount} vé)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={setAllTime}
+                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition-all cursor-pointer inline-flex items-center gap-2"
+                        >
+                          <Ticket className="w-4 h-4" />
+                          <span>Xem toàn bộ CRM ({tickets.length.toLocaleString()} ticket)</span>
+                        </button>
+                      </div>
+
+                      {/* Quick preview of latest available tickets */}
+                      {tickets.length > 0 && (
+                        <div className="mt-6 pt-4 border-t border-slate-800/80 text-left">
+                          <div className="flex items-center justify-between text-xs text-slate-400 mb-2 px-1">
+                            <span className="font-semibold text-slate-300">
+                              Vé mới nhất ghi nhận trong hệ thống CRM:
+                            </span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {tickets.slice(0, 3).map((t, idx) => (
+                              <div
+                                key={`empty-preview-${t.TicketID}-${idx}`}
+                                onClick={() => setSelectedTicket(t)}
+                                className="p-2 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 flex items-center justify-between gap-3 text-xs cursor-pointer transition-colors"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className="font-mono font-bold text-orange-400 shrink-0">#{t.TicketID}</span>
+                                  <span className="font-semibold text-white truncate">{t.TicketName || 'Khách hàng'}</span>
+                                  <span className={`px-2 py-0.5 rounded text-[10px] border ${getSourceBadgeColor(t.SourceName)} shrink-0`}>
+                                    {t.SourceName || 'Trực tiếp'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0 text-slate-400 font-mono text-[11px]">
+                                  <span>{formatTicketDateTime(t.Created)}</span>
+                                  <Eye className="w-3.5 h-3.5 text-slate-500 hover:text-white" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -1330,6 +1992,8 @@ export const VTTechCRMView: React.FC = () => {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {/* Ticket Detail Modal */}
       {selectedTicket && (

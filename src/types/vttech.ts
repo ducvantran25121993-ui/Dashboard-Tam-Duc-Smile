@@ -23,6 +23,7 @@ export interface VTTechTicket {
   Symbol?: string;
   Campaign?: string;
   IsExecuted?: number;
+  ExecuteStatus?: string;
   Gclid?: string;
   Gender_ID?: number;
   CityName?: string;

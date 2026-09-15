@@ -4927,8 +4927,8 @@ app.post('/api/vttech/import-curl', async (req, res) => {
 
 // Get cached tickets
 app.get('/api/vttech/tickets', (req, res) => {
-  // Ensure cache is loaded from disk if empty in memory
-  if (vttechCacheStore.data.length === 0 && fs.existsSync(VTTECH_CACHE_FILE)) {
+  // Always load latest cache from disk to ensure real-time today tickets are reflected
+  if (fs.existsSync(VTTECH_CACHE_FILE)) {
     try {
       const raw = fs.readFileSync(VTTECH_CACHE_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
