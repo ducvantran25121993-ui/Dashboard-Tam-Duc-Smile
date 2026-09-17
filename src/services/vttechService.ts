@@ -27,7 +27,11 @@ export async function fetchCachedVTTechTickets(): Promise<{ success: boolean; to
   try {
     const res = await fetch('/api/vttech/tickets');
     if (!res.ok) throw new Error('Không thể lấy danh sách vé từ cache');
-    return await res.json();
+    const json = await res.json();
+    if (typeof window !== 'undefined' && json.success) {
+      window.dispatchEvent(new CustomEvent('vttech-updated', { detail: json }));
+    }
+    return json;
   } catch (err: any) {
     return { success: false, total: 0, cachedAt: '', data: [] };
   }
@@ -44,7 +48,11 @@ export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: 
       const err = await res.json().catch(() => ({ error: `Lỗi máy chủ (${res.status})` }));
       throw new Error(err.error || err.details || 'Lỗi khi đồng bộ VTTech');
     }
-    return await res.json();
+    const json = await res.json();
+    if (typeof window !== 'undefined' && json.success) {
+      window.dispatchEvent(new CustomEvent('vttech-updated', { detail: json }));
+    }
+    return json;
   } catch (err: any) {
     return {
       success: false,
@@ -56,16 +64,103 @@ export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: 
   }
 }
 
-export async function importVTTechCurl(curlCommand: string): Promise<{ success: boolean; message?: string; error?: string }> {
+export function notifyVTTechUpdated(detail?: any) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('vttech-updated', { detail }));
+  }
+}
+
+export async function importVTTechCurl(curlCommand: string): Promise<{ success: boolean; message?: string; error?: string; liveConnected?: boolean }> {
   try {
     const res = await fetch('/api/vttech/import-curl', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ curlCommand }),
     });
-    return await res.json();
+    const json = await res.json();
+    if (typeof window !== 'undefined' && json.success) {
+      window.dispatchEvent(new CustomEvent('vttech-updated', { detail: json }));
+    }
+    return json;
   } catch (err: any) {
     return { success: false, error: err.message };
   }
 }
+
+export async function checkVTTechSession(): Promise<{
+  success: boolean;
+  isValid: boolean;
+  authExpired: boolean;
+  lastSyncTime: string | null;
+  totalCached: number;
+  todayTotal: number;
+  todayOL: number;
+  todayHL: number;
+  todayDate: string;
+  username?: string;
+  autoLoginEnabled?: boolean;
+  error?: string;
+}> {
+  try {
+    const res = await fetch('/api/vttech/check-session');
+    if (!res.ok) throw new Error('Không thể kiểm tra phiên VTTech');
+    return await res.json();
+  } catch (err: any) {
+    return {
+      success: false,
+      isValid: false,
+      authExpired: true,
+      lastSyncTime: null,
+      totalCached: 0,
+      todayTotal: 0,
+      todayOL: 0,
+      todayHL: 0,
+      todayDate: '',
+      error: err.message,
+    };
+  }
+}
+
+export async function importVTTechTickets(tickets: any[]): Promise<{ success: boolean; message?: string; total?: number; error?: string }> {
+  try {
+    const res = await fetch('/api/vttech/import-tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tickets }),
+    });
+    const json = await res.json();
+    if (typeof window !== 'undefined' && json.success) {
+      window.dispatchEvent(new CustomEvent('vttech-updated', { detail: json }));
+    }
+    return json;
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function loginVTTechAccount(username?: string, password?: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+  user?: string;
+  todayCount?: number;
+  yesterdayCount?: number;
+  total?: number;
+}> {
+  try {
+    const res = await fetch('/api/vttech/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const json = await res.json();
+    if (typeof window !== 'undefined' && json.success) {
+      window.dispatchEvent(new CustomEvent('vttech-updated', { detail: json }));
+    }
+    return json;
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
 

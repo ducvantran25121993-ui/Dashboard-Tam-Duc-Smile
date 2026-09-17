@@ -18,7 +18,11 @@ import {
   FileSpreadsheet,
   AlertCircle,
   Eye,
+  EyeOff,
   KeyRound,
+  Lock,
+  Unlock,
+  UserCheck,
   Save,
   ChevronRight,
   Database,
@@ -47,6 +51,9 @@ import {
   fetchCachedVTTechTickets,
   syncVTTechTickets,
   importVTTechCurl,
+  checkVTTechSession,
+  importVTTechTickets,
+  loginVTTechAccount,
 } from '../services/vttechService';
 
 // Helper to get today's date in YYYY-MM-DD (Vietnam time GMT+7)
@@ -162,14 +169,32 @@ export const VTTechCRMView: React.FC = () => {
 
   // Config modal / expand state
   const [isConfigOpen, setIsConfigOpen] = useState<boolean>(false);
-  const [configTab, setConfigTab] = useState<'curl' | 'manual'>('curl');
+  const [configTab, setConfigTab] = useState<'account' | 'curl' | 'json' | 'manual'>('account');
+  const [accountUsername, setAccountUsername] = useState<string>('VanDuc');
+  const [accountPassword, setAccountPassword] = useState<string>('mktduc');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [accountLoggingIn, setAccountLoggingIn] = useState<boolean>(false);
   const [curlInput, setCurlInput] = useState<string>('');
   const [curlLoading, setCurlLoading] = useState<boolean>(false);
+  const [jsonTicketsInput, setJsonTicketsInput] = useState<string>('');
+  const [jsonLoading, setJsonLoading] = useState<boolean>(false);
   const [configCookie, setConfigCookie] = useState<string>('');
   const [configSecretKey, setConfigSecretKey] = useState<string>('');
   const [configXsrfToken, setConfigXsrfToken] = useState<string>('');
   const [configUserId, setConfigUserId] = useState<number>(1412);
   const [savingConfig, setSavingConfig] = useState<boolean>(false);
+
+  // Session & Auth state
+  const [sessionStatus, setSessionStatus] = useState<{
+    checked: boolean;
+    isValid: boolean;
+    authExpired: boolean;
+    username?: string;
+    autoLoginEnabled?: boolean;
+    todayTotal?: number;
+    todayOL?: number;
+    todayHL?: number;
+  }>({ checked: false, isValid: true, authExpired: false, username: 'VanDuc', autoLoginEnabled: true });
 
   // Selected Ticket detail modal
   const [selectedTicket, setSelectedTicket] = useState<VTTechTicket | null>(null);
@@ -183,17 +208,42 @@ export const VTTechCRMView: React.FC = () => {
     setLoading(true);
     setErrorMessage('');
     try {
-      const [cacheRes, configRes] = await Promise.all([
+      const [cacheRes, configRes, sessionRes] = await Promise.all([
         fetchCachedVTTechTickets(),
         fetchVTTechConfig(),
+        checkVTTechSession(),
       ]);
+
+      if (sessionRes) {
+        setSessionStatus({
+          checked: true,
+          isValid: sessionRes.isValid,
+          authExpired: sessionRes.authExpired,
+          username: sessionRes.username || 'VanDuc',
+          autoLoginEnabled: sessionRes.autoLoginEnabled !== false,
+          todayTotal: sessionRes.todayTotal,
+          todayOL: sessionRes.todayOL,
+          todayHL: sessionRes.todayHL,
+        });
+        if (sessionRes.username) {
+          setAccountUsername(sessionRes.username);
+        }
+      }
 
       if (cacheRes.data && cacheRes.data.length > 0) {
         setTickets(cacheRes.data);
         setLastSyncTime(cacheRes.cachedAt);
 
-        // Keep all-time view on initial load so user immediately sees all 3,051 tickets & 1,294 web tickets
-        // User can click any day preset anytime
+        // Smart initial date selection: check if today has tickets
+        const todayStr = getVietnamTodayStr();
+        const hasTodayTickets = cacheRes.data.some((t: any) => parseToDateStr(t.Created) === todayStr);
+        if (!hasTodayTickets) {
+          const latest = getLatestDateFromTickets(cacheRes.data);
+          if (latest) {
+            setDateFrom(latest);
+            setDateTo(latest);
+          }
+        }
       } else {
         // Auto-sync if cache is empty
         handleSync();
@@ -201,6 +251,9 @@ export const VTTechCRMView: React.FC = () => {
 
       if (configRes.success && configRes.config) {
         setConfigUserId(configRes.config.userID || 1412);
+        if (configRes.config.username) {
+          setAccountUsername(configRes.config.username);
+        }
         if (configRes.config.lastSyncTime) {
           setLastSyncTime(configRes.config.lastSyncTime);
         }
@@ -209,6 +262,36 @@ export const VTTechCRMView: React.FC = () => {
       setErrorMessage(err.message || 'Không thể tải dữ liệu ban đầu');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAccountLogin = async () => {
+    if (!accountUsername.trim() || !accountPassword.trim()) {
+      setErrorMessage('Vui lòng nhập tên tài khoản và mật khẩu CRM');
+      return;
+    }
+    setAccountLoggingIn(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+    try {
+      const res = await loginVTTechAccount(accountUsername.trim(), accountPassword.trim());
+      if (res.success) {
+        setSuccessMessage(res.message || 'Đăng nhập CRM thành công và đã đồng bộ dữ liệu mới nhất!');
+        setSessionStatus((prev) => ({
+          ...prev,
+          isValid: true,
+          authExpired: false,
+          username: res.user || accountUsername.trim(),
+        }));
+        setIsConfigOpen(false);
+        await loadInitialData();
+      } else {
+        throw new Error(res.error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản hoặc mật khẩu.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    } finally {
+      setAccountLoggingIn(false);
     }
   };
 
@@ -225,12 +308,20 @@ export const VTTechCRMView: React.FC = () => {
         limit: 500,
       });
 
+      if (res.authExpired) {
+        setSessionStatus((prev) => ({ ...prev, checked: true, isValid: false, authExpired: true }));
+      }
+
       if (res.success && res.data) {
         setTickets(res.data);
         setLastSyncTime(res.cachedAt);
         const timeScopeDesc = (!fromVal && !toVal) ? 'toàn thời gian' : `từ ${fromVal || 'bắt đầu'} đến ${toVal || 'nay'}`;
-        setSuccessMessage(`Đã đồng bộ ${res.data.length} Ticket (${timeScopeDesc}) từ VTTech CRM!`);
-        setTimeout(() => setSuccessMessage(''), 4000);
+        if (res.authExpired) {
+          setSuccessMessage(`Đã đối chiếu ${res.data.length} vé từ dữ liệu lưu (${timeScopeDesc}). Phiên VTTech cần cập nhật mã cURL mới để tự động nhận vé tiếp theo.`);
+        } else {
+          setSuccessMessage(`Đã đồng bộ ${res.data.length} Ticket (${timeScopeDesc}) trực tiếp từ VTTech CRM!`);
+        }
+        setTimeout(() => setSuccessMessage(''), 6000);
       } else {
         throw new Error(res.error || 'Đồng bộ không thành công');
       }
@@ -292,13 +383,6 @@ export const VTTechCRMView: React.FC = () => {
     }
 
     const timer = setInterval(() => {
-      // Tự động cập nhật theo ngày mới khi bước sang ngày mới theo giờ Việt Nam
-      const todayStr = getVietnamTodayStr();
-      if (dateFrom && dateTo && dateFrom === dateTo && dateFrom !== todayStr) {
-        setDateFrom(todayStr);
-        setDateTo(todayStr);
-      }
-
       setCountdown((prev) => {
         if (prev <= 1) {
           triggerBackgroundSync();
@@ -350,9 +434,20 @@ export const VTTechCRMView: React.FC = () => {
     try {
       const res = await importVTTechCurl(curlInput);
       if (res.success) {
-        setSuccessMessage('Đã trích xuất Cookie & Token từ cURL thành công! Đang đồng bộ lại dữ liệu...');
+        setSuccessMessage('Đã cập nhật kết nối VTTech thành công! Đang đồng bộ lại dữ liệu...');
         setCurlInput('');
         setIsConfigOpen(false);
+        const sessionCheck = await checkVTTechSession();
+        if (sessionCheck) {
+          setSessionStatus({
+            checked: true,
+            isValid: sessionCheck.isValid,
+            authExpired: sessionCheck.authExpired,
+            todayTotal: sessionCheck.todayTotal,
+            todayOL: sessionCheck.todayOL,
+            todayHL: sessionCheck.todayHL,
+          });
+        }
         await handleSync();
       } else {
         throw new Error(res.error || 'Không thể trích xuất thông tin từ cURL');
@@ -361,6 +456,43 @@ export const VTTechCRMView: React.FC = () => {
       setErrorMessage(err.message);
     } finally {
       setCurlLoading(false);
+    }
+  };
+
+  const handleImportJson = async () => {
+    if (!jsonTicketsInput.trim()) {
+      setErrorMessage('Vui lòng dán chuỗi JSON danh sách vé');
+      return;
+    }
+    setJsonLoading(true);
+    setErrorMessage('');
+    try {
+      let parsed: any;
+      try {
+        parsed = JSON.parse(jsonTicketsInput.trim());
+      } catch (e: any) {
+        throw new Error('Dữ liệu không đúng định dạng JSON hợp lệ: ' + e.message);
+      }
+      let ticketArray = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.data) ? parsed.data : null);
+      if (Array.isArray(ticketArray) && ticketArray.length >= 2 && Array.isArray(ticketArray[1])) {
+        ticketArray = ticketArray[1];
+      }
+      if (!ticketArray || ticketArray.length === 0) {
+        throw new Error('Không tìm thấy danh sách vé trong JSON (cần mảng các đối tượng vé hoặc { data: [...] })');
+      }
+      const res = await importVTTechTickets(ticketArray);
+      if (res.success) {
+        setSuccessMessage(`Đã nạp thành công ${ticketArray.length} vé vào hệ thống!`);
+        setJsonTicketsInput('');
+        setIsConfigOpen(false);
+        await loadInitialData();
+      } else {
+        throw new Error(res.error || 'Lỗi khi nạp dữ liệu vé');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    } finally {
+      setJsonLoading(false);
     }
   };
 
@@ -452,6 +584,22 @@ export const VTTechCRMView: React.FC = () => {
   const todayTicketCount = useMemo(() => {
     const today = getVietnamTodayStr();
     return tickets.filter((t) => ticketMatchesDate(t, today, today)).length;
+  }, [tickets]);
+
+  const todayWebCount = useMemo(() => {
+    const today = getVietnamTodayStr();
+    return tickets.filter((t) => isWebSource(t.SourceName) && ticketMatchesDate(t, today, today)).length;
+  }, [tickets]);
+
+  // Ticket count for yesterday
+  const yesterdayTicketCount = useMemo(() => {
+    const yest = getYesterdayStr();
+    return tickets.filter((t) => ticketMatchesDate(t, yest, yest)).length;
+  }, [tickets]);
+
+  const yesterdayWebCount = useMemo(() => {
+    const yest = getYesterdayStr();
+    return tickets.filter((t) => isWebSource(t.SourceName) && ticketMatchesDate(t, yest, yest)).length;
   }, [tickets]);
 
   // Ticket count for the latest available date
@@ -614,20 +762,23 @@ export const VTTechCRMView: React.FC = () => {
     });
   }, [tickets, channelScope, selectedBranch]);
 
-  // Scope Counts for quick switch tabs
+  // Scope Counts for quick switch tabs (both for current selected date range and overall)
   const scopeCounts = useMemo(() => {
-    const web = tickets.filter((t) => isWebSource(t.SourceName)).length;
-    const onlineWeb = tickets.filter((t) => t.SourceName === 'OL WB').length;
-    const hotlineWeb = tickets.filter((t) => t.SourceName === 'HL WB').length;
-    const gclid = tickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
+    const inDateTickets = tickets.filter((t) => ticketMatchesDate(t, dateFrom, dateTo));
+    const web = inDateTickets.filter((t) => isWebSource(t.SourceName)).length;
+    const onlineWeb = inDateTickets.filter((t) => t.SourceName === 'OL WB').length;
+    const hotlineWeb = inDateTickets.filter((t) => t.SourceName === 'HL WB').length;
+    const gclid = inDateTickets.filter((t) => t.Gclid && t.Gclid.length > 5).length;
     return {
       web,
       onlineWeb,
       hotlineWeb,
-      all: tickets.length,
+      all: inDateTickets.length,
       gclid,
+      allTimeWeb: tickets.filter((t) => isWebSource(t.SourceName)).length,
+      allTimeTotal: tickets.length,
     };
-  }, [tickets]);
+  }, [tickets, dateFrom, dateTo]);
 
   // Available sources matching the current channelScope
   const scopedAvailableSources = useMemo(() => {
@@ -816,9 +967,17 @@ export const VTTechCRMView: React.FC = () => {
               <div>
                 <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
                   VTTech Solution CRM
-                  <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-orange-500/20 text-orange-300 border border-orange-500/40">
-                    Live API Connected
-                  </span>
+                  {sessionStatus.authExpired ? (
+                    <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      Cần Cập Nhật cURL
+                    </span>
+                  ) : (
+                    <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-orange-500/20 text-orange-300 border border-orange-500/40 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live API Connected
+                    </span>
+                  )}
                 </h1>
                 <p className="text-sm text-slate-300">
                   Đồng bộ tự động danh sách Ticket Marketing từ hệ thống Nha Khoa Tâm Đức Smile (nktamduc.vttechsolution.com)
@@ -913,6 +1072,87 @@ export const VTTechCRMView: React.FC = () => {
         </div>
       </div>
 
+      {/* 24/7 Auto-Sync Connected Banner */}
+      {sessionStatus.isValid && !sessionStatus.authExpired && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-teal-950/30 to-slate-900/50 border border-emerald-500/30 flex flex-wrap items-center justify-between gap-4 text-emerald-200 text-xs shadow-lg shadow-emerald-950/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+              <UserCheck className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <div className="font-semibold text-white text-sm flex items-center gap-2">
+                <span>🟢 Tự động đồng bộ số liệu CRM 24/7 (Đang hoạt động)</span>
+                <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Tài khoản: {sessionStatus.username || 'VanDuc'}
+                </span>
+              </div>
+              <div className="text-xs text-emerald-300/85 mt-0.5 max-w-3xl leading-relaxed">
+                Hệ thống tự động đăng nhập ngầm và quét vé CRM Nha Khoa Tâm Đức định kỳ mỗi 8 phút. Bạn có thể mở web xem bất kỳ lúc nào mà không cần nhập lại mật khẩu hay dán cURL thủ công.
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setConfigTab('account');
+                setIsConfigOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Quản Lý Tài Khoản</span>
+            </button>
+            <button
+              onClick={handleAccountLogin}
+              disabled={accountLoggingIn}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${accountLoggingIn ? 'animate-spin' : ''}`} />
+              <span>{accountLoggingIn ? 'Đang xác thực...' : 'Làm Mới Phiên Ngay'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Auth Expired Warning Banner */}
+      {sessionStatus.authExpired && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-4 text-amber-200 shadow-lg shadow-amber-950/20">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+            </div>
+            <div>
+              <div className="font-semibold text-white text-sm flex items-center gap-2">
+                <span>⚠️ Phiên kết nối VTTech CRM cần kích hoạt lại</span>
+              </div>
+              <div className="text-xs text-amber-300/85 mt-0.5 max-w-3xl leading-relaxed">
+                Máy chủ VTTech (<code className="text-amber-200">nktamduc.vttechsolution.com</code>) yêu cầu làm mới phiên. Bấm nút <strong>"Đăng Nhập Lại Tự Động"</strong> bên cạnh để máy chủ tự động xác thực lại bằng tài khoản <strong>VanDuc</strong> ngay lập tức.
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleAccountLogin}
+              disabled={accountLoggingIn}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${accountLoggingIn ? 'animate-spin' : ''}`} />
+              <span>{accountLoggingIn ? 'Đang Đăng Nhập...' : 'Đăng Nhập Lại Tự Động'}</span>
+            </button>
+            <button
+              onClick={() => {
+                setConfigTab('curl');
+                setIsConfigOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span>Dán cURL</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Real-time New Ticket Alert Notification */}
       {newTicketAlert && (
         <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-600/20 via-teal-600/20 to-cyan-600/20 border border-emerald-500/40 flex items-center justify-between gap-3 text-emerald-200 text-sm shadow-lg shadow-emerald-950/40">
@@ -978,7 +1218,7 @@ export const VTTechCRMView: React.FC = () => {
             }`}
           >
             <Globe className={`w-4 h-4 ${channelScope === 'web' ? 'text-white' : 'text-emerald-400'}`} />
-            <span>Kênh Website (OL WB + HL WB)</span>
+            <span>Kênh Website ({scopeCounts.web.toLocaleString()})</span>
           </button>
 
           {/* Tab 2: Toàn Bộ Marketing */}
@@ -994,7 +1234,7 @@ export const VTTechCRMView: React.FC = () => {
             }`}
           >
             <Megaphone className={`w-4 h-4 ${channelScope === 'all' ? 'text-white' : 'text-orange-400'}`} />
-            <span>Toàn Bộ Marketing</span>
+            <span>Toàn Bộ CRM ({scopeCounts.all.toLocaleString()})</span>
           </button>
 
           {/* Tab 3: Google Ads GCLID */}
@@ -1010,7 +1250,7 @@ export const VTTechCRMView: React.FC = () => {
             }`}
           >
             <Target className={`w-4 h-4 ${channelScope === 'gclid' ? 'text-white' : 'text-amber-400'}`} />
-            <span>Google Ads (Có GCLID)</span>
+            <span>Google Ads ({scopeCounts.gclid.toLocaleString()})</span>
           </button>
         </div>
 
@@ -1688,7 +1928,7 @@ export const VTTechCRMView: React.FC = () => {
                 }`}
                 title="Xem vé ngày hôm nay"
               >
-                Hôm nay
+                Hôm nay ({channelScope === 'web' ? todayWebCount : channelScope === 'gclid' ? tickets.filter(t => t.Gclid && t.Gclid.length > 5 && ticketMatchesDate(t, getVietnamTodayStr(), getVietnamTodayStr())).length : todayTicketCount})
               </button>
               <button
                 type="button"
@@ -1698,8 +1938,9 @@ export const VTTechCRMView: React.FC = () => {
                     ? 'bg-orange-600 text-white shadow-sm font-bold'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
+                title="Xem vé ngày hôm qua"
               >
-                Hôm qua
+                Hôm qua ({channelScope === 'web' ? yesterdayWebCount : channelScope === 'gclid' ? tickets.filter(t => t.Gclid && t.Gclid.length > 5 && ticketMatchesDate(t, getYesterdayStr(), getYesterdayStr())).length : yesterdayTicketCount})
               </button>
               <button
                 type="button"
@@ -1725,7 +1966,7 @@ export const VTTechCRMView: React.FC = () => {
                 }`}
                 title="Xem toàn bộ dữ liệu CRM"
               >
-                Toàn bộ
+                Toàn bộ ({channelScope === 'web' ? allTimeStats.web.toLocaleString() : channelScope === 'gclid' ? allTimeStats.gclid.toLocaleString() : tickets.length.toLocaleString()})
               </button>
             </div>
 
@@ -1828,11 +2069,19 @@ export const VTTechCRMView: React.FC = () => {
                         </button>
                         <button
                           type="button"
+                          onClick={setPresetYesterday}
+                          className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold shadow-sm transition-all cursor-pointer inline-flex items-center gap-2"
+                        >
+                          <Calendar className="w-4 h-4 text-amber-400" />
+                          <span>Xem Hôm Qua ({yesterdayTicketCount} vé - {yesterdayWebCount} vé Web)</span>
+                        </button>
+                        <button
+                          type="button"
                           onClick={setAllTime}
                           className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition-all cursor-pointer inline-flex items-center gap-2"
                         >
                           <Ticket className="w-4 h-4" />
-                          <span>Xem toàn bộ CRM ({tickets.length.toLocaleString()} ticket)</span>
+                          <span>Xem Toàn Bộ CRM ({tickets.length.toLocaleString()} vé)</span>
                         </button>
                       </div>
 
@@ -2091,22 +2340,44 @@ export const VTTechCRMView: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-slate-800 bg-slate-950/50 px-6 pt-3 gap-2">
+            <div className="flex border-b border-slate-800 bg-slate-950/50 px-6 pt-3 gap-2 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setConfigTab('account')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  configTab === 'account'
+                    ? 'border-orange-500 text-orange-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                🤖 Tự Động Đăng Nhập CRM (24/7)
+              </button>
               <button
                 type="button"
                 onClick={() => setConfigTab('curl')}
-                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   configTab === 'curl'
                     ? 'border-orange-500 text-orange-400'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
                 }`}
               >
-                ⚡ Dán cURL Từ Network (Nhanh nhất)
+                ⚡ Dán cURL
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfigTab('json')}
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  configTab === 'json'
+                    ? 'border-orange-500 text-orange-400'
+                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                📋 Dán JSON Dữ Liệu Vé
               </button>
               <button
                 type="button"
                 onClick={() => setConfigTab('manual')}
-                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors ${
+                className={`pb-2.5 px-3 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   configTab === 'manual'
                     ? 'border-orange-500 text-orange-400'
                     : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -2116,7 +2387,82 @@ export const VTTechCRMView: React.FC = () => {
               </button>
             </div>
 
-            {configTab === 'curl' ? (
+            {configTab === 'account' ? (
+              <div className="p-6 space-y-4">
+                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3.5 space-y-2 text-xs text-emerald-200">
+                  <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Tự Động Kéo Dữ Liệu Mỗi Ngày (Không Cần Thao Tác Lại):</span>
+                  </div>
+                  <p className="text-slate-300 leading-relaxed text-[11px]">
+                    Hệ thống lưu trữ tài khoản của bạn, tự động thực hiện đăng nhập ngầm với máy chủ CRM (<code className="text-emerald-300">nktamduc.vttechsolution.com</code>), trích xuất SecretKey và Cookie xác thực, tự động phục hồi phiên khi hết hạn và quét vé định kỳ mỗi 8 phút.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Tên Đăng Nhập CRM VTTech:</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={accountUsername}
+                      onChange={(e) => setAccountUsername(e.target.value)}
+                      placeholder="VD: VanDuc"
+                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-100 focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-orange-400" />
+                      <span>Mật Khẩu CRM:</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={accountPassword}
+                        onChange={(e) => setAccountPassword(e.target.value)}
+                        placeholder="Mật khẩu đăng nhập CRM..."
+                        className="w-full p-2.5 pr-10 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-100 focus:outline-none focus:border-orange-500 transition-colors"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 p-1"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl text-[11px] text-slate-400 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                  <span>Chế độ tự động đăng nhập & đồng bộ vé ngầm: <strong className="text-emerald-400">ĐANG BẬT (24/7)</strong></span>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsConfigOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="button"
+                    disabled={accountLoggingIn || !accountUsername.trim() || !accountPassword.trim()}
+                    onClick={handleAccountLogin}
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 disabled:opacity-50 text-white text-sm font-bold shadow-lg shadow-orange-600/30 transition-all cursor-pointer"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${accountLoggingIn ? 'animate-spin' : ''}`} />
+                    <span>{accountLoggingIn ? 'Đang kết nối CRM...' : 'Đăng Nhập & Đồng Bộ Dữ Liệu Ngay'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : configTab === 'curl' ? (
               <div className="p-6 space-y-4">
                 <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs text-slate-300">
                   <div className="font-semibold text-orange-400 flex items-center gap-1.5">
@@ -2161,6 +2507,51 @@ export const VTTechCRMView: React.FC = () => {
                   >
                     <RefreshCw className={`w-4 h-4 ${curlLoading ? 'animate-spin' : ''}`} />
                     <span>{curlLoading ? 'Đang trích xuất...' : 'Trích Xuất & Kết Nối Ngay'}</span>
+                  </button>
+                </div>
+              </div>
+            ) : configTab === 'json' ? (
+              <div className="p-6 space-y-4">
+                <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs text-slate-300">
+                  <div className="font-semibold text-sky-400 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Dán dữ liệu vé JSON trực tiếp (Dành cho trường hợp phiên đăng nhập hết hạn):</span>
+                  </div>
+                  <p className="text-slate-400 leading-relaxed text-[11px]">
+                    Từ tab Network (F12) trên trình duyệt, chọn request <code className="text-sky-300">LoadList</code> &rarr; tab <strong>Response</strong> &rarr; copy toàn bộ nội dung JSON và dán vào ô bên dưới.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-slate-300 font-medium flex items-center justify-between">
+                    <span>Chuỗi JSON danh sách vé:</span>
+                    <span className="text-[11px] text-slate-500">Mảng JSON hoặc đối tượng {'{ data: [...] }'}</span>
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={jsonTicketsInput}
+                    onChange={(e) => setJsonTicketsInput(e.target.value)}
+                    placeholder='[ { "TicketID": 543688, "TicketName": "NGUYỄN VĂN HẢI", "SourceName": "OL WB", ... } ]'
+                    className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-200 focus:outline-none focus:border-sky-500 transition-colors"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsConfigOpen(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium"
+                  >
+                    Đóng
+                  </button>
+                  <button
+                    type="button"
+                    disabled={jsonLoading || !jsonTicketsInput.trim()}
+                    onClick={handleImportJson}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-sky-600/30 transition-all"
+                  >
+                    <Download className={`w-4 h-4 ${jsonLoading ? 'animate-spin' : ''}`} />
+                    <span>{jsonLoading ? 'Đang nạp...' : 'Nạp Vé Vào Hệ Thống'}</span>
                   </button>
                 </div>
               </div>

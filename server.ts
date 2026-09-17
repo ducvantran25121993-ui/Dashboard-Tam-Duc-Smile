@@ -56,14 +56,28 @@ const VTTECH_CONFIG_FILE = path.join(STORAGE_DIR, 'vttech_config.json');
 const VTTECH_CACHE_FILE = path.join(STORAGE_DIR, 'vttech_cache.json');
 
 // VTTech CRM Config & Cache store
-let vttechConfigStore = {
+let vttechConfigStore: {
+  baseUrl: string;
+  username?: string;
+  password?: string;
+  cookie: string;
+  secretKey: string;
+  xsrfToken: string;
+  webToken: string;
+  userID: number;
+  lastSyncTime: string;
+  autoLoginEnabled?: boolean;
+} = {
   baseUrl: 'https://nktamduc.vttechsolution.com',
-  cookie: '.AspNetCore.Culture=c%3Den-US%7Cuic%3Dvi; theme-color=orange; theme-menu=left; theme-font=bevietnam; theme-dark=light; .AspNetCore.Antiforgery.cp2NSuYF8d0=CfDJ8J6MRxPzZuFJrPkmpphd1m9ekCc9xL1LW4fkEBPKAUN1uZKuzi5cZyp-VHCq2E1bty9mNg7t5XG0SURSS3GXyq1k0te3pzWRRGTLHLu5JNfWgjx58oUNKvyeDomQoXMx0wdmk_bTwPYuxN2PZoRWEjk; .AspNetCore.Session=CfDJ8J6MRxPzZuFJrPkmpphd1m9vRjyEOjaNotsabAoDFWmVyGtZPrPZXARrXHchnZhXKpmcfLkFeNO4lC%2BBcZFndkWMduTQoz066UJRlA%2BTnYt%2BCEc3Vt3KcXDjYusJwdCkGuiekFX3EbZYoO%2BOEKXUi73Du%2BSVz2Vw4ihX6jFe%2Ba%2Fb; VTTECH_Menu_SideBarIsHide=true; WebToken=eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjpbIlZhbkR1YyIsInZhbmR1YyJdLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ3ZWJhcHAiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE0MTIiLCJCcm9rZXJJRCI6IjAiLCJleHAiOjE3ODk0MTIwMTgsImlzcyI6InZ0dGVjaHNvbHV0aW9uIiwiYXVkIjoidnR0ZWNoc29sdXRpb24ifQ.I7wgCFQfJMwOiwgBVDK2xiE0B6-u41bLdVMaauIjzLY',
-  secretKey: 'bDpiCFwZarlfPcSo4gn6KWNfjr+3qq5QnGXoS2NHgl4spi+Q81iooYQAvR69uAJVvz43pHbbEvuLvJw8vqZrDZIZ3Ths14cePTIdkchy+cM=',
-  xsrfToken: 'CfDJ8J6MRxPzZuFJrPkmpphd1m9C4Q_uN12cOdK3060vPjwNoHy_6KZSfn78JBuNFHvwamhucaul7MHuOS3708ElURZkL-X-_vhEpitkyvQEPufeVlrKIO65jiZzb2pF_fvvcxKmHMfIroV9Uzkt3_lVhIA',
-  webToken: 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjpbIlZhbkR1YyIsInZhbmR1YyJdLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ3ZWJhcHAiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE0MTIiLCJCcm9rZXJJRCI6IjAiLCJleHAiOjE3ODk0MTIwMTgsImlzcyI6InZ0dGVjaHNvbHV0aW9uIiwiYXVkIjoidnR0ZWNoc29sdXRpb24ifQ.I7wgCFQfJMwOiwgBVDK2xiE0B6-u41bLdVMaauIjzLY',
+  username: 'VanDuc',
+  password: 'mktduc',
+  cookie: '',
+  secretKey: '',
+  xsrfToken: '',
+  webToken: '',
   userID: 1412,
   lastSyncTime: '',
+  autoLoginEnabled: true,
 };
 
 try {
@@ -90,11 +104,21 @@ let vttechCacheStore: {
   data: [],
 };
 
+// Helper to sanitize VTTech tickets and reject mock/legacy tickets
+function isMockVTTechTicket(t: any): boolean {
+  if (!t) return true;
+  if (t.Gclid && typeof t.Gclid === 'string' && t.Gclid.includes('Abltaff_')) return true;
+  if (t.Created && typeof t.Created === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(t.Created)) return true;
+  return false;
+}
+
 try {
   if (fs.existsSync(VTTECH_CACHE_FILE)) {
     const rawCache = fs.readFileSync(VTTECH_CACHE_FILE, 'utf-8');
     const parsedCache = JSON.parse(rawCache);
     if (parsedCache && Array.isArray(parsedCache.data)) {
+      parsedCache.data = parsedCache.data.filter((t: any) => !isMockVTTechTicket(t));
+      parsedCache.total = parsedCache.data.length;
       vttechCacheStore = parsedCache;
     }
   }
@@ -4677,6 +4701,9 @@ app.get('/api/vttech/config', (req, res) => {
     success: true,
     config: {
       baseUrl: vttechConfigStore.baseUrl,
+      username: vttechConfigStore.username || 'VanDuc',
+      hasPassword: !!vttechConfigStore.password,
+      autoLoginEnabled: vttechConfigStore.autoLoginEnabled !== false,
       cookie: vttechConfigStore.cookie ? `${vttechConfigStore.cookie.slice(0, 30)}...` : '',
       hasCookie: !!vttechConfigStore.cookie,
       hasSecretKey: !!vttechConfigStore.secretKey,
@@ -4689,16 +4716,131 @@ app.get('/api/vttech/config', (req, res) => {
   });
 });
 
-// Update VTTech configuration (cookie, tokens, etc.)
+// Automated VTTech Login helper that creates session, extracts tokens & cookies
+async function loginVTTech(customUser?: string, customPass?: string): Promise<{ success: boolean; error?: string; user?: string }> {
+  const user = customUser || vttechConfigStore.username || 'VanDuc';
+  const pass = customPass || vttechConfigStore.password || 'mktduc';
+  const baseUrl = vttechConfigStore.baseUrl || 'https://nktamduc.vttechsolution.com';
+
+  try {
+    const jar = new Map<string, string>();
+    function updateCookies(setCookieHeader: string | string[] | null) {
+      if (!setCookieHeader) return;
+      const cookies = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+      cookies.forEach(c => {
+        c.split(/,\s*(?=[a-zA-Z0-9_\.]+=)/).forEach(part => {
+          const first = part.split(';')[0].trim();
+          if (first && first.includes('=')) {
+            const [k, ...v] = first.split('=');
+            jar.set(k.trim(), v.join('=').trim());
+          }
+        });
+      });
+    }
+    function getCookieString(): string {
+      return Array.from(jar.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
+    }
+
+    // Step 1: GET Login page to get initial tokens and SecretKey
+    const res1 = await fetch(`${baseUrl}/Login/Login`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      }
+    });
+    updateCookies(res1.headers.get('set-cookie'));
+    const html1 = await res1.text();
+
+    const secretMatch = html1.match(/let\s+sys_SecretKey\s*=\s*["\x27]([^"\x27]+)["\x27]/i);
+    const secretKey = secretMatch ? secretMatch[1] : (vttechConfigStore.secretKey || '');
+
+    const tokenMatch = html1.match(/name=["\x27]__RequestVerificationToken["\x27]\s+type=["\x27]hidden["\x27]\s+value=["\x27]([^"\x27]+)["\x27]/i);
+    const requestToken = tokenMatch ? tokenMatch[1] : '';
+
+    // Step 2: POST /api/Author/Login
+    const res2 = await fetch(`${baseUrl}/api/Author/Login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': getCookieString(),
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        UserName: user,
+        Password: pass,
+        PasswordEnCrypt: '',
+        IP: '',
+        TokenFCM: '',
+        From: '',
+        SSO: '',
+        Lan: 'vi',
+        TokenSSO: '',
+        Device: 'Chrome',
+        LoginForm: ''
+      })
+    });
+    updateCookies(res2.headers.get('set-cookie'));
+    const loginData = await res2.json();
+
+    if (loginData.RESULT && loginData.RESULT !== 'null') {
+      return { success: false, error: `Đăng nhập thất bại: ${loginData.RESULT}` };
+    }
+
+    if (loginData.Session) {
+      jar.set('WebToken', loginData.Session);
+      vttechConfigStore.webToken = loginData.Session;
+    }
+    if (loginData.ID) {
+      vttechConfigStore.userID = Number(loginData.ID);
+    }
+
+    // Step 3: GET /Marketing/TicketList to activate session and get fresh XSRF tokens
+    const res3 = await fetch(`${baseUrl}/Marketing/TicketList`, {
+      headers: {
+        'Cookie': getCookieString(),
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': `${baseUrl}/Login/Login`,
+      }
+    });
+    updateCookies(res3.headers.get('set-cookie'));
+    const html3 = await res3.text();
+
+    let xsrf = jar.get('XSRF-TOKEN') || requestToken;
+    const pageTokenMatch = html3.match(/name=["\x27]__RequestVerificationToken["\x27]\s+type=["\x27]hidden["\x27]\s+value=["\x27]([^"\x27]+)["\x27]/i);
+    if (pageTokenMatch) {
+      xsrf = pageTokenMatch[1];
+    }
+
+    // Persist to store and config file
+    vttechConfigStore.username = user;
+    vttechConfigStore.password = pass;
+    vttechConfigStore.cookie = getCookieString();
+    vttechConfigStore.secretKey = secretKey;
+    vttechConfigStore.xsrfToken = xsrf;
+    vttechConfigStore.lastSyncTime = new Date().toISOString();
+    vttechConfigStore.autoLoginEnabled = true;
+
+    fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+    console.log(`[VTTech Auto-Login] Đăng nhập thành công tài khoản ${loginData.UserName || user} (ID: ${loginData.ID})`);
+    return { success: true, user: loginData.UserName || user };
+  } catch (err: any) {
+    console.error('Lỗi khi tự động đăng nhập VTTech:', err);
+    return { success: false, error: err.message };
+  }
+}
+
+// Update VTTech configuration (cookie, tokens, credentials, etc.)
 app.post('/api/vttech/config', (req, res) => {
   try {
-    const { cookie, secretKey, xsrfToken, webToken, userID, baseUrl } = req.body;
+    const { cookie, secretKey, xsrfToken, webToken, userID, baseUrl, username, password, autoLoginEnabled } = req.body;
     if (cookie) vttechConfigStore.cookie = cookie.trim();
     if (secretKey) vttechConfigStore.secretKey = secretKey.trim();
     if (xsrfToken) vttechConfigStore.xsrfToken = xsrfToken.trim();
     if (webToken) vttechConfigStore.webToken = webToken.trim();
     if (userID) vttechConfigStore.userID = Number(userID);
     if (baseUrl) vttechConfigStore.baseUrl = baseUrl.trim();
+    if (username) vttechConfigStore.username = username.trim();
+    if (password) vttechConfigStore.password = password.trim();
+    if (autoLoginEnabled !== undefined) vttechConfigStore.autoLoginEnabled = !!autoLoginEnabled;
 
     fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
     return res.json({ success: true, message: 'Đã lưu cấu hình kết nối VTTech thành công!' });
@@ -4706,6 +4848,72 @@ app.post('/api/vttech/config', (req, res) => {
     return res.status(500).json({ success: false, error: e.message });
   }
 });
+
+// Endpoint to authenticate with VTTech credentials and sync latest tickets immediately
+app.post('/api/vttech/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = username ? String(username).trim() : vttechConfigStore.username;
+    const pass = password ? String(password).trim() : vttechConfigStore.password;
+
+    const loginRes = await loginVTTech(user, pass);
+    if (!loginRes.success) {
+      return res.status(400).json({ success: false, error: loginRes.error });
+    }
+
+    // Pull today and yesterday tickets immediately
+    const today = getVNCurrentDateStr();
+    const yesterday = getVNCurrentDateStr(-1);
+    let todayCount = 0;
+    let yesterdayCount = 0;
+
+    try {
+      const todayBatch = await fetchVTTechBatch(0, `${today} 00:00:00`, `${today} 23:59:59`, 500, 3);
+      const yestBatch = await fetchVTTechBatch(0, `${yesterday} 00:00:00`, `${yesterday} 23:59:59`, 500, 3);
+      todayCount = todayBatch.length;
+      yesterdayCount = yestBatch.length;
+
+      const ticketMap = new Map<number, any>();
+      if (Array.isArray(vttechCacheStore.data)) {
+        vttechCacheStore.data.forEach((t: any) => { if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t); });
+      }
+      todayBatch.forEach((t: any) => { if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t); });
+      yestBatch.forEach((t: any) => { if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t); });
+
+      const merged = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
+      vttechCacheStore = {
+        lastFetched: Date.now(),
+        total: merged.length,
+        data: merged
+      };
+      fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
+    } catch (err) {
+      console.warn('Post-login sync ticket fetch warning:', err);
+    }
+
+    return res.json({
+      success: true,
+      message: `Đăng nhập thành công tài khoản ${loginRes.user}! Đã cập nhật ${todayCount} vé hôm nay và ${yesterdayCount} vé hôm qua.`,
+      user: loginRes.user,
+      todayCount,
+      yesterdayCount,
+      total: vttechCacheStore.total
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Helper to get current Vietnam date string (YYYY-MM-DD)
+function getVNCurrentDateStr(offsetDays = 0): string {
+  const d = new Date();
+  const utc = d.getTime() + d.getTimezoneOffset() * 60000;
+  const vnTime = new Date(utc + 7 * 3600000 + offsetDays * 86400000);
+  const year = vnTime.getFullYear();
+  const month = String(vnTime.getMonth() + 1).padStart(2, '0');
+  const day = String(vnTime.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 // Helper to parse date to YYYY-MM-DD HH:mm:ss for VTTech SQL Server
 function formatToVTTechDate(dStr: string, isEnd = false): string {
@@ -4729,13 +4937,14 @@ async function fetchVTTechBatch(
   formattedFrom: string,
   formattedTo: string,
   limit = 300,
-  typeDate = 3
+  typeDate = 3,
+  retryCount = 0
 ): Promise<any[]> {
   const targetUrl = `${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`;
 
-  // Default to past 30 days if dates are blank, since TypeDate: 3 requires a valid date range in VTTech
-  const from = formattedFrom || '2026-08-15 00:00:00';
-  const to = formattedTo || '2026-09-30 23:59:59';
+  // Dynamic date range: defaults to past 30 days up to tomorrow (VN time) so dates naturally advance
+  const from = formattedFrom || `${getVNCurrentDateStr(-30)} 00:00:00`;
+  const to = formattedTo || `${getVNCurrentDateStr(1)} 23:59:59`;
 
   let allTickets: any[] = [];
   let idbegin = 0;
@@ -4762,6 +4971,9 @@ async function fetchVTTechBatch(
     postData.append('GroupUser', '0');
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
       const response = await fetch(targetUrl, {
         method: 'POST',
         headers: {
@@ -4771,7 +4983,7 @@ async function fetchVTTechBatch(
           'Content-Type': 'application/x-www-form-urlencoded',
           'Cookie': vttechConfigStore.cookie,
           'Origin': vttechConfigStore.baseUrl,
-          'Referer': `${vttechConfigStore.baseUrl}/marketing/ticketlist`,
+          'Referer': `${vttechConfigStore.baseUrl}/Marketing/TicketList`,
           'SecretKey': vttechConfigStore.secretKey,
           'X-Requested-With': 'XMLHttpRequest',
           'XSRF-TOKEN': vttechConfigStore.xsrfToken,
@@ -4779,11 +4991,34 @@ async function fetchVTTechBatch(
         },
         body: postData.toString(),
         redirect: 'manual',
+        signal: controller.signal,
       });
 
-      if (!response.ok) break;
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if ((response.status === 401 || response.status === 403 || response.status === 302) && retryCount === 0 && vttechConfigStore.autoLoginEnabled !== false) {
+          console.log('[fetchVTTechBatch] Mã HTTP', response.status, 'hết hạn, đang tự động đăng nhập lại...');
+          const loginRes = await loginVTTech();
+          if (loginRes.success) {
+            return fetchVTTechBatch(sourceId, formattedFrom, formattedTo, limit, typeDate, retryCount + 1);
+          }
+        }
+        break;
+      }
+
       const text = await response.text();
-      if (text.includes('<!DOCTYPE html>') || text.includes('<html')) break;
+      if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('/Login/Login')) {
+        if (retryCount === 0 && vttechConfigStore.autoLoginEnabled !== false) {
+          console.log('[fetchVTTechBatch] Phiên hết hạn (nhận HTML login), đang tự động đăng nhập lại...');
+          const loginRes = await loginVTTech();
+          if (loginRes.success) {
+            return fetchVTTechBatch(sourceId, formattedFrom, formattedTo, limit, typeDate, retryCount + 1);
+          }
+        }
+        throw new Error('AUTH_EXPIRED');
+      }
+
       const parsed = JSON.parse(text);
       let batch: any[] = [];
       if (Array.isArray(parsed)) {
@@ -4794,14 +5029,132 @@ async function fetchVTTechBatch(
       allTickets = allTickets.concat(batch);
       if (batch.length < 300) break; // End of list
       idbegin = batch[batch.length - 1].TicketID;
-    } catch (e) {
-      console.warn(`Error fetching VTTech batch for source ${sourceId} page ${page}:`, e);
+    } catch (e: any) {
+      if (e.message === 'AUTH_EXPIRED') {
+        throw e;
+      }
+      // Gracefully handle connect timeout or network unreachable without crashing
       break;
     }
   }
 
   return allTickets;
 }
+
+// Check if current VTTech session is valid and auto-relogin if expired
+app.get('/api/vttech/check-session', async (req, res) => {
+  const today = getVNCurrentDateStr();
+  // Count today's cached tickets
+  const todayTickets = (vttechCacheStore.data || []).filter((t: any) => (t.Created || '').startsWith(today));
+  const todayOL = todayTickets.filter((t: any) => t.SourceName === 'OL WB').length;
+  const todayHL = todayTickets.filter((t: any) => t.SourceName === 'HL WB').length;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    // Quick test with limit 1
+    const testPost = new URLSearchParams();
+    testPost.append('data', JSON.stringify({
+      TypeDate: 3,
+      Status: 0,
+      Source: 2,
+      SourceDetail: 0,
+      UserID: 0,
+      GroupID: 0,
+      DateFrom: `${today} 00:00:00`,
+      DateTo: `${today} 23:59:59`,
+    }));
+    testPost.append('TicketID', '0');
+    testPost.append('idbegin', '0');
+    testPost.append('limit', '1');
+    testPost.append('LevelUser', '3');
+    testPost.append('GroupUser', '0');
+
+    const response = await fetch(`${vttechConfigStore.baseUrl}/Marketing/TicketList/?handler=LoadList`, {
+      method: 'POST',
+      headers: {
+        'Accept': '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': vttechConfigStore.cookie,
+        'Origin': vttechConfigStore.baseUrl,
+        'Referer': `${vttechConfigStore.baseUrl}/Marketing/TicketList`,
+        'SecretKey': vttechConfigStore.secretKey,
+        'X-Requested-With': 'XMLHttpRequest',
+        'XSRF-TOKEN': vttechConfigStore.xsrfToken,
+      },
+      body: testPost.toString(),
+      redirect: 'manual',
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const text = await response.text();
+    let isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('/Login/Login');
+    let isValid = !isHtml && response.ok;
+
+    // If session is expired and autoLogin is enabled, automatically login and restore session!
+    if (!isValid && vttechConfigStore.autoLoginEnabled !== false) {
+      console.log('[check-session] Session không hợp lệ, đang tự động đăng nhập lại...');
+      const loginRes = await loginVTTech();
+      if (loginRes.success) {
+        isValid = true;
+      }
+    }
+
+    return res.json({
+      success: true,
+      isValid,
+      authExpired: !isValid,
+      username: vttechConfigStore.username || 'VanDuc',
+      autoLoginEnabled: vttechConfigStore.autoLoginEnabled !== false,
+      lastSyncTime: vttechConfigStore.lastSyncTime || null,
+      totalCached: vttechCacheStore.data?.length || 0,
+      todayTotal: todayTickets.length,
+      todayOL,
+      todayHL,
+      todayDate: today,
+    });
+  } catch (e: any) {
+    // If autoLogin is enabled, try refreshing session
+    if (vttechConfigStore.autoLoginEnabled !== false) {
+      const loginRes = await loginVTTech().catch(() => ({ success: false }));
+      if (loginRes.success) {
+        return res.json({
+          success: true,
+          isValid: true,
+          authExpired: false,
+          username: vttechConfigStore.username || 'VanDuc',
+          autoLoginEnabled: true,
+          lastSyncTime: vttechConfigStore.lastSyncTime || null,
+          totalCached: vttechCacheStore.data?.length || 0,
+          todayTotal: todayTickets.length,
+          todayOL,
+          todayHL,
+          todayDate: today,
+        });
+      }
+    }
+
+    // Graceful fallback if VTTech is unreachable or timed out
+    return res.json({
+      success: true,
+      isValid: false,
+      authExpired: true,
+      networkOffline: true,
+      username: vttechConfigStore.username || 'VanDuc',
+      autoLoginEnabled: vttechConfigStore.autoLoginEnabled !== false,
+      lastSyncTime: vttechConfigStore.lastSyncTime || null,
+      totalCached: vttechCacheStore.data?.length || 0,
+      todayTotal: todayTickets.length,
+      todayOL,
+      todayHL,
+      todayDate: today,
+      error: e.message,
+    });
+  }
+});
 
 // Sync Ticket List from VTTech (Supporting ALL sources + dedicated Web channels)
 app.post('/api/vttech/sync', async (req, res) => {
@@ -4815,15 +5168,28 @@ app.post('/api/vttech/sync', async (req, res) => {
     let fetchedTickets: any[] = [];
 
     if (Number(sourceID) === 0) {
-      // Fetch in parallel: All sources + dedicated HL WB (31), OL WB (2), OL-HL (35), KC WB (37)
-      // to ensure all Web and Hotline tickets are completely captured across every date
-      const [hlBatch, olBatch, olhlBatch, generalBatch] = await Promise.all([
-        fetchVTTechBatch(31, formattedFrom, formattedTo, 600, typeDate),
-        fetchVTTechBatch(2, formattedFrom, formattedTo, 900, typeDate),
-        fetchVTTechBatch(35, formattedFrom, formattedTo, 300, typeDate),
-        fetchVTTechBatch(0, formattedFrom, formattedTo, 600, typeDate),
-      ]);
-      fetchedTickets = [...hlBatch, ...olBatch, ...olhlBatch, ...generalBatch];
+      // Prioritize Web sources (OL WB = 2, HL WB = 31) with graceful fallback if network is slow/timeout
+      let olBatch: any[] = [];
+      let hlBatch: any[] = [];
+      let generalBatch: any[] = [];
+
+      try {
+        olBatch = await fetchVTTechBatch(2, formattedFrom, formattedTo, 300, typeDate);
+      } catch (err: any) {
+        if (err.message === 'AUTH_EXPIRED') throw err;
+      }
+
+      // If OL batch succeeded or returned, continue with HL & general
+      if (olBatch.length > 0) {
+        try {
+          hlBatch = await fetchVTTechBatch(31, formattedFrom, formattedTo, 300, typeDate);
+        } catch {}
+        try {
+          generalBatch = await fetchVTTechBatch(0, formattedFrom, formattedTo, 300, typeDate);
+        } catch {}
+      }
+
+      fetchedTickets = [...hlBatch, ...olBatch, ...generalBatch];
     } else {
       fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, Number(limit) || 300, typeDate);
     }
@@ -4832,12 +5198,12 @@ app.post('/api/vttech/sync', async (req, res) => {
     const ticketMap = new Map<number, any>();
     if (Array.isArray(vttechCacheStore.data)) {
       vttechCacheStore.data.forEach((t: any) => {
-        if (t && t.TicketID) ticketMap.set(t.TicketID, t);
+        if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
       });
     }
 
     fetchedTickets.forEach((t: any) => {
-      if (t && t.TicketID) ticketMap.set(t.TicketID, t);
+      if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
     });
 
     const mergedTickets = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
@@ -4854,10 +5220,12 @@ app.post('/api/vttech/sync', async (req, res) => {
 
       return res.json({
         success: true,
+        isFallbackCache: fetchedTickets.length === 0,
         total: mergedTickets.length,
         serverReportedTotal: mergedTickets.length,
         cachedAt: vttechConfigStore.lastSyncTime,
         data: mergedTickets,
+        newFetched: fetchedTickets.length,
       });
     }
 
@@ -4868,57 +5236,197 @@ app.post('/api/vttech/sync', async (req, res) => {
       data: [],
     });
   } catch (error: any) {
-    console.error('Lỗi khi đồng bộ dữ liệu VTTech:', error);
+    const isAuthExpired = error.message === 'AUTH_EXPIRED';
     if (vttechCacheStore.data.length > 0) {
       return res.json({
         success: true,
         isFallbackCache: true,
-        warning: `Không thể kết nối trực tiếp đến VTTech (${error.message}). Đang hiển thị dữ liệu lưu trữ.`,
+        authExpired: isAuthExpired,
+        warning: isAuthExpired
+          ? 'Phiên đăng nhập VTTech đã hết hạn. Vui lòng dán cURL hoặc Cookie mới để tiếp tục tự động đồng bộ.'
+          : 'Máy chủ VTTech đang phản hồi chậm hoặc hết phiên. Đang hiển thị dữ liệu đã lưu trữ an toàn.',
         total: vttechCacheStore.data.length,
-        cachedAt: new Date(vttechCacheStore.lastFetched).toISOString(),
+        cachedAt: new Date(vttechCacheStore.lastFetched || Date.now()).toISOString(),
         data: vttechCacheStore.data,
       });
     }
     return res.status(500).json({
       success: false,
-      error: 'Không thể kết nối đến VTTech CRM lúc này.',
-      details: error.message,
+      error: error.message || 'Lỗi khi đồng bộ dữ liệu VTTech',
     });
   }
 });
 
-// Import from cURL command pasted by user
+// Import from cURL command, raw Cookie, or raw Response JSON
 app.post('/api/vttech/import-curl', async (req, res) => {
   try {
     const { curlCommand } = req.body;
     if (!curlCommand || typeof curlCommand !== 'string') {
-      return res.status(400).json({ success: false, error: 'Thiếu lệnh cURL' });
+      return res.status(400).json({ success: false, error: 'Thiếu lệnh cURL hoặc chuỗi dữ liệu' });
     }
 
-    // Extract headers and body
-    const cookieMatch = curlCommand.match(/-H\s+['"](?:[Cc]ookie:\s*)?([^'"]+)['"]/);
-    const cookieMatchAlt = curlCommand.match(/-b\s+['"]([^'"]+)['"]/);
-    const secretKeyMatch = curlCommand.match(/-H\s+['"][Ss]ecret[Kk]ey:\s*([^'"]+)['"]/);
-    const xsrfMatch = curlCommand.match(/-H\s+['"][Xx][Ss][Rr][Ff]-[Tt][Oo][Kk][Ee][Nn]:\s*([^'"]+)['"]/);
-    
-    if (cookieMatch || cookieMatchAlt) {
-      vttechConfigStore.cookie = (cookieMatch ? cookieMatch[1] : cookieMatchAlt![1]).replace(/^Cookie:\s*/i, '').trim();
-    }
-    if (secretKeyMatch) {
-      vttechConfigStore.secretKey = secretKeyMatch[1].trim();
-    }
-    if (xsrfMatch) {
-      vttechConfigStore.xsrfToken = xsrfMatch[1].trim();
+    const trimmed = curlCommand.trim();
+
+    // Check if user pasted JSON tickets array directly
+    if (trimmed.startsWith('[') || (trimmed.startsWith('{') && trimmed.includes('"TicketID"'))) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        let tickets: any[] = [];
+        if (Array.isArray(parsed)) {
+          if (parsed.length >= 2 && Array.isArray(parsed[1])) tickets = parsed[1];
+          else if (parsed.length > 0 && typeof parsed[0] === 'object') tickets = parsed;
+        } else if (parsed && Array.isArray(parsed.data)) {
+          tickets = parsed.data;
+        }
+
+        if (tickets.length > 0 && (tickets[0].TicketID || tickets[0].SourceName)) {
+          const ticketMap = new Map<number, any>();
+          if (Array.isArray(vttechCacheStore.data)) {
+            vttechCacheStore.data.forEach((t: any) => {
+              if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
+            });
+          }
+          tickets.forEach((t: any) => {
+            if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
+          });
+          const merged = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
+          vttechCacheStore.data = merged;
+          vttechCacheStore.total = merged.length;
+          vttechCacheStore.lastFetched = Date.now();
+          vttechConfigStore.lastSyncTime = new Date().toISOString();
+          fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+          fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
+
+          return res.json({
+            success: true,
+            importedDirectly: true,
+            message: `Đã nạp trực tiếp ${tickets.length} vé vào kho dữ liệu thành công!`,
+            total: merged.length,
+          });
+        }
+      } catch {}
     }
 
+    // Extract headers from cURL, PowerShell, or raw Cookie
+    let cookie = '';
+    let secretKey = '';
+    let xsrfToken = '';
+
+    const cookieMatch = trimmed.match(/-[Hh]\s+['"]?[Cc]ookie:\s*([^'"\r\n]+)['"]?/i)
+      || trimmed.match(/-b\s+['"]?([^'"\r\n]+)['"]?/i)
+      || trimmed.match(/--cookie\s+['"]?([^'"\r\n]+)['"]?/i);
+    if (cookieMatch) cookie = cookieMatch[1].trim();
+
+    const secretMatch = trimmed.match(/-[Hh]\s+['"]?[Ss]ecret[Kk]ey:\s*([^'"\r\n]+)['"]?/i);
+    if (secretMatch) secretKey = secretMatch[1].trim();
+
+    const xsrfMatch = trimmed.match(/-[Hh]\s+['"]?[Xx][Ss][Rr][Ff]-[Tt][Oo][Kk][Ee][Nn]:\s*([^'"\r\n]+)['"]?/i);
+    if (xsrfMatch) xsrfToken = xsrfMatch[1].trim();
+
+    // If raw cookie was pasted
+    if (!cookie && (trimmed.includes('.AspNetCore') || trimmed.includes('WebToken='))) {
+      const lines = trimmed.split('\n');
+      for (const line of lines) {
+        if (line.includes('.AspNetCore') || line.includes('WebToken=')) {
+          cookie = line.replace(/^[Cc]ookie:\s*/i, '').trim();
+          break;
+        }
+      }
+      if (!cookie) cookie = trimmed;
+    }
+
+    if (cookie) vttechConfigStore.cookie = cookie;
+    if (secretKey) vttechConfigStore.secretKey = secretKey;
+    if (xsrfToken) vttechConfigStore.xsrfToken = xsrfToken;
+
+    fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+
+    // Test live connection immediately with updated credentials
+    let testSuccess = false;
+    let fetchedTodayCount = 0;
+    try {
+      const today = getVNCurrentDateStr();
+      const liveTickets = await fetchVTTechBatch(2, `${today} 00:00:00`, `${today} 23:59:59`, 100);
+      testSuccess = true;
+      fetchedTodayCount = liveTickets.length;
+      if (liveTickets.length > 0) {
+        const ticketMap = new Map<number, any>();
+        if (Array.isArray(vttechCacheStore.data)) {
+          vttechCacheStore.data.forEach((t: any) => {
+            if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
+          });
+        }
+        liveTickets.forEach((t: any) => {
+          if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
+        });
+        const merged = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
+        vttechCacheStore.data = merged;
+        vttechCacheStore.total = merged.length;
+        vttechCacheStore.lastFetched = Date.now();
+        vttechConfigStore.lastSyncTime = new Date().toISOString();
+        fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+        fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
+      }
+    } catch (testErr) {
+      console.warn('Live test after cURL update failed:', testErr);
+    }
+
+    return res.json({
+      success: true,
+      message: testSuccess
+        ? `Kết nối thành công tới VTTech CRM! Đã tải về ${fetchedTodayCount} vé mới.`
+        : 'Đã lưu Cookie/SecretKey mới từ cURL. Hệ thống sẽ áp dụng ngay.',
+      liveConnected: testSuccess,
+      hasCookie: !!vttechConfigStore.cookie,
+      hasSecretKey: !!vttechConfigStore.secretKey,
+      hasXsrfToken: !!vttechConfigStore.xsrfToken,
+    });
+  } catch (e: any) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Direct import of tickets array (supports nested arrays [ [{...}], [tickets...] ] or { data: [...] })
+app.post('/api/vttech/import-tickets', (req, res) => {
+  try {
+    let { tickets } = req.body;
+    if (Array.isArray(tickets) && tickets.length >= 2 && Array.isArray(tickets[1])) {
+      tickets = tickets[1];
+    } else if (tickets && Array.isArray(tickets.data)) {
+      tickets = tickets.data;
+    }
+
+    if (!Array.isArray(tickets) || tickets.length === 0) {
+      return res.status(400).json({ success: false, error: 'Dữ liệu vé không hợp lệ hoặc rỗng' });
+    }
+
+    const ticketMap = new Map<number, any>();
+    if (Array.isArray(vttechCacheStore.data)) {
+      vttechCacheStore.data.forEach((t: any) => {
+        if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t);
+      });
+    }
+
+    tickets.forEach((t: any) => {
+      if (t && (t.TicketID || t.CustCode) && !isMockVTTechTicket(t)) {
+        const id = t.TicketID || Math.floor(Math.random() * 1000000);
+        ticketMap.set(id, { ...t, TicketID: id });
+      }
+    });
+
+    const merged = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
+    vttechCacheStore.data = merged;
+    vttechCacheStore.total = merged.length;
+    vttechCacheStore.lastFetched = Date.now();
+    vttechConfigStore.lastSyncTime = new Date().toISOString();
+
+    fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
     fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
 
     return res.json({
       success: true,
-      message: 'Đã trích xuất Cookie và SecretKey từ cURL thành công!',
-      hasCookie: !!vttechConfigStore.cookie,
-      hasSecretKey: !!vttechConfigStore.secretKey,
-      hasXsrfToken: !!vttechConfigStore.xsrfToken,
+      message: `Đã nạp thành công ${tickets.length} vé vào kho dữ liệu. Tổng số vé hiện tại: ${merged.length}.`,
+      total: merged.length,
     });
   } catch (e: any) {
     return res.status(500).json({ success: false, error: e.message });
@@ -4933,6 +5441,8 @@ app.get('/api/vttech/tickets', (req, res) => {
       const raw = fs.readFileSync(VTTECH_CACHE_FILE, 'utf-8');
       const parsed = JSON.parse(raw);
       if (parsed && Array.isArray(parsed.data)) {
+        parsed.data = parsed.data.filter((t: any) => !isMockVTTechTicket(t));
+        parsed.total = parsed.data.length;
         vttechCacheStore = parsed;
       }
     } catch {}
@@ -4947,6 +5457,34 @@ app.get('/api/vttech/tickets', (req, res) => {
 });
 
 
+
+// Background auto-sync VTTech tickets every 8 minutes
+setInterval(async () => {
+  if (vttechConfigStore.autoLoginEnabled === false) return;
+  try {
+    const today = getVNCurrentDateStr();
+    const todayBatch = await fetchVTTechBatch(0, `${today} 00:00:00`, `${today} 23:59:59`, 500, 3);
+    if (todayBatch && todayBatch.length > 0) {
+      const ticketMap = new Map<number, any>();
+      if (Array.isArray(vttechCacheStore.data)) {
+        vttechCacheStore.data.forEach((t: any) => { if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t); });
+      }
+      todayBatch.forEach((t: any) => { if (t && t.TicketID && !isMockVTTechTicket(t)) ticketMap.set(t.TicketID, t); });
+      const merged = Array.from(ticketMap.values()).sort((a: any, b: any) => (b.TicketID || 0) - (a.TicketID || 0));
+      vttechCacheStore = {
+        lastFetched: Date.now(),
+        total: merged.length,
+        data: merged
+      };
+      vttechConfigStore.lastSyncTime = new Date().toISOString();
+      fs.writeFileSync(VTTECH_CONFIG_FILE, JSON.stringify(vttechConfigStore, null, 2), 'utf-8');
+      fs.writeFileSync(VTTECH_CACHE_FILE, JSON.stringify(vttechCacheStore, null, 2), 'utf-8');
+      console.log(`[Auto-Sync VTTech] Tự động cập nhật thành công ${todayBatch.length} vé hôm nay (${today})`);
+    }
+  } catch (err: any) {
+    console.warn('[Auto-Sync VTTech Background error]:', err.message);
+  }
+}, 8 * 60 * 1000);
 
 // Export for Vercel Serverless Functions
 export { app, getGeminiClient };

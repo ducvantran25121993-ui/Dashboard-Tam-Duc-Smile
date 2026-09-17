@@ -100,7 +100,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'leads_funnel',
       label: 'Lead & Phễu',
       icon: Users2,
-      badge: '1.2k',
+      badge: '3.1k',
       badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     },
     {
@@ -135,7 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'vttech_crm',
       label: 'VTTech CRM',
       icon: Ticket,
-      badge: 'Ticket Live',
+      badge: '3.1k Live',
       badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     },
     {

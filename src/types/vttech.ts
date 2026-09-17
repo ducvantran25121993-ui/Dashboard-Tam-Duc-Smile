@@ -55,4 +55,8 @@ export interface VTTechSyncResponse {
   cachedAt: string;
   data: VTTechTicket[];
   error?: string;
+  warning?: string;
+  authExpired?: boolean;
+  isFallbackCache?: boolean;
+  newFetched?: number;
 }

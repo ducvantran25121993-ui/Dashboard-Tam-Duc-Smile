@@ -29,6 +29,11 @@ import {
   ArrowDownRight,
   AlertTriangle,
   Wallet,
+  Ticket,
+  Globe,
+  PhoneCall,
+  RefreshCw,
+  Radio,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -46,6 +51,9 @@ import { MonthDataset } from '../data/revenueData';
 import { DisplayUnit, SidebarTab } from '../types';
 import { isVietKieuRegion, formatVND, formatPercent, formatChartAxisVND } from '../utils/formatters';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
+import { fetchCachedVTTechTickets } from '../services/vttechService';
+import { VTTechTicket } from '../types/vttech';
+import { getVietnamTodayStr } from '../utils/dateHelpers';
 
 interface WorkOverviewProps {
   monthlyDatasets: MonthDataset[];
@@ -68,6 +76,90 @@ export const WorkOverview: React.FC<WorkOverviewProps> = ({
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodFilter>('all');
   const [copiedSummary, setCopiedSummary] = useState(false);
   const [viewMode, setViewMode] = useState<'both' | 'chart' | 'table'>('both');
+
+  // VTTech CRM Real-time state
+  const [vttechTickets, setVttechTickets] = useState<VTTechTicket[]>([]);
+  const [vttechLoading, setVttechLoading] = useState(true);
+  const [vttechLastSync, setVttechLastSync] = useState<string | null>(null);
+
+  const loadVTTech = async () => {
+    try {
+      const res = await fetchCachedVTTechTickets();
+      if (res.success && res.data) {
+        setVttechTickets(res.data);
+        setVttechLastSync(new Date().toLocaleTimeString('vi-VN'));
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setVttechLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadVTTech();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail?.data) {
+        setVttechTickets(e.detail.data);
+        setVttechLastSync(new Date().toLocaleTimeString('vi-VN'));
+      } else {
+        loadVTTech();
+      }
+    };
+
+    window.addEventListener('vttech-updated', handleUpdate);
+    const interval = setInterval(loadVTTech, 12000);
+    return () => {
+      window.removeEventListener('vttech-updated', handleUpdate);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const todayStr = getVietnamTodayStr();
+
+  const vttechStats = useMemo(() => {
+    const todayTickets = vttechTickets.filter((t) => (t.Created || '').startsWith(todayStr));
+    const todayWeb = todayTickets.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB');
+    const todayOL = todayTickets.filter((t) => t.SourceName === 'OL WB').length;
+    const todayHL = todayTickets.filter((t) => t.SourceName === 'HL WB').length;
+    const todayBooked = todayTickets.filter(
+      (t) => (t.IsBook && t.IsBook > 0) || (t.StatusID === 2 || t.StatusID === 3) || (t.StatusName && t.StatusName.toLowerCase().includes('hẹn'))
+    ).length;
+    const todayArrived = todayTickets.filter(
+      (t) => t.TypeStatusScheduleID === 3 || t.StatusID === 3 || (t.StatusName && t.StatusName.toLowerCase().includes('đến'))
+    ).length;
+    const todayGclid = todayTickets.filter((t) => !!t.Gclid && t.Gclid.trim() !== '').length;
+
+    const totalCrm = vttechTickets.length;
+    const totalWeb = vttechTickets.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB').length;
+    const totalOL = vttechTickets.filter((t) => t.SourceName === 'OL WB').length;
+    const totalHL = vttechTickets.filter((t) => t.SourceName === 'HL WB').length;
+    const totalBooked = vttechTickets.filter(
+      (t) => (t.IsBook && t.IsBook > 0) || (t.StatusID === 2 || t.StatusID === 3) || (t.StatusName && t.StatusName.toLowerCase().includes('hẹn'))
+    ).length;
+    const totalArrived = vttechTickets.filter(
+      (t) => t.TypeStatusScheduleID === 3 || t.StatusID === 3 || (t.StatusName && t.StatusName.toLowerCase().includes('đến'))
+    ).length;
+    const totalGclid = vttechTickets.filter((t) => !!t.Gclid && t.Gclid.trim() !== '').length;
+
+    return {
+      todayCount: todayTickets.length,
+      todayWebCount: todayWeb.length,
+      todayOL,
+      todayHL,
+      todayBooked,
+      todayArrived,
+      todayGclid,
+      totalCrm,
+      totalWeb,
+      totalOL,
+      totalHL,
+      totalBooked,
+      totalArrived,
+      totalGclid,
+    };
+  }, [vttechTickets, todayStr]);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -520,26 +612,225 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
         </div>
 
         {/* Metric 4: Total Leads / Data */}
-        <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-lg relative overflow-hidden group hover:border-purple-500/40 transition-all">
+        <div
+          onClick={() => onNavigateToTab('vttech_crm')}
+          className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 shadow-lg relative overflow-hidden group hover:border-orange-500/50 transition-all cursor-pointer"
+        >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng Data Khách Hàng</span>
-            <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
-              <Users2 className="w-5 h-5" />
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tổng Data Khách Hàng</span>
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                CRM Live
+              </span>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 group-hover:scale-105 transition-transform">
+              <Ticket className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-baseline gap-1.5">
-              <span>{totalLeads.toLocaleString('vi-VN')}</span>
-              <span className="text-sm font-semibold text-purple-300">leads</span>
+              <span>{(vttechStats.totalCrm > 0 ? vttechStats.totalCrm : totalLeads).toLocaleString('vi-VN')}</span>
+              <span className="text-sm font-semibold text-orange-300">leads CRM</span>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-medium">
-                Thô: <strong className="font-bold text-white">{totalDataTho.toLocaleString('vi-VN')}</strong>
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-medium flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Hôm nay: <strong className="font-bold text-white">+{vttechStats.todayWebCount}</strong> vé Web ({vttechStats.todayOL} OL • {vttechStats.todayHL} HL)
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[11px] font-medium">
-                CL: <strong className="font-bold text-white">{totalDataCL.toLocaleString('vi-VN')}</strong> ({qualityLeadRate.toFixed(1)}%)
+              <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px] font-medium">
+                Web luỹ kế: <strong className="font-bold text-white">{vttechStats.totalWeb.toLocaleString('vi-VN')}</strong>
               </span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* VTTech CRM Real-Time Live Data Hub on Dashboard */}
+      <div className="rounded-2xl bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-950/95 border border-orange-500/30 p-5 sm:p-6 shadow-xl relative overflow-hidden">
+        {/* Glow accent */}
+        <div className="absolute -top-24 -right-24 w-60 h-60 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Hub Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0 shadow-lg shadow-orange-500/10">
+              <Ticket className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                  Dữ Liệu VTTech CRM Trực Tiếp
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    LIVE REAL-TIME
+                  </span>
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
+                <span>Máy chủ: <strong className="text-slate-300">nktamduc.vttechsolution.com</strong></span>
+                <span>•</span>
+                <span>Cập nhật: <strong className="text-slate-300">{vttechLastSync || 'Vừa xong'}</strong></span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={loadVTTech}
+              disabled={vttechLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
+              title="Làm mới dữ liệu từ VTTech"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-orange-400 ${vttechLoading ? 'animate-spin' : ''}`} />
+              <span>{vttechLoading ? 'Đang tải...' : 'Làm Mới'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('vttech_crm')}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white text-xs font-bold shadow-md shadow-orange-600/30 border border-orange-400/40 transition-all cursor-pointer"
+            >
+              <span>Xem Toàn Bộ CRM</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* 2 Main Metric Blocks: Hôm Nay & Luỹ Kế */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-5">
+          {/* CỘT 1: HÔM NAY */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/60 border border-slate-800/90 relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-400">
+                    Hôm Nay ({todayStr.split('-').reverse().join('/')})
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Tổng {vttechStats.todayCount} vé CRM hôm nay
+                </span>
+              </div>
+
+              {/* Hero Metric: Vé Kênh Web */}
+              <div className="flex items-baseline justify-between gap-2 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 mb-3">
+                <div>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider block">
+                    Vé Kênh Website (OL WB + HL WB)
+                  </span>
+                  <div className="text-3xl font-black text-white tracking-tight mt-1 flex items-baseline gap-2">
+                    <span>{vttechStats.todayWebCount}</span>
+                    <span className="text-sm font-bold text-emerald-400">vé</span>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <div className="text-xs text-slate-300 font-semibold flex items-center gap-1.5 justify-end">
+                    <Globe className="w-3.5 h-3.5 text-emerald-400" />
+                    Online Web: <strong className="text-white font-bold">{vttechStats.todayOL}</strong>
+                  </div>
+                  <div className="text-xs text-slate-300 font-semibold flex items-center gap-1.5 justify-end">
+                    <PhoneCall className="w-3.5 h-3.5 text-cyan-400" />
+                    Hotline Web: <strong className="text-white font-bold">{vttechStats.todayHL}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Secondary KPI Tiles */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Đã Đặt Hẹn</div>
+                  <div className="text-lg font-black text-emerald-400 mt-0.5">{vttechStats.todayBooked}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Tỷ lệ: {vttechStats.todayCount > 0 ? Math.round((vttechStats.todayBooked / vttechStats.todayCount) * 100) : 0}%</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Đã Đến Khám</div>
+                  <div className="text-lg font-black text-purple-400 mt-0.5">{vttechStats.todayArrived}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Đến phòng khám</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Google Ads GCLID</div>
+                  <div className="text-lg font-black text-amber-400 mt-0.5">{vttechStats.todayGclid}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Đối soát Ads</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('vttech_crm')}
+              className="mt-3.5 w-full py-2 px-3 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <span>Xem chi tiết 24 vé Web hôm nay trong CRM</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* CỘT 2: LŨY KẾ TOÀN HỆ THỐNG CRM */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-950/60 border border-slate-800/90 relative overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-orange-400" />
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-orange-400">
+                    Toàn Bộ Hệ Thống VTTech CRM
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Cơ sở TP.HCM & Miền Tây
+                </span>
+              </div>
+
+              {/* Hero Metric: Tổng Ticket CRM */}
+              <div className="flex items-baseline justify-between gap-2 p-3.5 rounded-xl bg-orange-500/10 border border-orange-500/25 mb-3">
+                <div>
+                  <span className="text-xs font-bold text-orange-300 uppercase tracking-wider block">
+                    Tổng Dữ Liệu Vé (Ticket CRM)
+                  </span>
+                  <div className="text-3xl font-black text-white tracking-tight mt-1 flex items-baseline gap-2">
+                    <span>{vttechStats.totalCrm.toLocaleString('vi-VN')}</span>
+                    <span className="text-sm font-bold text-orange-400">vé</span>
+                  </div>
+                </div>
+                <div className="text-right space-y-1">
+                  <div className="text-xs text-slate-300 font-semibold">
+                    Kênh Web: <strong className="text-white font-bold">{vttechStats.totalWeb.toLocaleString('vi-VN')}</strong> vé
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    {vttechStats.totalOL.toLocaleString('vi-VN')} OL • {vttechStats.totalHL.toLocaleString('vi-VN')} HL
+                  </div>
+                </div>
+              </div>
+
+              {/* 3 Secondary KPI Tiles */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Tổng Đã Đặt Hẹn</div>
+                  <div className="text-lg font-black text-emerald-400 mt-0.5">{vttechStats.totalBooked.toLocaleString('vi-VN')}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Tỷ lệ: {vttechStats.totalCrm > 0 ? Math.round((vttechStats.totalBooked / vttechStats.totalCrm) * 100) : 0}%</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Tổng Đã Đến Khám</div>
+                  <div className="text-lg font-black text-purple-400 mt-0.5">{vttechStats.totalArrived.toLocaleString('vi-VN')}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Tỷ lệ: {vttechStats.totalCrm > 0 ? Math.round((vttechStats.totalArrived / vttechStats.totalCrm) * 100) : 0}%</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Mã GCLID Ads</div>
+                  <div className="text-lg font-black text-amber-400 mt-0.5">{vttechStats.totalGclid}</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Đối soát chuẩn</div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onNavigateToTab('vttech_crm')}
+              className="mt-3.5 w-full py-2 px-3 rounded-xl bg-orange-600/20 hover:bg-orange-600/30 text-orange-300 border border-orange-500/30 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <span>Xem danh sách toàn bộ {vttechStats.totalCrm.toLocaleString('vi-VN')} vé tại CRM</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -616,7 +907,7 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
             </div>
           </div>
           <span className="text-[11px] font-medium text-slate-400 bg-slate-800/60 px-3 py-1 rounded-full border border-slate-700/60 self-start sm:self-auto">
-            6 Phân Hệ Vận Hành & Tăng Trưởng
+            7 Phân Hệ Vận Hành & Tăng Trưởng
           </span>
         </div>
 
@@ -625,11 +916,11 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400/50" />
             <span className="text-xs font-bold uppercase tracking-wider text-cyan-300/90">
-              Nhóm 1: Quản Trị Doanh Thu, Phễu & Chiến Dịch Quảng Cáo
+              Nhóm 1: Quản Trị Doanh Thu, VTTech CRM & Chiến Dịch Quảng Cáo
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Google Ads Dashboard */}
             <div
               onClick={() => onNavigateToTab('google_ads')}
@@ -653,6 +944,34 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
               </div>
               <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-cyan-400 group-hover:text-cyan-300">
                 <span>Mở bảng dữ liệu</span>
+                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </div>
+            </div>
+
+            {/* Card 2: VTTech CRM Solution */}
+            <div
+              onClick={() => onNavigateToTab('vttech_crm')}
+              className="group p-5 rounded-2xl bg-gradient-to-b from-slate-800/70 to-slate-900/90 hover:from-slate-800 hover:to-slate-850 border border-orange-500/30 hover:border-orange-400/70 cursor-pointer transition-all duration-200 shadow-lg hover:shadow-orange-500/10 relative overflow-hidden flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="w-11 h-11 rounded-xl bg-orange-500/15 text-orange-400 border border-orange-500/30 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Ticket className="w-5 h-5" />
+                  </div>
+                  <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-orange-500/20 text-orange-300 border border-orange-400/30 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    3.099 Vé Live
+                  </span>
+                </div>
+                <h4 className="text-base font-bold text-white mt-3.5 group-hover:text-orange-300 transition-colors">
+                  VTTech CRM Solution
+                </h4>
+                <p className="text-xs leading-relaxed text-slate-400 mt-1.5 line-clamp-2">
+                  Live Real-time: {vttechStats.todayWebCount} vé Web hôm nay ({vttechStats.todayOL} OL + {vttechStats.todayHL} HL), {vttechStats.totalBooked.toLocaleString('vi-VN')} lịch hẹn & đối soát Gclid.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-semibold text-orange-400 group-hover:text-orange-300">
+                <span>Quản trị vé CRM</span>
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
             </div>
