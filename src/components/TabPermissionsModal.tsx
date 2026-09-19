@@ -89,14 +89,6 @@ export const ALL_WORKSPACE_TABS: TabConfig[] = [
     badge: 'Auto Diff',
   },
   {
-    id: 'sales_copilot',
-    label: 'Sales Copilot AI',
-    category: 'Công Cụ Bán Hàng & CSKH',
-    description: 'Trợ lý AI hỗ trợ nhân viên tư vấn kịch bản chốt đơn, xử lý từ chối và chăm sóc khách.',
-    icon: Bot,
-    badge: 'AI Copilot',
-  },
-  {
     id: 'consultation',
     label: 'Pancake',
     category: 'Công Cụ Bán Hàng & CSKH',
@@ -193,7 +185,7 @@ export const TabPermissionsModal: React.FC<TabPermissionsModalProps> = ({
 
   const handleSelectBasicOnly = () => {
     // Basic reporting tabs including budget_forecast & landing_builder
-    setSelectedTabs(['overview', 'google_ads', 'budget_forecast', 'landing_builder', 'leads_funnel', 'sales_copilot']);
+    setSelectedTabs(['overview', 'google_ads', 'budget_forecast', 'landing_builder', 'leads_funnel']);
   };
 
   const handleResetDefault = () => {

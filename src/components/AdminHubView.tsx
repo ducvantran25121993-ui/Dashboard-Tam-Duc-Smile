@@ -82,17 +82,17 @@ export interface AdminUser {
 }
 
 export const ROLE_PRESET_TABS: Record<string, SidebarTab[]> = {
-  admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'sales_copilot', 'consultation', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent', 'admin_hub'],
+  admin: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'consultation', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent', 'admin_hub'],
   manager: ['overview', 'google_ads', 'budget_forecast', 'leads_funnel', 'campaigns', 'competitor', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent'],
   marketer: ['overview', 'budget_forecast', 'campaigns', 'competitor', 'leads_funnel', 'vttech_crm', 'innovation', 'landing_builder', 'ai_agent'],
-  sales: ['overview', 'budget_forecast', 'leads_funnel', 'sales_copilot', 'consultation', 'vttech_crm', 'landing_builder', 'ai_agent'],
+  sales: ['overview', 'budget_forecast', 'leads_funnel', 'consultation', 'vttech_crm', 'landing_builder', 'ai_agent'],
   accountant: ['overview', 'google_ads', 'budget_forecast', 'landing_builder'],
   custom: ['overview', 'budget_forecast', 'campaigns', 'leads_funnel', 'landing_builder'],
 };
 
 export const ROLE_LABEL_MAP: Record<string, string> = {
   marketer: 'Google Ads Specialist (Quyền xem Ads, Đối Thủ)',
-  sales: 'Tư Vấn & Sales Online (Quyền xem Lead, Copilot)',
+  sales: 'Tư Vấn & Sales Online (Quyền xem Lead, Pancake, CRM)',
   manager: 'Marketing Manager (Xem đa tab Marketing)',
   accountant: 'Kế Toán (Xem Báo Cáo Doanh Thu & VAT)',
   admin: 'Super Admin (Toàn Quyền Hệ Thống)',

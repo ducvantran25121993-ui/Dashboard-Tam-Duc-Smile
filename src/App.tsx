@@ -11,7 +11,7 @@ import { AdminHubView } from './components/AdminHubView';
 import { LeadsFunnelView } from './components/LeadsFunnelView';
 import { CampaignsView } from './components/CampaignsView';
 import { CompetitorTrackingView } from './components/CompetitorTrackingView';
-import { SalesCopilotView, ConsultationView } from './components/ExtraViews';
+import { ConsultationView } from './components/ExtraViews';
 import LandingBuilderView from './components/LandingBuilderView';
 import { KPISummary } from './components/KPISummary';
 import { CostChart } from './components/CostChart';
@@ -69,7 +69,7 @@ export default function App() {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>(() => {
     try {
       const saved = localStorage.getItem('dashboard_active_sidebar_tab');
-      if (saved) return saved as SidebarTab;
+      if (saved && (saved as string) !== 'sales_copilot') return saved as SidebarTab;
     } catch {}
     return 'google_ads';
   });
@@ -534,7 +534,6 @@ export default function App() {
                     {activeSidebarTab === 'leads_funnel' && 'Lead & Phễu Chuyển Đổi'}
                     {activeSidebarTab === 'campaigns' && 'Chiến Dịch Quảng Cáo'}
                     {activeSidebarTab === 'competitor' && 'Theo Dõi Đối Thủ & Auction Insights'}
-                    {activeSidebarTab === 'sales_copilot' && 'Sales Copilot AI'}
                     {activeSidebarTab === 'consultation' && 'Pancake'}
                     {activeSidebarTab === 'innovation' && 'Sáng Tạo & Đổi Mới'}
                     {activeSidebarTab === 'landing_builder' && 'Tạo Landing Page AI (Vision to Code)'}
@@ -712,8 +711,6 @@ export default function App() {
           {activeSidebarTab === 'competitor' && (
             <CompetitorTrackingView />
           )}
-
-          {activeSidebarTab === 'sales_copilot' && <SalesCopilotView />}
 
           {activeSidebarTab === 'consultation' && <PancakeCRMView />}
 

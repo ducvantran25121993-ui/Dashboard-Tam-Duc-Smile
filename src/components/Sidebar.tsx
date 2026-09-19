@@ -118,13 +118,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 animate-pulse',
     },
     {
-      id: 'sales_copilot',
-      label: 'Sales Copilot',
-      icon: Bot,
-      badge: 'AI',
-      badgeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    },
-    {
       id: 'consultation',
       label: 'Pancake',
       icon: MessageSquare,

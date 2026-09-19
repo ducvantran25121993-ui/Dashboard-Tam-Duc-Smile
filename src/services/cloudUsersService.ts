@@ -17,7 +17,6 @@ export const DEFAULT_SUPER_ADMIN_USER: AdminUser = {
     'leads_funnel',
     'campaigns',
     'competitor',
-    'sales_copilot',
     'consultation',
     'vttech_crm',
     'innovation',

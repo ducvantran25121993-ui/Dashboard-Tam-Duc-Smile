@@ -9,7 +9,6 @@ export type SidebarTab =
   | 'leads_funnel'
   | 'campaigns'
   | 'competitor'
-  | 'sales_copilot'
   | 'consultation'
   | 'vttech_crm'
   | 'innovation'
