@@ -40,7 +40,7 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRegions, setExpandedRegions] = useState<Record<string, boolean>>({});
-  const [sortField, setSortField] = useState<'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong'>('revenue');
+  const [sortField, setSortField] = useState<'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong' | 'checkin' | 'dau' | 'rot'>('revenue');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
 
   // Auto-expand region when selected via Command Palette or Chart click
@@ -67,7 +67,7 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
     }));
   };
 
-  const handleSort = (field: 'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong') => {
+  const handleSort = (field: 'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong' | 'checkin' | 'dau' | 'rot') => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
     } else {
@@ -87,6 +87,10 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
       const dataChatLuong = r.dataChatLuong || 0;
       const tyLeCL = dataTong > 0 ? (dataChatLuong / dataTong) * 100 : 0;
       const cpPerData = dataTong > 0 ? costVAT / dataTong : 0;
+      const checkin = r.checkin ?? r.services.reduce((sum, s) => sum + (s.checkin || 0), 0);
+      const dau = r.dau ?? r.services.reduce((sum, s) => sum + (s.dau || 0), 0);
+      const rot = r.rot ?? r.services.reduce((sum, s) => sum + (s.rot || 0), 0);
+      const tyLeChot = checkin > 0 ? (dau / checkin) * 100 : 0;
       return {
         ...r,
         revenue,
@@ -97,6 +101,10 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
         dataChatLuong,
         tyLeCL,
         cpPerData,
+        checkin,
+        dau,
+        rot,
+        tyLeChot,
       };
     })
     .filter((r) => {
@@ -124,7 +132,9 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
       else if (sortField === 'ratio') result = a.ratio - b.ratio;
       else if (sortField === 'dataTong') result = a.dataTong - b.dataTong;
       else if (sortField === 'dataChatLuong') result = a.dataChatLuong - b.dataChatLuong;
-
+      else if (sortField === 'checkin') result = a.checkin - b.checkin;
+      else if (sortField === 'dau') result = a.dau - b.dau;
+      else if (sortField === 'rot') result = a.rot - b.rot;
       return sortOrder === 'desc' ? -result : result;
     });
 
@@ -138,6 +148,9 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
   const totalRatio = totalRevenue > 0 ? (totalCostVAT / totalRevenue) * 100 : 0;
   const totalDataTong = processedRegions.reduce((sum, r) => sum + r.dataTong, 0);
   const totalDataChatLuong = processedRegions.reduce((sum, r) => sum + r.dataChatLuong, 0);
+  const totalCheckin = processedRegions.reduce((sum, r) => sum + r.checkin, 0);
+  const totalDau = processedRegions.reduce((sum, r) => sum + r.dau, 0);
+  const totalRot = processedRegions.reduce((sum, r) => sum + r.rot, 0);
 
   const handleExportCSV = () => {
     const csvRows = processedRegions.flatMap((r) => {
@@ -148,6 +161,10 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
             'Dịch Vụ': 'Tổng',
             'Data Dịch Vụ': r.dataTong,
             'Data CL': r.dataChatLuong,
+            'Check-in': r.checkin,
+            'Đậu': r.dau,
+            'Rớt': r.rot,
+            'Tỷ Lệ Chốt (%)': r.checkin > 0 ? `${r.tyLeChot.toFixed(1)}%` : '—',
             'Doanh Thu (VNĐ)': r.revenue,
             'Chi Phí VAT (VNĐ)': r.costVAT,
             'CP Dịch Vụ (VNĐ)': r.cpDichVu || 0,
@@ -165,11 +182,18 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
             : r.dataTong > 0
             ? Math.round(svcDataDV * (r.dataChatLuong / r.dataTong))
             : svcDataDV;
+        const svcCheckin = s.checkin || 0;
+        const svcDau = s.dau || 0;
+        const svcRot = s.rot || 0;
         return {
           'Khu Vực': r.name,
           'Dịch Vụ': s.name,
           'Data Dịch Vụ': svcDataDV,
           'Data CL': svcDataCL,
+          'Check-in': svcCheckin,
+          'Đậu': svcDau,
+          'Rớt': svcRot,
+          'Tỷ Lệ Chốt (%)': svcCheckin > 0 ? `${((svcDau / svcCheckin) * 100).toFixed(1)}%` : '—',
           'Doanh Thu (VNĐ)': r.revenue,
           'Chi Phí VAT (VNĐ)': r.costVAT,
           'CP Dịch Vụ (VNĐ)': s.cp,
@@ -283,6 +307,36 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                 </div>
               </th>
               <th
+                onClick={() => handleSort('checkin')}
+                className="py-3 px-3 text-right cursor-pointer hover:text-white whitespace-nowrap"
+                title="Tổng lượt khách đến khám Check-in và Tỷ lệ chốt (%)"
+              >
+                <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                  <span className="text-purple-300">Check-in (%)</span>
+                  <ArrowUpDown className="w-3 h-3 text-slate-400 shrink-0" />
+                </div>
+              </th>
+              <th
+                onClick={() => handleSort('dau')}
+                className="py-3 px-3 text-right cursor-pointer hover:text-white whitespace-nowrap"
+                title="Khách chốt thành công (Đậu)"
+              >
+                <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                  <span className="text-emerald-400">Đậu</span>
+                  <ArrowUpDown className="w-3 h-3 text-slate-400 shrink-0" />
+                </div>
+              </th>
+              <th
+                onClick={() => handleSort('rot')}
+                className="py-3 px-3 text-right cursor-pointer hover:text-white whitespace-nowrap"
+                title="Khách không chốt (Rớt)"
+              >
+                <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                  <span className="text-rose-400">Rớt</span>
+                  <ArrowUpDown className="w-3 h-3 text-slate-400 shrink-0" />
+                </div>
+              </th>
+              <th
                 onClick={() => handleSort('revenue')}
                 className="py-3 px-3 text-right cursor-pointer hover:text-white whitespace-nowrap"
               >
@@ -324,7 +378,7 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
           <tbody className="divide-y divide-slate-800/60 bg-slate-900/50">
             {processedRegions.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-8 text-slate-500">
+                <td colSpan={12} className="text-center py-8 text-slate-500">
                   Không tìm thấy khu vực nào phù hợp với từ khóa "{searchTerm}".
                 </td>
               </tr>
@@ -375,6 +429,34 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                       </td>
                       <td className="py-3 px-3 text-right font-bold text-emerald-400 text-sm whitespace-nowrap">
                         {r.dataChatLuong.toLocaleString('vi-VN')}
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-sm whitespace-nowrap" title={r.checkin > 0 ? `Check-in: ${r.checkin} | Đậu: ${r.dau} (${r.tyLeChot.toFixed(1)}%) | Rớt: ${r.rot}` : undefined}>
+                        {r.checkin > 0 ? (
+                          <div className="inline-flex items-baseline justify-end gap-1">
+                            <span className="text-purple-300">
+                              {r.checkin.toLocaleString('vi-VN')}
+                            </span>
+                            <span className="text-xs text-purple-400 font-semibold">
+                              ({Math.round(r.tyLeChot)}%)
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-500">0</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-emerald-400 text-sm whitespace-nowrap">
+                        {r.dau > 0 ? (
+                          r.dau.toLocaleString('vi-VN')
+                        ) : (
+                          <span className="text-slate-500">0</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-rose-400 text-sm whitespace-nowrap">
+                        {r.rot > 0 ? (
+                          r.rot.toLocaleString('vi-VN')
+                        ) : (
+                          <span className="text-slate-500">0</span>
+                        )}
                       </td>
                       <td className="py-3 px-3 text-right font-bold text-emerald-400 text-sm whitespace-nowrap">
                         {formatVND(r.revenue, displayUnit)}
@@ -456,6 +538,32 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                               <td className="py-2.5 px-3 text-right font-semibold text-emerald-400 whitespace-nowrap">
                                 {svcDataCL ? `${svcDataCL.toLocaleString('vi-VN')} data` : '—'}
                               </td>
+                              <td className="py-2.5 px-3 text-right font-semibold text-purple-300 whitespace-nowrap">
+                                {svc.checkin && svc.checkin > 0 ? (
+                                  <div className="inline-flex items-baseline justify-end gap-1">
+                                    <span>{svc.checkin.toLocaleString('vi-VN')}</span>
+                                    <span className="text-xs text-purple-400 font-medium">
+                                      ({Math.round(((svc.dau || 0) / svc.checkin) * 100)}%)
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-600">0</span>
+                                )}
+                              </td>
+                              <td className="py-2.5 px-3 text-right font-semibold text-emerald-400 whitespace-nowrap">
+                                {svc.dau && svc.dau > 0 ? (
+                                  svc.dau.toLocaleString('vi-VN')
+                                ) : (
+                                  <span className="text-slate-600">0</span>
+                                )}
+                              </td>
+                              <td className="py-2.5 px-3 text-right font-semibold text-rose-400 whitespace-nowrap">
+                                {svc.rot && svc.rot > 0 ? (
+                                  svc.rot.toLocaleString('vi-VN')
+                                ) : (
+                                  <span className="text-slate-600">0</span>
+                                )}
+                              </td>
                               <td className="py-2.5 px-3 text-right text-slate-500 whitespace-nowrap">—</td>
                               <td className="py-2.5 px-3 text-right text-amber-300/90 font-medium whitespace-nowrap">
                                 CP DV: {formatVND(svc.cp, displayUnit)}
@@ -490,6 +598,28 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
                 </td>
                 <td className="py-3.5 px-3 text-right text-emerald-400 text-base font-extrabold whitespace-nowrap">
                   {totalDataChatLuong.toLocaleString('vi-VN')}
+                </td>
+                <td className="py-3.5 px-3 text-right text-purple-300 text-base font-extrabold whitespace-nowrap" title={totalCheckin > 0 ? `Tổng Check-in: ${totalCheckin} | Đậu: ${totalDau} (${((totalDau / totalCheckin) * 100).toFixed(1)}%) | Rớt: ${totalRot}` : undefined}>
+                  {totalCheckin > 0 ? (
+                    <div className="inline-flex items-baseline justify-end gap-1">
+                      <span>{totalCheckin.toLocaleString('vi-VN')}</span>
+                      <span className="text-xs text-purple-400 font-bold">
+                        ({Math.round((totalDau / totalCheckin) * 100)}%)
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-slate-500">0</span>
+                  )}
+                </td>
+                <td className="py-3.5 px-3 text-right text-emerald-400 text-base font-extrabold whitespace-nowrap">
+                  {totalDau > 0 ? totalDau.toLocaleString('vi-VN') : (
+                    <span className="text-slate-500">0</span>
+                  )}
+                </td>
+                <td className="py-3.5 px-3 text-right text-rose-400 text-base font-extrabold whitespace-nowrap">
+                  {totalRot > 0 ? totalRot.toLocaleString('vi-VN') : (
+                    <span className="text-slate-500">0</span>
+                  )}
                 </td>
                 <td className="py-3.5 px-3 text-right text-emerald-400 text-base font-extrabold whitespace-nowrap">
                   {formatVND(totalRevenue, displayUnit)}

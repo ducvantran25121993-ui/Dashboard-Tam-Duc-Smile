@@ -209,6 +209,108 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
   return datasets.length > 0 ? datasets : MONTHLY_DATA;
 }
 
+export interface CheckinRecord {
+  dau: number;
+  rot: number;
+  checkin: number;
+}
+
+// Map: month (1..9) -> regionName -> serviceName -> CheckinRecord
+export type CheckinMap = Record<number, Record<string, Record<string, CheckinRecord>>>;
+
+export function parseCheckinSheet(csvText: string): CheckinMap {
+  const rows = parseCSV(csvText);
+  const checkinMap: CheckinMap = {};
+
+  for (let m = 1; m <= 9; m++) {
+    checkinMap[m] = {};
+    const baseCol = (m - 1) * 4;
+    let currentRegion = '';
+
+    for (let r = 2; r < rows.length; r++) {
+      if (r >= 71) break;
+      const row = rows[r];
+      if (!row || row.length <= baseCol) continue;
+
+      const cellReg = (row[baseCol] || '').trim();
+      const cellSvc = (row[baseCol + 1] || '').trim();
+      const cellDau = (row[baseCol + 2] || '').trim();
+      const cellRot = (row[baseCol + 3] || '').trim();
+
+      if (cellReg.toLowerCase() === 'tổng') break;
+      if (cellReg) currentRegion = cellReg;
+      if (!currentRegion) continue;
+
+      if (cellSvc) {
+        if (!checkinMap[m][currentRegion]) {
+          checkinMap[m][currentRegion] = {};
+        }
+        const svcNorm = normalizeServiceName(cellSvc);
+        const dau = parseNumber(cellDau);
+        const rot = parseNumber(cellRot);
+        checkinMap[m][currentRegion][svcNorm] = {
+          dau,
+          rot,
+          checkin: dau + rot,
+        };
+      }
+    }
+  }
+
+  return checkinMap;
+}
+
+export function applyCheckinData(datasets: MonthDataset[], checkinMap: CheckinMap): MonthDataset[] {
+  return datasets.map((monthSet) => {
+    const monthCheckin = checkinMap[monthSet.month] || {};
+
+    const updatedRegions = monthSet.regions.map((reg) => {
+      const regKey = Object.keys(monthCheckin).find(
+        (k) => k.toLowerCase() === reg.name.toLowerCase() || reg.name.toLowerCase().includes(k.toLowerCase())
+      );
+      const svcMap = regKey ? monthCheckin[regKey] : undefined;
+
+      const updatedServices = reg.services.map((svc) => {
+        let checkinRec: CheckinRecord | undefined = undefined;
+        if (svcMap) {
+          const sKey = Object.keys(svcMap).find(
+            (k) => k.toLowerCase() === svc.name.toLowerCase() || svc.name.toLowerCase().includes(k.toLowerCase())
+          );
+          if (sKey) checkinRec = svcMap[sKey];
+        }
+
+        const dau = checkinRec?.dau || 0;
+        const rot = checkinRec?.rot || 0;
+        const checkin = checkinRec?.checkin ?? (dau + rot);
+
+        return {
+          ...svc,
+          checkin,
+          dau,
+          rot,
+        };
+      });
+
+      const regCheckin = updatedServices.reduce((sum, s) => sum + (s.checkin || 0), 0);
+      const regDau = updatedServices.reduce((sum, s) => sum + (s.dau || 0), 0);
+      const regRot = updatedServices.reduce((sum, s) => sum + (s.rot || 0), 0);
+
+      return {
+        ...reg,
+        checkin: regCheckin,
+        dau: regDau,
+        rot: regRot,
+        services: updatedServices,
+      };
+    });
+
+    return {
+      ...monthSet,
+      regions: updatedRegions,
+    };
+  });
+}
+
 function normalizeServiceName(raw: string): string {
   if (!raw) return 'Khác';
   const s = raw.trim();
@@ -498,6 +600,13 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
     `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&sheet=${encodeURIComponent('Data Ngày')}&_t=${cacheBust}`
   ];
 
+  const checkinCsvUrls = [
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=739700982&_t=${cacheBust}`,
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&gid=739700982&_t=${cacheBust}`,
+    `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Check in')}&_t=${cacheBust}`,
+    `/api/proxy-sheet?url=${encodeURIComponent(`https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=739700982`)}&_t=${cacheBust}`
+  ];
+
   const fetchOptions: RequestInit = {
     cache: 'no-store',
     headers: {
@@ -538,6 +647,22 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
     }
   }
 
+  let checkinText = '';
+  for (const url of checkinCsvUrls) {
+    try {
+      const res = await fetch(url, fetchOptions);
+      if (res.ok) {
+        const text = await res.text();
+        if (text && !text.includes('<!DOCTYPE html>') && !text.includes('Error') && text.length > 50) {
+          checkinText = text;
+          break;
+        }
+      }
+    } catch {
+      // try next fallback URL
+    }
+  }
+
   try {
     let monthlyData = MONTHLY_DATA;
     let dailyData: DailyRecord[] = [];
@@ -549,6 +674,11 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
         monthlyData = parsed;
         isLive = true;
       }
+    }
+
+    if (checkinText) {
+      const checkinMap = parseCheckinSheet(checkinText);
+      monthlyData = applyCheckinData(monthlyData, checkinMap);
     }
 
     if (dailyText) {

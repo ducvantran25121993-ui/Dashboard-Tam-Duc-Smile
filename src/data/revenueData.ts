@@ -3,6 +3,9 @@ export interface ServiceData {
   cp: number;
   dataCount: number;
   dataChatLuong: number;
+  checkin?: number;
+  dau?: number;
+  rot?: number;
 }
 
 export interface RegionData {
@@ -13,6 +16,9 @@ export interface RegionData {
   cpTong: number;
   totalData: number;
   dataChatLuong: number;
+  checkin?: number;
+  dau?: number;
+  rot?: number;
   services: ServiceData[];
 }
 
