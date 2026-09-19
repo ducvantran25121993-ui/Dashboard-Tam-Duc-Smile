@@ -355,7 +355,7 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <FileSpreadsheet className="w-4 h-4" /> Bảng Form Sheet ({totalFormGross.toLocaleString('vi-VN')})
+              <FileSpreadsheet className="w-4 h-4" /> Bảng Form Sheet (Loại Bỏ Trùng: {totalFormUnique.toLocaleString('vi-VN')})
             </button>
           </div>
 

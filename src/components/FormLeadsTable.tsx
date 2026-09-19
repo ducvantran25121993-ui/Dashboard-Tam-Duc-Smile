@@ -33,7 +33,7 @@ export const FormLeadsTable: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<'all' | 'today' | 'yesterday'>('all');
   const [selectedService, setSelectedService] = useState('all');
   const [selectedBranch, setSelectedBranch] = useState('all');
-  const [filterDuplicate, setFilterDuplicate] = useState<'all' | 'unique' | 'duplicate' | 'invalid'>('all');
+  const [filterDuplicate, setFilterDuplicate] = useState<'all' | 'unique' | 'duplicate' | 'invalid'>('unique');
   const [page, setPage] = useState(1);
   const limit = 50;
 
@@ -109,7 +109,7 @@ export const FormLeadsTable: React.FC = () => {
         {/* Card 2: Unique Leads */}
         <div className="p-4 rounded-xl bg-slate-900/90 border border-emerald-900/50 shadow-lg relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-400 mb-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Khách Hàng Độc Nhất</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Loại Bỏ Trùng Lặp</span>
             <Users className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-black text-emerald-300">
@@ -140,11 +140,19 @@ export const FormLeadsTable: React.FC = () => {
             <span className="text-xs font-semibold uppercase tracking-wider text-purple-300">Hôm Nay (Realtime)</span>
             <Sparkles className="w-4 h-4 text-purple-400" />
           </div>
-          <div className="text-2xl font-black text-purple-300">
-            {stats ? `+${stats.todaySubmissions}` : '---'}
+          <div className="flex items-baseline gap-2">
+            <div className="text-2xl font-black text-purple-300">
+              {stats ? `+${stats.todayUnique}` : '---'}
+            </div>
+            <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+              Bỏ trùng lặp
+            </span>
+            <span className="text-xs text-slate-400 font-medium">
+              (+{stats?.todaySubmissions} thô)
+            </span>
           </div>
           <p className="text-[11px] text-purple-400/90 mt-1">
-            {stats ? `${stats.todayUnique} khách mới • Hôm qua: ${stats.yesterdaySubmissions}` : 'Tự động đồng bộ'}
+            {stats ? `${stats.todayUnique} khách mới (bỏ trùng lặp) • Hôm qua: ${stats.yesterdaySubmissions}` : 'Tự động đồng bộ'}
           </p>
         </div>
       </div>
@@ -220,8 +228,12 @@ export const FormLeadsTable: React.FC = () => {
                   }`}
                 >
                   <div className="text-xs font-bold">{m.label.replace('/2026', '')}</div>
-                  <div className="text-sm font-black text-cyan-300 mt-0.5">{m.total.toLocaleString('vi-VN')}</div>
-                  <div className="text-[10px] text-emerald-400 mt-0.5">{m.unique} thật ({m.duplicates} trùng)</div>
+                  <div className="text-sm font-black text-emerald-400 mt-0.5">
+                    {filterDuplicate === 'unique' ? m.unique.toLocaleString('vi-VN') : m.total.toLocaleString('vi-VN')}
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    {filterDuplicate === 'unique' ? `${m.unique} khách thật` : `${m.unique} thật (${m.duplicates} trùng)`}
+                  </div>
                 </button>
               );
             })}
@@ -239,7 +251,7 @@ export const FormLeadsTable: React.FC = () => {
             </span>
             {[
               { id: 'all', label: 'Tất cả (2026)' },
-              { id: 'today', label: `Hôm nay (+${stats?.todaySubmissions || 0})` },
+              { id: 'today', label: `Hôm nay (+${filterDuplicate === 'unique' ? stats?.todayUnique || 0 : stats?.todaySubmissions || 0})` },
               { id: 'yesterday', label: 'Hôm qua' },
             ].map((btn) => (
               <button
@@ -263,13 +275,13 @@ export const FormLeadsTable: React.FC = () => {
           {/* Deduplication Status Filter */}
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-xs font-semibold text-slate-400 mr-1 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5" /> Lọc trùng:
+              <Filter className="w-3.5 h-3.5" /> Dữ liệu hiển thị:
             </span>
             {[
-              { id: 'all', label: 'Tất cả' },
-              { id: 'unique', label: 'Chỉ Data Độc Nhất (7.427)' },
-              { id: 'duplicate', label: 'Chỉ Điền Trùng (1.195)' },
-              { id: 'invalid', label: 'SĐT lỗi (143)' },
+              { id: 'unique', label: `Loại Bỏ Trùng Lặp (${stats?.uniqueLeads.toLocaleString('vi-VN') || '7.427'})` },
+              { id: 'all', label: `Xem Tất Cả Gồm Trùng (${stats?.totalSubmissions.toLocaleString('vi-VN') || '9.090'})` },
+              { id: 'duplicate', label: `Chỉ Lượt Điền Trùng (${stats?.duplicateSubmissions.toLocaleString('vi-VN') || '1.195'})` },
+              { id: 'invalid', label: `SĐT lỗi (${stats?.invalidPhones || 143})` },
             ].map((btn) => (
               <button
                 key={btn.id}
@@ -279,7 +291,9 @@ export const FormLeadsTable: React.FC = () => {
                 }}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   filterDuplicate === btn.id
-                    ? 'bg-amber-600 text-white'
+                    ? btn.id === 'unique'
+                      ? 'bg-emerald-600 text-white shadow-md ring-1 ring-emerald-400'
+                      : 'bg-amber-600 text-white shadow-md'
                     : 'bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700'
                 }`}
               >
@@ -301,7 +315,7 @@ export const FormLeadsTable: React.FC = () => {
               }}
               className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             >
-              <option value="all">Tất cả dịch vụ ({stats?.totalSubmissions || 0})</option>
+              <option value="all">Tất cả dịch vụ</option>
               {stats?.byService.map((s) => (
                 <option key={s.service} value={s.service}>
                   {s.service} ({s.count.toLocaleString('vi-VN')})
@@ -320,7 +334,7 @@ export const FormLeadsTable: React.FC = () => {
               }}
               className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
             >
-              <option value="all">Tất cả khu vực ({stats?.totalSubmissions || 0})</option>
+              <option value="all">Tất cả khu vực</option>
               {stats?.byBranch.map((b) => (
                 <option key={b.branch} value={b.branch}>
                   {b.branch} ({b.count.toLocaleString('vi-VN')})
@@ -356,8 +370,15 @@ export const FormLeadsTable: React.FC = () => {
         <div className="p-3.5 bg-slate-800/80 border-b border-slate-800 flex items-center justify-between text-xs text-slate-300">
           <div className="font-semibold flex items-center gap-2">
             <span>Danh Sách Khách Điền Form</span>
-            <span className="px-2 py-0.5 rounded-full bg-slate-700 text-cyan-300 font-bold">
-              {data ? `${data.filteredCount?.toLocaleString('vi-VN')} kết quả` : 'Đang tải...'}
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                filterDuplicate === 'unique'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-slate-700 text-cyan-300'
+              }`}
+            >
+              {filterDuplicate === 'unique' ? 'Đã Bỏ Trùng: ' : ''}
+              {data ? `${data.filteredCount?.toLocaleString('vi-VN')} khách độc nhất` : 'Đang tải...'}
             </span>
           </div>
           <div className="text-slate-400 text-[11px]">
