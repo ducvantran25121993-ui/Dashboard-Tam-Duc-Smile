@@ -701,7 +701,7 @@ export default function App() {
           )}
 
           {activeSidebarTab === 'leads_funnel' && (
-            <LeadsFunnelView monthlyDatasets={monthlyDatasets} />
+            <LeadsFunnelView monthlyDatasets={monthlyDatasets} userRole={userRole} />
           )}
 
           {activeSidebarTab === 'campaigns' && (

@@ -21,7 +21,14 @@ import {
 import { FormLeadItem, FormLeadsResponse, FormLeadsStats } from '../types/formLead';
 import { fetchFormLeads, triggerSyncFormLeads, FormLeadsFilterParams } from '../services/formLeadsService';
 
-export const FormLeadsTable: React.FC = () => {
+interface FormLeadsTableProps {
+  userRole?: 'admin' | 'staff' | null;
+}
+
+export const FormLeadsTable: React.FC<FormLeadsTableProps> = ({ userRole }) => {
+  const effectiveRole = userRole || (typeof window !== 'undefined' ? (localStorage.getItem('tamduc_user_role') as 'admin' | 'staff' | null) : null) || 'admin';
+  const isAdmin = effectiveRole !== 'staff';
+
   const [data, setData] = useState<FormLeadsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -177,14 +184,16 @@ export const FormLeadsTable: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 self-end md:self-auto">
-          <a
-            href="https://docs.google.com/spreadsheets/d/1gG7aLnjQ2DkuKUMsma-XS4ii3FbJoAU-hreaI46nOX8/edit?pli=1&gid=0#gid=0"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
-          >
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" /> Mở Sheet Gốc
-          </a>
+          {isAdmin && (
+            <a
+              href="https://docs.google.com/spreadsheets/d/1gG7aLnjQ2DkuKUMsma-XS4ii3FbJoAU-hreaI46nOX8/edit?pli=1&gid=0#gid=0"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400" /> Mở Sheet Gốc
+            </a>
+          )}
           <button
             onClick={handleSyncNow}
             disabled={syncing}

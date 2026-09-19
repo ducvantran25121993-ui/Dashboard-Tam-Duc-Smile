@@ -33,9 +33,10 @@ import { fetchCachedCampaignsSheet, CampaignFetchResult } from '../services/camp
 
 interface LeadsFunnelViewProps {
   monthlyDatasets: MonthDataset[];
+  userRole?: 'admin' | 'staff' | null;
 }
 
-export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDatasets }) => {
+export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDatasets, userRole = 'admin' }) => {
   const [activeTab, setActiveTab] = useState<'funnel' | 'form_table'>('funnel');
   const [crmScope, setCrmScope] = useState<'web_only' | 'all_crm'>('web_only');
   const [vttechTickets, setVttechTickets] = useState<VTTechTicket[]>([]);
@@ -355,7 +356,7 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <FileSpreadsheet className="w-4 h-4" /> Bảng Form Sheet (Loại Bỏ Trùng: {totalFormUnique.toLocaleString('vi-VN')})
+              <FileSpreadsheet className="w-4 h-4" /> Bảng Form Sheet
             </button>
           </div>
 
@@ -421,27 +422,8 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
                   Các Tầng Phễu Marketing & Bán Hàng Tâm Đức Smile 2026
                 </h3>
 
-                <div className="flex items-center p-1 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs shrink-0">
-                  <button
-                    onClick={() => setCrmScope('web_only')}
-                    className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      crmScope === 'web_only'
-                        ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Globe className="w-3.5 h-3.5" /> Chỉ Kênh Web (OL & HL Web: {vttechStats.webTotal.toLocaleString('vi-VN')})
-                  </button>
-                  <button
-                    onClick={() => setCrmScope('all_crm')}
-                    className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      crmScope === 'all_crm'
-                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Ticket className="w-3.5 h-3.5" /> Toàn Bộ CRM ({vttechStats.totalCrm.toLocaleString('vi-VN')})
-                  </button>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-bold shrink-0">
+                  <Globe className="w-3.5 h-3.5 text-teal-400" /> Chỉ Kênh Web (OL & HL Web: {vttechStats.webTotal.toLocaleString('vi-VN')})
                 </div>
               </div>
 
@@ -700,7 +682,7 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
           </div>
         </>
       ) : (
-        <FormLeadsTable />
+        <FormLeadsTable userRole={userRole} />
       )}
     </div>
   );
