@@ -37,7 +37,7 @@ export async function fetchCachedVTTechTickets(): Promise<{ success: boolean; to
   }
 }
 
-export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: string; limit?: number; sourceID?: number }): Promise<VTTechSyncResponse> {
+export async function syncVTTechTickets(options?: { dateFrom?: string; dateTo?: string; limit?: number; sourceID?: number; fetchAll?: boolean }): Promise<VTTechSyncResponse> {
   try {
     const res = await fetch('/api/vttech/sync', {
       method: 'POST',

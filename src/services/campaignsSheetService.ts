@@ -859,6 +859,32 @@ function parseLocationSheet(csvText: string): LocationItem[] {
   return items.length > 0 ? items : generateMockLocationData();
 }
 
+// In-memory cache for campaigns sheet result
+let cachedCampaignResult: CampaignFetchResult | null = null;
+let cachedCampaignPromise: Promise<CampaignFetchResult> | null = null;
+let lastCampaignFetchTime = 0;
+const CAMPAIGN_CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes
+
+export async function fetchCachedCampaignsSheet(url: string = DEFAULT_CAMPAIGNS_SHEET_URL, forceRefresh = false): Promise<CampaignFetchResult> {
+  const now = Date.now();
+  if (!forceRefresh && cachedCampaignResult && (now - lastCampaignFetchTime < CAMPAIGN_CACHE_TTL_MS)) {
+    return cachedCampaignResult;
+  }
+  if (!forceRefresh && cachedCampaignPromise) {
+    return cachedCampaignPromise;
+  }
+  cachedCampaignPromise = fetchCampaignsSheet(url).then((res) => {
+    cachedCampaignResult = res;
+    lastCampaignFetchTime = Date.now();
+    cachedCampaignPromise = null;
+    return res;
+  }).catch((err) => {
+    cachedCampaignPromise = null;
+    throw err;
+  });
+  return cachedCampaignPromise;
+}
+
 // Fetch and parse campaigns Google Sheet with Daily records, Search Terms, Keywords, Hourly & Location performance
 export async function fetchCampaignsSheet(url: string = DEFAULT_CAMPAIGNS_SHEET_URL): Promise<CampaignFetchResult> {
   const spreadsheetMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/);

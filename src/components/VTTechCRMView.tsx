@@ -332,6 +332,40 @@ export const VTTechCRMView: React.FC = () => {
     }
   };
 
+  const handleSyncAll2026 = async () => {
+    setSyncing(true);
+    setErrorMessage('');
+    setSuccessMessage('Đang lấy toàn bộ dữ liệu từ 01/01/2026 đến nay từ VTTech CRM (vui lòng chờ)...');
+    try {
+      const today = getVietnamTodayStr();
+      setDateFrom('2026-01-01');
+      setDateTo(today);
+      const res = await syncVTTechTickets({
+        dateFrom: '2026-01-01 00:00:00',
+        dateTo: `${today} 23:59:59`,
+        limit: 15000,
+        fetchAll: true,
+      });
+
+      if (res.authExpired) {
+        setSessionStatus((prev) => ({ ...prev, checked: true, isValid: false, authExpired: true }));
+      }
+
+      if (res.success && res.data) {
+        setTickets(res.data);
+        setLastSyncTime(res.cachedAt);
+        setSuccessMessage(`Đã lấy thành công toàn bộ ${res.data.length.toLocaleString('vi-VN')} vé từ 01/01/2026 đến nay!`);
+        setTimeout(() => setSuccessMessage(''), 8000);
+      } else {
+        throw new Error(res.error || 'Đồng bộ toàn bộ thất bại');
+      }
+    } catch (err: any) {
+      setErrorMessage(`Lỗi đồng bộ toàn bộ: ${err.message}`);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Background Real-time auto-sync
   const triggerBackgroundSync = async () => {
     if (isBackgroundSyncing || syncing) return;
@@ -683,6 +717,11 @@ export const VTTechCRMView: React.FC = () => {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     setDateFrom(firstDay.toISOString().slice(0, 10));
     setDateTo(now.toISOString().slice(0, 10));
+  };
+
+  const setPresetYear2026 = () => {
+    setDateFrom('2026-01-01');
+    setDateTo(getVietnamTodayStr());
   };
 
   // Aggregated Daily Statistics across all dates for the "Báo Cáo Theo Ngày" view
@@ -1958,6 +1997,18 @@ export const VTTechCRMView: React.FC = () => {
               </button>
               <button
                 type="button"
+                onClick={setPresetYear2026}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  dateFrom === '2026-01-01'
+                    ? 'bg-orange-600 text-white shadow-sm font-bold'
+                    : 'text-amber-400 hover:text-amber-300 font-semibold'
+                }`}
+                title="Xem toàn bộ dữ liệu năm 2026 (từ 01/01/2026)"
+              >
+                Năm 2026
+              </button>
+              <button
+                type="button"
                 onClick={setAllTime}
                 className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
                   !dateFrom && !dateTo
@@ -2007,6 +2058,16 @@ export const VTTechCRMView: React.FC = () => {
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
               <span>{!dateFrom && !dateTo ? 'Tải lại' : 'Tải ngày này'}</span>
+            </button>
+
+            <button
+              onClick={handleSyncAll2026}
+              disabled={syncing}
+              title="Kéo toàn bộ vé năm 2026 (từ 01/01/2026 đến nay) từ VTTech CRM"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs shadow-md transition-all cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+              <span>Lấy hết dữ liệu 2026</span>
             </button>
           </div>
         </div>

@@ -4,6 +4,7 @@ import fs from 'fs';
 import { GoogleGenAI, Type } from '@google/genai';
 import dotenv from 'dotenv';
 import { handleDashboardChat } from './src/geminiCrawler';
+import { syncFormLeads, getFormLeadsCache, getFormLeadsConfig, updateFormLeadsConfig } from './src/server/formLeadsManager';
 
 dotenv.config();
 
@@ -5028,7 +5029,10 @@ async function fetchVTTechBatch(
       if (!batch || batch.length === 0) break;
       allTickets = allTickets.concat(batch);
       if (batch.length < 300) break; // End of list
+      const lastCreated = batch[batch.length - 1]?.Created;
+      if (from && lastCreated && lastCreated < from) break; // Reached before requested dateFrom
       idbegin = batch[batch.length - 1].TicketID;
+      await new Promise((r) => setTimeout(r, 150));
     } catch (e: any) {
       if (e.message === 'AUTH_EXPIRED') {
         throw e;
@@ -5159,7 +5163,7 @@ app.get('/api/vttech/check-session', async (req, res) => {
 // Sync Ticket List from VTTech (Supporting ALL sources + dedicated Web channels)
 app.post('/api/vttech/sync', async (req, res) => {
   try {
-    const { dateFrom, dateTo, limit = 600, sourceID = 0, statusID = 0, branchID = 0, typeDate = 3 } = req.body;
+    const { dateFrom, dateTo, limit = 600, sourceID = 0, statusID = 0, branchID = 0, typeDate = 3, fetchAll = false } = req.body;
 
     // Format body parameters for VTTech (support all-time when dates are not specified)
     const formattedFrom = dateFrom ? formatToVTTechDate(dateFrom, false) : '';
@@ -5169,29 +5173,34 @@ app.post('/api/vttech/sync', async (req, res) => {
 
     if (Number(sourceID) === 0) {
       // Prioritize Web sources (OL WB = 2, HL WB = 31) with graceful fallback if network is slow/timeout
+      const olLimit = fetchAll ? 15000 : Math.max(Number(limit) || 300, 300);
+      const hlLimit = fetchAll ? 5000 : Math.max(Number(limit) || 300, 300);
+      const generalLimit = fetchAll ? 3000 : Math.min(Number(limit) || 300, 600);
+
       let olBatch: any[] = [];
       let hlBatch: any[] = [];
       let generalBatch: any[] = [];
 
       try {
-        olBatch = await fetchVTTechBatch(2, formattedFrom, formattedTo, 300, typeDate);
+        olBatch = await fetchVTTechBatch(2, formattedFrom, formattedTo, olLimit, typeDate);
       } catch (err: any) {
         if (err.message === 'AUTH_EXPIRED') throw err;
       }
 
       // If OL batch succeeded or returned, continue with HL & general
-      if (olBatch.length > 0) {
+      if (olBatch.length > 0 || !fetchAll) {
         try {
-          hlBatch = await fetchVTTechBatch(31, formattedFrom, formattedTo, 300, typeDate);
+          hlBatch = await fetchVTTechBatch(31, formattedFrom, formattedTo, hlLimit, typeDate);
         } catch {}
         try {
-          generalBatch = await fetchVTTechBatch(0, formattedFrom, formattedTo, 300, typeDate);
+          generalBatch = await fetchVTTechBatch(0, formattedFrom, formattedTo, generalLimit, typeDate);
         } catch {}
       }
 
       fetchedTickets = [...hlBatch, ...olBatch, ...generalBatch];
     } else {
-      fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, Number(limit) || 300, typeDate);
+      const singleLimit = fetchAll ? 15000 : (Number(limit) || 300);
+      fetchedTickets = await fetchVTTechBatch(Number(sourceID), formattedFrom, formattedTo, singleLimit, typeDate);
     }
 
     // Merge with existing tickets in cache to maintain comprehensive historical + today records
@@ -5455,6 +5464,144 @@ app.get('/api/vttech/tickets', (req, res) => {
     data: vttechCacheStore.data,
   });
 });
+
+// ==========================================
+// GOOGLE SHEET FORM LEADS (DATA THÔ TỪ 01/01/2026)
+// ==========================================
+app.get('/api/form-leads', async (req, res) => {
+  try {
+    const force = req.query.force === 'true';
+    const cached = await syncFormLeads(force);
+    if (!cached) {
+      return res.status(500).json({ success: false, error: 'Chưa có dữ liệu Form Leads' });
+    }
+
+    const search = ((req.query.search as string) || '').toLowerCase().trim();
+    const serviceFilter = (req.query.service as string) || 'all';
+    const branchFilter = (req.query.branch as string) || 'all';
+    const duplicateFilter = (req.query.filterDuplicate as string) || 'all';
+    const monthFilter = req.query.month ? parseInt(req.query.month as string, 10) : null;
+    const mode = (req.query.mode as string) || 'all';
+    const page = Math.max(parseInt((req.query.page as string) || '1', 10), 1);
+    const limit = Math.min(Math.max(parseInt((req.query.limit as string) || '200', 10), 10), 2000);
+
+    let filtered = cached.leads;
+
+    // Filter by mode (today / yesterday)
+    const now = new Date(Date.now() + (7 * 60 + new Date().getTimezoneOffset()) * 60 * 1000);
+    const todayStr = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const yestStr = `${String(yest.getDate()).padStart(2, '0')}/${String(yest.getMonth() + 1).padStart(2, '0')}/${yest.getFullYear()}`;
+
+    if (mode === 'today') {
+      filtered = filtered.filter((l) => l.dateStr === todayStr);
+    } else if (mode === 'yesterday') {
+      filtered = filtered.filter((l) => l.dateStr === yestStr);
+    }
+
+    // Filter by month
+    if (monthFilter && monthFilter >= 1 && monthFilter <= 12) {
+      filtered = filtered.filter((l) => {
+        const parts = l.dateStr.split('/');
+        return parseInt(parts[1], 10) === monthFilter;
+      });
+    }
+
+    // Filter by service
+    if (serviceFilter !== 'all') {
+      filtered = filtered.filter((l) => l.service.toLowerCase() === serviceFilter.toLowerCase());
+    }
+
+    // Filter by branch
+    if (branchFilter !== 'all') {
+      filtered = filtered.filter((l) => l.branchStandard.toLowerCase() === branchFilter.toLowerCase());
+    }
+
+    // Filter by duplicate status
+    if (duplicateFilter === 'unique') {
+      filtered = filtered.filter((l) => l.isValidPhone && !l.isDuplicate);
+    } else if (duplicateFilter === 'duplicate') {
+      filtered = filtered.filter((l) => l.isDuplicate);
+    } else if (duplicateFilter === 'invalid') {
+      filtered = filtered.filter((l) => !l.isValidPhone);
+    }
+
+    // Filter by search term
+    if (search) {
+      filtered = filtered.filter(
+        (l) =>
+          l.name.toLowerCase().includes(search) ||
+          l.phone.includes(search) ||
+          l.email.toLowerCase().includes(search) ||
+          l.content.toLowerCase().includes(search) ||
+          l.branch.toLowerCase().includes(search) ||
+          l.branchStandard.toLowerCase().includes(search)
+      );
+    }
+
+    const totalFiltered = filtered.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedLeads = filtered.slice(startIndex, startIndex + limit);
+
+    return res.json({
+      success: true,
+      cachedAt: cached.cachedAt,
+      stats: cached.stats,
+      filteredCount: totalFiltered,
+      totalCount: cached.totalSubmissions,
+      page,
+      limit,
+      totalPages: Math.ceil(totalFiltered / limit),
+      leads: paginatedLeads,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/form-leads/sync', async (req, res) => {
+  try {
+    const updated = await syncFormLeads(true);
+    return res.json({
+      success: true,
+      message: 'Đã đồng bộ thành công dữ liệu Form Leads mới nhất từ Google Sheet',
+      stats: updated?.stats,
+      totalSubmissions: updated?.totalSubmissions,
+      uniqueLeads: updated?.uniqueLeads,
+      duplicateSubmissions: updated?.duplicateSubmissions,
+      cachedAt: updated?.cachedAt,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/form-leads/config', (req, res) => {
+  res.json({ success: true, config: getFormLeadsConfig() });
+});
+
+app.post('/api/form-leads/config', (req, res) => {
+  const { sheetUrl, startDate, autoSync } = req.body;
+  const updated = updateFormLeadsConfig({
+    ...(sheetUrl ? { sheetUrl } : {}),
+    ...(startDate ? { startDate } : {}),
+    ...(typeof autoSync === 'boolean' ? { autoSync } : {}),
+  });
+  return res.json({ success: true, config: updated });
+});
+
+// Initial boot sync for Form Leads (non-blocking)
+setTimeout(() => {
+  syncFormLeads().catch((e) => console.warn('[Boot FormLeads Sync warning]:', e.message));
+}, 2000);
+
+// Auto sync Form Leads every 10 minutes
+setInterval(() => {
+  const cfg = getFormLeadsConfig();
+  if (cfg.autoSync !== false) {
+    syncFormLeads().catch((e) => console.warn('[Interval FormLeads Sync warning]:', e.message));
+  }
+}, 10 * 60 * 1000);
 
 
 
