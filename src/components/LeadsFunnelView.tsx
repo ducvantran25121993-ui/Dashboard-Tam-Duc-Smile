@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users2,
   Filter,
@@ -20,6 +20,7 @@ import {
   MessageSquare,
   ArrowRight,
   Headphones,
+  RefreshCw,
 } from 'lucide-react';
 import { MonthDataset } from '../data/revenueData';
 import { fetchCachedVTTechTickets } from '../services/vttechService';
@@ -40,59 +41,60 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
   const [vttechTickets, setVttechTickets] = useState<VTTechTicket[]>([]);
   const [formLeadsData, setFormLeadsData] = useState<FormLeadsResponse | null>(null);
   const [gadsData, setGadsData] = useState<CampaignFetchResult | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [lastSyncTime, setLastSyncTime] = useState<string>('Vừa xong');
+
+  const refreshData = useCallback(async (isSilent = false) => {
+    if (!isSilent) setIsRefreshing(true);
+    try {
+      const [vtRes, formRes, gadsRes] = await Promise.allSettled([
+        fetchCachedVTTechTickets(),
+        fetchFormLeads({ limit: 10 }),
+        fetchCachedCampaignsSheet(),
+      ]);
+
+      if (vtRes.status === 'fulfilled' && vtRes.value?.success && vtRes.value.data) {
+        setVttechTickets(vtRes.value.data);
+      }
+      if (formRes.status === 'fulfilled' && formRes.value?.success) {
+        setFormLeadsData(formRes.value);
+      }
+      if (gadsRes.status === 'fulfilled' && gadsRes.value) {
+        setGadsData(gadsRes.value);
+      }
+      const now = new Date();
+      setLastSyncTime(
+        `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+      );
+    } catch {
+      // ignore
+    } finally {
+      if (!isSilent) setIsRefreshing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    const loadVTTech = async () => {
-      try {
-        const res = await fetchCachedVTTechTickets();
-        if (mounted && res.success && res.data) {
-          setVttechTickets(res.data);
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    loadVTTech();
+    refreshData(false);
 
-    const loadFormLeads = async () => {
-      try {
-        const res = await fetchFormLeads({ limit: 10 });
-        if (mounted && res.success) {
-          setFormLeadsData(res);
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    loadFormLeads();
-
-    const loadGoogleAds = async () => {
-      try {
-        const res = await fetchCachedCampaignsSheet();
-        if (mounted && res) {
-          setGadsData(res);
-        }
-      } catch (e) {
-        // ignore
-      }
-    };
-    loadGoogleAds();
+    // Tự động kiểm tra và cập nhật số liệu mới mỗi 60 giây
+    const interval = setInterval(() => {
+      refreshData(true);
+    }, 60000);
 
     const handleUpdate = (e: any) => {
       if (e.detail?.data) {
         setVttechTickets(e.detail.data);
       } else {
-        loadVTTech();
+        refreshData(true);
       }
     };
 
     window.addEventListener('vttech-updated', handleUpdate);
     return () => {
-      mounted = false;
+      clearInterval(interval);
       window.removeEventListener('vttech-updated', handleUpdate);
     };
-  }, []);
+  }, [refreshData]);
 
   const todayStr = getVietnamTodayStr();
 
@@ -332,27 +334,49 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center p-1 rounded-xl bg-slate-800/80 border border-slate-700 shrink-0">
+        {/* Navigation Tabs & Refresh Controls */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex items-center p-1 rounded-xl bg-slate-800/80 border border-slate-700">
+            <button
+              onClick={() => setActiveTab('funnel')}
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'funnel'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-4 h-4" /> Hành Trình Phễu
+            </button>
+            <button
+              onClick={() => setActiveTab('form_table')}
+              className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'form_table'
+                  ? 'bg-emerald-600 text-white shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileSpreadsheet className="w-4 h-4" /> Bảng Form Sheet ({totalFormGross.toLocaleString('vi-VN')})
+            </button>
+          </div>
+
+          {/* Quick Refresh & Real-time Indicator */}
           <button
-            onClick={() => setActiveTab('funnel')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'funnel'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            onClick={() => refreshData(false)}
+            disabled={isRefreshing}
+            title={`Tự động đồng bộ ngầm định kỳ. Cập nhật lần cuối: ${lastSyncTime}`}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-xs text-slate-300 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
           >
-            <Layers className="w-4 h-4" /> Hành Trình Phễu
-          </button>
-          <button
-            onClick={() => setActiveTab('form_table')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'form_table'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <FileSpreadsheet className="w-4 h-4" /> Bảng Dữ Liệu Form Sheet (9.084)
+            <RefreshCw className={`w-3.5 h-3.5 text-emerald-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline font-medium">
+              {isRefreshing ? 'Đang tải...' : 'Làm mới'}
+            </span>
+            <span className="text-[10px] text-slate-400 border-l border-slate-700 pl-2">
+              {lastSyncTime}
+            </span>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
           </button>
         </div>
       </div>
