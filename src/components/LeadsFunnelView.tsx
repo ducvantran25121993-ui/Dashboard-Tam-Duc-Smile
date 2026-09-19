@@ -103,14 +103,16 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
 
     const isBooked = (t: VTTechTicket) =>
       (t.IsBook && t.IsBook > 0) ||
+      (t.AppDateFrom && !t.AppDateFrom.startsWith('1900')) ||
       t.StatusID === 2 ||
       t.StatusID === 3 ||
       (t.StatusName && t.StatusName.toLowerCase().includes('hẹn'));
 
     const isArrived = (t: VTTechTicket) =>
-      t.TypeStatusScheduleID === 3 ||
+      (t.TypeStatusScheduleID !== undefined && [2, 3, 4].includes(t.TypeStatusScheduleID)) ||
       t.StatusID === 3 ||
-      (t.StatusName && t.StatusName.toLowerCase().includes('đến'));
+      (t.StatusName && t.StatusName.toLowerCase().includes('đến')) ||
+      (t.ExecuteStatus && t.ExecuteStatus.toLowerCase().includes('đến'));
 
     // Web-specific tickets (OL WB & HL WB từ 01/01/2026 đến nay)
     const webTickets = tickets2026.filter((t) => t.SourceName === 'OL WB' || t.SourceName === 'HL WB');
