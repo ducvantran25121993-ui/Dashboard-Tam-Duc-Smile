@@ -28,7 +28,14 @@ export async function fetchFormLeads(params: FormLeadsFilterParams = {}): Promis
   if (!res.ok) {
     throw new Error(`Lỗi khi tải dữ liệu Form Leads (${res.status})`);
   }
-  return await res.json();
+  const data: FormLeadsResponse = await res.json();
+  if (data?.stats?.totalSubmissions) {
+    try {
+      localStorage.setItem('form_leads_total_submissions', String(data.stats.totalSubmissions));
+      window.dispatchEvent(new CustomEvent('form_leads_updated', { detail: data.stats }));
+    } catch {}
+  }
+  return data;
 }
 
 export async function triggerSyncFormLeads(): Promise<any> {

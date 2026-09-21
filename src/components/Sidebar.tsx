@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { SidebarTab } from '../types';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
+import { fetchFormLeads } from '../services/formLeadsService';
 
 interface SidebarProps {
   activeTab: SidebarTab;
@@ -43,6 +44,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTabPermissions,
 }) => {
   const [currentAiBadge, setCurrentAiBadge] = useState(() => getActiveAIModelBadge());
+  const [leadsBadge, setLeadsBadge] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('form_leads_total_submissions');
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if (num > 0) return num >= 1000 ? `${(num / 1000).toFixed(1)}k` : `${num}`;
+      }
+    } catch {}
+    return '9.2k';
+  });
   const [campaignsCount, setCampaignsCount] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('gads_active_campaigns_count');
@@ -53,6 +64,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
 
   useEffect(() => {
+    // Tải số lượng Leads thực tế từ Form Sheet để badge luôn đếm chính xác
+    fetchFormLeads({ limit: 1 })
+      .then((res) => {
+        if (res?.stats?.totalSubmissions) {
+          const total = res.stats.totalSubmissions;
+          const formatted = total >= 1000 ? `${(total / 1000).toFixed(1)}k` : `${total}`;
+          setLeadsBadge(formatted);
+        }
+      })
+      .catch(() => {});
+
+    const handleLeadsUpdated = (e: any) => {
+      if (e.detail?.totalSubmissions) {
+        const total = e.detail.totalSubmissions;
+        const formatted = total >= 1000 ? `${(total / 1000).toFixed(1)}k` : `${total}`;
+        setLeadsBadge(formatted);
+      }
+    };
+
     const handleUpdate = () => {
       setCurrentAiBadge(getActiveAIModelBadge());
       try {
@@ -64,9 +94,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     };
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('campaigns_updated', handleUpdate);
+    window.addEventListener('form_leads_updated', handleLeadsUpdated);
     return () => {
       window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('campaigns_updated', handleUpdate);
+      window.removeEventListener('form_leads_updated', handleLeadsUpdated);
     };
   }, []);
 
@@ -100,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'leads_funnel',
       label: 'Lead & Phễu',
       icon: Users2,
-      badge: '3.1k',
+      badge: leadsBadge,
       badgeColor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     },
     {

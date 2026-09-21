@@ -1,21 +1,21 @@
 {
-  "lastFetched": 1789966947192,
-  "totalSubmissions": 9150,
-  "uniqueLeads": 7479,
+  "lastFetched": 1789973222693,
+  "totalSubmissions": 9155,
+  "uniqueLeads": 7484,
   "duplicateSubmissions": 1207,
   "duplicateRate": 13.2,
   "invalidPhones": 464,
-  "todaySubmissions": 20,
-  "todayUnique": 15,
+  "todaySubmissions": 25,
+  "todayUnique": 20,
   "yesterdaySubmissions": 30,
   "stats": {
-    "totalSubmissions": 9150,
-    "uniqueLeads": 7479,
+    "totalSubmissions": 9155,
+    "uniqueLeads": 7484,
     "duplicateSubmissions": 1207,
     "duplicateRate": 13.2,
     "invalidPhones": 464,
-    "todaySubmissions": 20,
-    "todayUnique": 15,
+    "todaySubmissions": 25,
+    "todayUnique": 20,
     "yesterdaySubmissions": 30,
     "monthly": [
       {
@@ -77,25 +77,25 @@
       {
         "month": 9,
         "label": "Tháng 9/2026",
-        "total": 670,
-        "unique": 520,
+        "total": 675,
+        "unique": 525,
         "duplicates": 120
       }
     ],
     "byService": [
       {
         "service": "Tư Vấn Chung",
-        "count": 3483,
+        "count": 3485,
         "percentage": 38.1
       },
       {
         "service": "Implant",
-        "count": 1836,
+        "count": 1837,
         "percentage": 20.1
       },
       {
         "service": "Răng Sứ",
-        "count": 1171,
+        "count": 1173,
         "percentage": 12.8
       },
       {
@@ -117,7 +117,7 @@
     "byBranch": [
       {
         "branch": "TP. Hồ Chí Minh",
-        "count": 5205,
+        "count": 5208,
         "percentage": 56.9
       },
       {
@@ -127,7 +127,7 @@
       },
       {
         "branch": "Bình Dương",
-        "count": 579,
+        "count": 580,
         "percentage": 6.3
       },
       {
@@ -137,7 +137,7 @@
       },
       {
         "branch": "Vũng Tàu",
-        "count": 395,
+        "count": 396,
         "percentage": 4.3
       },
       {
@@ -157,11 +157,130 @@
       }
     ],
     "overlapWithCRM": {
-      "matchedCount": 4554,
+      "matchedCount": 4556,
       "matchedPercentage": 60.9
     }
   },
   "leads": [
+    {
+      "id": "fl_13567_9154",
+      "rowNumber": 13567,
+      "name": "Thơ",
+      "phone": "903889290",
+      "phoneNormalized": "0903889290",
+      "isValidPhone": true,
+      "email": "thonguyen3013@gmail.com",
+      "content": "Trồng răng implant",
+      "ip": "14.161.20.181",
+      "rawTime": "13:06:47 21/09/2026",
+      "timestamp": 1789970807000,
+      "dateStr": "21/09/2026",
+      "timeStr": "13:06:47",
+      "branch": "CN quận 1, TPHCM",
+      "branchStandard": "TP. Hồ Chí Minh",
+      "url": "https://nhakhoatamducsmile.com/",
+      "service": "Implant",
+      "isDuplicate": false,
+      "duplicateIndex": 1,
+      "firstSeenAt": "13:06:47 21/09/2026",
+      "inVTTech": false
+    },
+    {
+      "id": "fl_13566_9153",
+      "rowNumber": 13566,
+      "name": "Linh",
+      "phone": "334446986",
+      "phoneNormalized": "0334446986",
+      "isValidPhone": true,
+      "email": "",
+      "content": "",
+      "ip": "123.20.87.21",
+      "rawTime": "13:03:34 21/09/2026",
+      "timestamp": 1789970614000,
+      "dateStr": "21/09/2026",
+      "timeStr": "13:03:34",
+      "branch": "CN Thủ Đức, TPHCM",
+      "branchStandard": "TP. Hồ Chí Minh",
+      "url": "https://nhakhoatamducsmile.com/uu-dai-nha-khoa?pmax-thuonghieu&gad_source=1&gad_campaignid=24262156242&gbraid=0AAAAABhblN9_XL0FNo7Dw4Jl_81IqoaTj",
+      "service": "Tư Vấn Chung",
+      "campaignId": "24262156242",
+      "isDuplicate": false,
+      "duplicateIndex": 1,
+      "firstSeenAt": "13:03:34 21/09/2026",
+      "inVTTech": false
+    },
+    {
+      "id": "fl_13565_9152",
+      "rowNumber": 13565,
+      "name": "Nguyễn Thị Ngọc Nguyên",
+      "phone": "326321891",
+      "phoneNormalized": "0326321891",
+      "isValidPhone": true,
+      "email": "ngthngnguyen14@gmail.com",
+      "content": "khám nướu",
+      "ip": "171.235.187.8",
+      "rawTime": "12:37:29 21/09/2026",
+      "timestamp": 1789969049000,
+      "dateStr": "21/09/2026",
+      "timeStr": "12:37:29",
+      "branch": "CN Tân Kỳ Tân Quý, TPHCM",
+      "branchStandard": "TP. Hồ Chí Minh",
+      "url": "https://nhakhoatamducsmile.com/uu-dai-nha-khoa?pmax-thuonghieu&gad_campaignid=24262156242&gbraid=0AAAAABhblN8__ETxGV5lWBGfkYaMGFeAl&wbraid=ClQKCQjwiL7VBhDSARJDAAZDXasPHdfGQA61LS03Xq2CwGNTUytCkQha7W-ohQoJpQeqv8eEqEdxzHAAGtAKkiRRGvWs8VyOMEFLMABhJ-iBTxoCYyA",
+      "service": "Tư Vấn Chung",
+      "campaignId": "24262156242",
+      "isDuplicate": false,
+      "duplicateIndex": 1,
+      "firstSeenAt": "12:37:29 21/09/2026",
+      "inVTTech": false
+    },
+    {
+      "id": "fl_13564_9151",
+      "rowNumber": 13564,
+      "name": "Nguyễn Thị hằng",
+      "phone": "968110439",
+      "phoneNormalized": "0968110439",
+      "isValidPhone": true,
+      "email": "",
+      "content": "Bọc răng sứ",
+      "ip": "1.53.151.228",
+      "rawTime": "12:36:53 21/09/2026",
+      "timestamp": 1789969013000,
+      "dateStr": "21/09/2026",
+      "timeStr": "12:36:53",
+      "branch": "CN Ba Cu, Bà Rịa",
+      "branchStandard": "Vũng Tàu",
+      "url": "https://nhakhoatamducsmile.com/tra-cuu-bao-hanh",
+      "service": "Răng Sứ",
+      "isDuplicate": false,
+      "duplicateIndex": 1,
+      "firstSeenAt": "12:36:53 21/09/2026",
+      "inVTTech": false
+    },
+    {
+      "id": "fl_13563_9150",
+      "rowNumber": 13563,
+      "name": "Nguyễn giàu",
+      "phone": "984538889",
+      "phoneNormalized": "0984538889",
+      "isValidPhone": true,
+      "email": "",
+      "content": "Răng sứ",
+      "ip": "42.118.187.26",
+      "rawTime": "12:02:36 21/09/2026",
+      "timestamp": 1789966956000,
+      "dateStr": "21/09/2026",
+      "timeStr": "12:02:36",
+      "branch": "CN Thủ Dầu Một, Bình Dương",
+      "branchStandard": "Bình Dương",
+      "url": "https://nhakhoatamducsmile.com/giai-phap-phuc-hinh-rang-su-giup-so-huu-nu-cuoi-dep-rang-ro?binhduong-gia-chiphibaonhieu&gad_source=1&gad_campaignid=23400912361&gbraid=0AAAAABhblN9dsXHgooLyslr9grhJ3Uitz&gclid=CjwKCAjwiL7VBhA-EiwAhZi9EI81kf0Kv-z9Yh9ddVpbjQVcDGt7G9fmru7AC7qZJzB4QTmtHBxJnhoCM6UQAvD_BwE",
+      "service": "Răng Sứ",
+      "gclid": "CjwKCAjwiL7VBhA-EiwAhZi9EI81kf0Kv-z9Yh9ddVpbjQVcDGt7G9fmru7AC7qZJzB4QTmtHBxJnhoCM6UQAvD_BwE",
+      "campaignId": "23400912361",
+      "isDuplicate": false,
+      "duplicateIndex": 1,
+      "firstSeenAt": "12:02:36 21/09/2026",
+      "inVTTech": false
+    },
     {
       "id": "fl_13562_9149",
       "rowNumber": 13562,
@@ -185,7 +304,7 @@
       "isDuplicate": false,
       "duplicateIndex": 1,
       "firstSeenAt": "11:57:23 21/09/2026",
-      "inVTTech": false
+      "inVTTech": true
     },
     {
       "id": "fl_13561_9148",
@@ -208,7 +327,7 @@
       "isDuplicate": false,
       "duplicateIndex": 1,
       "firstSeenAt": "11:57:15 21/09/2026",
-      "inVTTech": false
+      "inVTTech": true
     },
     {
       "id": "fl_13560_9147",
@@ -220036,5 +220155,5 @@
       "inVTTech": false
     }
   ],
-  "cachedAt": "2026-09-21T05:02:27.192Z"
+  "cachedAt": "2026-09-21T06:47:02.693Z"
 }
