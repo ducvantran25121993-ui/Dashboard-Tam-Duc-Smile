@@ -194,7 +194,8 @@ function getCrmPhoneSet(): Set<string> {
 // Fetch and process Form Leads from Google Sheet
 export async function syncFormLeads(force = false): Promise<typeof leadsCacheStore> {
   const now = Date.now();
-  if (!force && leadsCacheStore && now - leadsCacheStore.lastFetched < 5 * 60 * 1000) {
+  // Short cache duration (30s) so new submissions from Google Sheet appear almost in real-time
+  if (!force && leadsCacheStore && now - leadsCacheStore.lastFetched < 30 * 1000) {
     return leadsCacheStore;
   }
 

@@ -1,73 +1,4039 @@
 {
-  "lastFetched": 1789808377460,
+  "lastFetched": 1789966869221,
   "days": 999,
   "data": {
-    "totalInPancake": 3846,
-    "returned": 3846,
+    "totalInPancake": 3929,
+    "returned": 3929,
     "pageNumber": 1,
     "summary": {
-      "totalLeads": 3846,
-      "withPhone": 2238,
-      "booked": 885,
-      "won": 229,
+      "totalLeads": 3929,
+      "withPhone": 2292,
+      "booked": 898,
+      "won": 230,
       "lost": 126,
       "byPage": [
         {
           "pageId": "pzl_329635242261010723",
           "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
           "type": "zalo",
-          "totalLeads": 737,
-          "withPhone": 442,
-          "booked": 163,
-          "won": 34
+          "totalLeads": 803,
+          "withPhone": 487,
+          "booked": 173,
+          "won": 35
         },
         {
           "pageId": "pzl_400255603301941410",
           "pageName": "Zalo OA - 0329851079 (Hotline)",
           "type": "zalo",
-          "totalLeads": 161,
-          "withPhone": 102,
-          "booked": 36,
+          "totalLeads": 171,
+          "withPhone": 107,
+          "booked": 38,
           "won": 8
         },
         {
           "pageId": "108815332304510",
           "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
           "type": "facebook",
-          "totalLeads": 129,
-          "withPhone": 42,
-          "booked": 23,
+          "totalLeads": 134,
+          "withPhone": 45,
+          "booked": 24,
           "won": 3
         },
         {
           "pageId": "zl_3718988534263433028",
           "pageName": "Zalo OA - Nha Khoa Tâm Đức Smile",
           "type": "zalo",
-          "totalLeads": 13,
-          "withPhone": 8,
+          "totalLeads": 15,
+          "withPhone": 9,
           "booked": 2,
           "won": 1
         }
       ],
       "byService": {
         "implant": 242,
-        "porcelain": 335,
-        "ortho": 273,
+        "porcelain": 341,
+        "ortho": 278,
         "vietKieu": 7,
-        "general": 2989
+        "general": 3061
       }
     },
     "leads": [
+      {
+        "id": "pzl_u_329635242261010723_5739367637366384406",
+        "name": "Khoa Trần",
+        "avatar": "https://s160-ava-talk.zadn.vn/default",
+        "phone": "0384394612",
+        "hasPhone": true,
+        "snippet": "Dạ mình là Trần Đăng Khoa, SĐT 0384394612, đã đặt lịch hẹn tư...",
+        "insertedAt": "2026-09-21T05:00:22.000000",
+        "updatedAt": "2026-09-21T05:00:52.898000",
+        "messageCount": 1,
+        "tags": [],
+        "notes": [],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_8873043857631057555",
+        "name": "Sharknee",
+        "avatar": "https://s160-ava-talk.zadn.vn/default",
+        "phone": "0818906192",
+        "hasPhone": true,
+        "snippet": "Dạ anh",
+        "insertedAt": "2026-09-21T03:55:05.000000",
+        "updatedAt": "2026-09-21T04:52:14.295000",
+        "messageCount": 44,
+        "tags": [
+          {
+            "id": 7,
+            "text": "CN",
+            "color": "#469ea1"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "bf4309b7-a46b-4731-b76c-06f28bc7d13d",
+            "message": "L_H00544793  Normal\r\nPHAN TIẾN ĐẠT",
+            "author": "Mai Tiên Sinh",
+            "time": 1789965625958
+          },
+          {
+            "id": "12db82be-534c-484e-b2fa-1a310fc2fc33",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789963037329
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Niềng Răng / Chỉnh Nha",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5771593410860779176",
+        "name": "Đăng Dương",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/20/164e03fe58ecec3d21072b2bac6c40fa.jpg?key=LLnNsqmm-4DYPTw9UEzAZQ&time=1795146232",
+        "phone": "0355699425",
+        "hasPhone": true,
+        "snippet": "Dạ anh ạ",
+        "insertedAt": "2026-09-21T03:43:21.000000",
+        "updatedAt": "2026-09-21T04:13:16.496000",
+        "messageCount": 22,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#003eff"
+          },
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          }
+        ],
+        "notes": [
+          {
+            "id": "84466696-9348-401e-b08e-2c326f195013",
+            "message": "0355699425 - FB",
+            "author": "Lê Liểu",
+            "time": 1789962424358
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_1449141321748054067",
+        "name": "Cỏ Mềm Bạc Liêu",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/1/1adac33a45672a0b7678dd7385b2e404.jpg?key=JPS9H-pqtf_rEfgnWj8Ujg&time=1795145659",
+        "phone": "0914298272",
+        "hasPhone": true,
+        "snippet": "[Document]",
+        "insertedAt": "2026-09-21T03:33:49.000000",
+        "updatedAt": "2026-09-21T03:34:31.732000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 26,
+            "text": "SPAM",
+            "color": "#000000"
+          },
+          {
+            "id": 41,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "f5d3978a-1ba9-4e88-88ba-88002fb201aa",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789962299647
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_9081759394334619832",
+        "name": "Ngọc Tuyền kh Hậu 03858834335",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/11/9228dc51316657f53f64af084d7fb5a4.jpg?key=bButM77SGR1FJclWq_ZXhQ&time=1795145079",
+        "phone": "0385884335",
+        "hasPhone": true,
+        "snippet": "Chương trình ưu đãi niềng răng mắc cài chỉ từ 32 triệu - 36 t...",
+        "insertedAt": "2026-09-21T03:24:08.000000",
+        "updatedAt": "2026-09-21T03:33:28.658000",
+        "messageCount": 16,
+        "tags": [
+          {
+            "id": 15,
+            "text": "Hậu",
+            "color": "#8ce8df"
+          },
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          }
+        ],
+        "notes": [
+          {
+            "id": "2463b890-7aa5-4ef3-88fa-f96374d13909",
+            "message": "0385884335",
+            "author": "Nguyễn Đức Hậu",
+            "time": 1789961419183
+          },
+          {
+            "id": "0c9c626b-db83-45ee-b036-b7ffbe1fd13e",
+            "message": "21.09.26",
+            "author": "Nguyễn Đức Hậu",
+            "time": 1789961402014
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_464598799021750978",
+        "name": "Quoc Bao",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/9/710ec4d8d7f5b7049a3511cef49517ee.jpg?key=L1F-k7CCddJk9bPvVoUwEw&time=1795144580",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Anh cho em xin thông tin, em kiểm tra chương trình ưu đãi cấy...",
+        "insertedAt": "2026-09-21T03:15:49.000000",
+        "updatedAt": "2026-09-21T03:49:39.106000",
+        "messageCount": 30,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "eb670a7d-1445-4c83-9b4d-567bc4aef9a0",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789960712704
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_38760782606870844",
+        "name": "Mạnh Đức",
+        "avatar": "",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình nhầm rồi ạ, bên em làm về răng ạ",
+        "insertedAt": "2026-09-21T03:10:45.191352",
+        "updatedAt": "2026-09-21T03:44:45.145000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 27,
+            "text": "SPAM",
+            "color": "#000000"
+          },
+          {
+            "id": 45,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a266acf3-ec7a-4a79-af9e-021630855961",
+            "message": "nhầm chỉnh mặt",
+            "author": "Mai Tiên Sinh",
+            "time": 1789962290370
+          },
+          {
+            "id": "5985746c-9a08-41be-94b3-a99318838d33",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789960493802
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
+      {
+        "id": "pzl_u_329635242261010723_846965300620395633",
+        "name": "Vân Anh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/54/33437440142cfcabf8ab9de2fbfdd002.jpg?key=hTNCU3fD7JuOPA72DqVEbQ&time=1795143018",
+        "phone": "0836265858",
+        "hasPhone": true,
+        "snippet": "Hôm nay mình có thể thu xếp khoảng 30p qua nha khoa bên em th...",
+        "insertedAt": "2026-09-21T02:49:47.000000",
+        "updatedAt": "2026-09-21T03:17:46.176000",
+        "messageCount": 18,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "3b2d5d8b-40a6-4baa-bba8-e084bc36627a",
+            "message": "L_H00544717  Normal\r\nVÂN ANH",
+            "author": "Mai Tiên Sinh",
+            "time": 1789960621354
+          },
+          {
+            "id": "0b7df725-121b-45ae-951f-2cacaedd72db",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789959125781
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_296260889194059436",
+        "name": "Thanh Ngân",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/193/43e0d603f16529f58671aa6997ae6aa8.jpg?key=kSjTeZWiYUGsewg0DyCU3Q&time=1795141446",
+        "phone": "0818847579",
+        "hasPhone": true,
+        "snippet": "Dạ",
+        "insertedAt": "2026-09-21T02:23:35.000000",
+        "updatedAt": "2026-09-21T02:51:40.377000",
+        "messageCount": 23,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          },
+          {
+            "id": 53,
+            "text": "SALE",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "218a2a5c-381e-45c9-9e00-159e0c4946fc",
+            "message": "L_H00544692  Normal\r\nTẠ THỊ THANH NGÂN",
+            "author": "Mai Tiên Sinh",
+            "time": 1789958945924
+          },
+          {
+            "id": "dace52b2-7217-403e-87ed-02af8ca29130",
+            "message": "KHÁCH CŨ MINHTRANG",
+            "author": "Mai Tiên Sinh",
+            "time": 1789958596247
+          },
+          {
+            "id": "c8ec7714-5a3c-4b5d-a90c-bcf0daa9bd32",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789957559249
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_202347739975795937",
+        "name": "Hân Nguyễn",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/91/e23f3c67b87de5f8f112d9a51e7ce16a.jpg?key=fvUcdHf2FdP8NkesTy8m6A&time=1795141099",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ anh chị cho em xin họ tên + SDT + khu vực mình ở em kiểm t...",
+        "insertedAt": "2026-09-21T02:17:47.000000",
+        "updatedAt": "2026-09-21T02:20:22.906000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 41,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "0900f3b9-baf1-4984-bf72-36c615c66465",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789957236386
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_459260708102707183",
+        "name": "Benhome",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/4/9cc5a29129b0ce1556106c24b3fd15d6.jpg?key=v8-M1BKlXVCT6ECNxnK_aA&time=1795138856",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ em đặt hẹn cho mình hôm nay 10h ghé nha khoa bên em thăm k...",
+        "insertedAt": "2026-09-21T01:40:26.000000",
+        "updatedAt": "2026-09-21T01:53:09.957000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "4c9d6c2c-bf91-4d16-bbfb-ed9247334a1b",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789955061372
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_29437090985892039",
+        "name": "Mai Linh",
+        "avatar": "",
+        "phone": "0355831057",
+        "hasPhone": true,
+        "snippet": "Hôm nay mình có thể thu xếp khoảng 30p qua nha khoa bên em th...",
+        "insertedAt": "2026-09-21T01:38:10.195701",
+        "updatedAt": "2026-09-21T02:01:12.595000",
+        "messageCount": 16,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 45,
+            "text": "Sinh",
+            "color": "#c1b800"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "72ba132c-b6a7-4747-8c8f-dba56465230e",
+            "message": "L_H00544659  Normal\r\nMAI LINH",
+            "author": "Mai Tiên Sinh",
+            "time": 1789956010418
+          },
+          {
+            "id": "f3af11ff-5fd7-473e-a231-3c9e72f1bc98",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789955048692
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3653033643633593858",
+        "name": "Lan Huynh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/73/f3cb33f96cf9d31ae3bc87a4efcd9709.jpg?key=RlX1QI3S1DogRREkprPlWA&time=1795137349",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Em liên hệ từ Nha khoa Tâm Đức Smile, em gọi không thấy mình ...",
+        "insertedAt": "2026-09-21T01:15:48.000000",
+        "updatedAt": "2026-09-21T03:51:43.127000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "f520c3b7-2dfc-4663-8521-b3197ccd58be",
+            "message": "+14178343046",
+            "author": "Mai Tiên Sinh",
+            "time": 1789962996256
+          },
+          {
+            "id": "ccc2eeab-410b-49e2-b0dd-0d2960f5c25a",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789953458559
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_29360780016845338",
+        "name": "Tịnh Nhu",
+        "avatar": "",
+        "phone": "0837297503",
+        "hasPhone": true,
+        "snippet": "Dạ em đặt hẹn cho chị 9h ghé nha khoa nha",
+        "insertedAt": "2026-09-21T01:04:48.284389",
+        "updatedAt": "2026-09-21T01:28:56.838000",
+        "messageCount": 19,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 45,
+            "text": "Sinh",
+            "color": "#c1b800"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "2907afeb-0ad6-4035-8a62-5189a9d03702",
+            "message": "L_H00544616  Normal\r\nBỤI THỊ TỊNH NHU",
+            "author": "Mai Tiên Sinh",
+            "time": 1789953357041
+          },
+          {
+            "id": "df185105-a339-42d8-b2d9-3e0ba22507da",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789952730834
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
+      {
+        "id": "pzl_u_329635242261010723_6313277890107507757",
+        "name": "Nguyen Thuy",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/050b58d94ea24513582bd9622a9347e4.jpg?key=2jOy4hHsV8ZKmFoW1sUuwg&time=1795135315",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ chị, vậy giờ chị muốn ghé nha khoa bên em để trám lại đúng...",
+        "insertedAt": "2026-09-20T23:31:54.000000",
+        "updatedAt": "2026-09-21T02:44:20.763000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "b8480f49-c435-4622-967c-0c106b0a22e7",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789952135234
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7632606427071368028",
+        "name": "VD",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/4/8639f4fccf93133e26846efc6f63ac3a.jpg?key=w1bBCUh27O6E0DNpWLS_mQ&time=1795135315",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Could you please provide your full name, phone number, and lo...",
+        "insertedAt": "2026-09-20T22:24:34.000000",
+        "updatedAt": "2026-09-21T00:53:44.484000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 43,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "437b0b8c-ec66-4476-be74-d673fa1164c2",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789952027591
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_28373222379046346",
+        "name": "Long Phạm",
+        "avatar": "",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Em là Sinh - Chuyên viên tư vấn của Nha Khoa Tâm Đức Smile. R...",
+        "insertedAt": "2026-09-20T21:46:36.119453",
+        "updatedAt": "2026-09-21T00:54:21.179000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 45,
+            "text": "Sinh",
+            "color": "#c1b800"
+          }
+        ],
+        "notes": [
+          {
+            "id": "fb4fd2b4-c8a6-4472-b921-2f763f02f3e7",
+            "message": "21.9.26",
+            "author": "Mai Tiên Sinh",
+            "time": 1789952064622
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
+      {
+        "id": "pzl_u_400255603301941410_2034054254660562453",
+        "name": "Bùi Minh Chiến",
+        "avatar": "https://s160-ava-talk.zadn.vn/default",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ anh Chiến ghé chi nhánh nào ạ",
+        "insertedAt": "2026-09-20T15:56:12.000000",
+        "updatedAt": "2026-09-21T03:30:07.654000",
+        "messageCount": 14,
+        "tags": [
+          {
+            "id": 31,
+            "text": "KPH",
+            "color": "#2c373e"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 59,
+            "text": "BumKPH",
+            "color": "#2f74d0"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "9bcadbf4-c3fd-4ef2-b7a8-2ccc22b4c6ac",
+            "message": "C_X00544583  Normal\r\nBùi Minh Chiến\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789920352665
+          },
+          {
+            "id": "d6f3ee19-5206-4fa2-827a-294e6bf1b804",
+            "message": "Bùi Minh Chiến , ng thân - ktv tq - sx ghé - web  - q1 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789920235843
+          },
+          {
+            "id": "863799ac-5eac-4682-bcfb-2729bbb5a113",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789919850843
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7843282903329208936",
+        "name": "Hạnhk",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/4/14af3982c1838a18fe7758c5ebeaab54.jpg?key=qkPlbz-h2C9PwMrTigWC4g&time=1795101220",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ nha khoa vẫn đợi phản hồi và sẵn sàng hỗ trợ mình ạ",
+        "insertedAt": "2026-09-20T15:13:39.000000",
+        "updatedAt": "2026-09-21T03:33:51.119000",
+        "messageCount": 11,
+        "tags": [
+          {
+            "id": 37,
+            "text": "KPH",
+            "color": "#2c373e"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 59,
+            "text": "BumKPH",
+            "color": "#2f74d0"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a12daf09-180a-4d8b-9f5a-9fb8f546daea",
+            "message": "C_X00544739  Normal\r\nHạnhk\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789961694360
+          },
+          {
+            "id": "412b3586-daeb-4568-af56-035c6a2b1cb7",
+            "message": "Hạnhk , ng thân - ktv sứ - sx ghé - web - q1 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789961658613
+          },
+          {
+            "id": "edb8be04-c603-404a-bd2a-ba747678e5fc",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789918515974
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_2239553388962186043",
+        "name": "Bé Nhung",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/485/2c15c96265d2a8cc7107e9da757f9a67.jpg?key=pMlPI8wiH1HWv4txI0pkhg&time=1795100673",
+        "phone": "0383863165",
+        "hasPhone": true,
+        "snippet": "Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ tân để đượ...",
+        "insertedAt": "2026-09-20T15:04:02.000000",
+        "updatedAt": "2026-09-21T03:31:25.080000",
+        "messageCount": 27,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "fa48494d-5039-44ea-8ecf-3506b1a212dc",
+            "message": "0383863165 - VÕ THỊ TUYẾT NHUNG , NG THÂN - KTV TQ - SX GHÉ - WEB - LM - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789952422658
+          },
+          {
+            "id": "8c2523b4-93ef-4d22-9a83-2c454fb2de86",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789917070566
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_3082934357860182759",
+        "name": "Kim Thân",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/18/c6ae323d72aba24bbdd5dcfd8dd067cb.jpg?key=8NjFd8frXywtW584PnQXLA&time=1795096746",
+        "phone": "0563006513",
+        "hasPhone": true,
+        "snippet": "dạ mình ạ",
+        "insertedAt": "2026-09-20T13:58:35.000000",
+        "updatedAt": "2026-09-20T14:51:41.089000",
+        "messageCount": 22,
+        "tags": [
+          {
+            "id": 29,
+            "text": "Kênh Khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "ff39f4e2-bf86-42ab-b6ae-548d7e73d397",
+            "message": "kb web",
+            "author": "Hồng Nhung",
+            "time": 1789914362254
+          },
+          {
+            "id": "cf7add73-cb75-4c01-8872-1ad4484f4753",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789913108002
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7793325309100393879",
+        "name": "Nguyễn Trúc",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/42/b955fc83ba258657163c214413b252b5.jpg?key=UCwcg6W2xNnSAd4Aid_QLg&time=1795096645",
+        "phone": "0867563826",
+        "hasPhone": true,
+        "snippet": "[❤️ Nguyễn Trúc] dạ mình ạ",
+        "insertedAt": "2026-09-20T13:56:35.000000",
+        "updatedAt": "2026-09-20T14:11:10.115000",
+        "messageCount": 15,
+        "tags": [
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "c9240e60-7240-42c7-9284-8f3c7ecf9594",
+            "message": "0867563826 - NGUYỄN THỊ BẠCH TRÚC , 2008 , NG THÂN - KTV CN - SX GHÉ - WEB - SNHUNG - BD",
+            "author": "Hồng Nhung",
+            "time": 1789912822695
+          },
+          {
+            "id": "83a49ccd-d687-4b78-8db2-bfb7b12dd375",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789912678607
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3914945250918640868",
+        "name": "Trúc",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/267/19e094601f563e003f36465a2e102587.jpg?key=DjFAadAcL3suJjIZPC1LAQ&time=1795092266",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
+        "insertedAt": "2026-09-20T12:39:37.000000",
+        "updatedAt": "2026-09-20T13:14:56.028000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "311ad086-17a1-4fee-b12d-4196bb5ceba2",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789909577582
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3690172985796381574",
+        "name": "Út Linh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/d38f83d2c02ab5ae4fa19a0b1aada677.jpg?key=RD6cR_KKfOcgIUr_ryq7yA&time=1795089486",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ anh chị đang muốn tham khảo dịch vụ hay đặt hẹn khám răng ...",
+        "insertedAt": "2026-09-20T11:57:35.000000",
+        "updatedAt": "2026-09-20T12:00:06.912000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "4bc7ba4b-00bb-4e70-a949-dbab2d292255",
+            "message": "G_X00543285  Normal\r\nHÀ TƯỜNG VY\r\n*******280",
+            "author": "Hồng Nhung",
+            "time": 1789905721919
+          },
+          {
+            "id": "50aeb5fd-1467-4eba-8c99-48d7483a26e9",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789905592804
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_1905031058287273152",
+        "name": "TiềnGiang",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/d44acdb3c1248bc2ef7e2d3c963b119c.jpg?key=GLvwMLXXwDLP9XdAF_clLA&time=1795088015",
+        "phone": "0367752731",
+        "hasPhone": true,
+        "snippet": "Chương trình ưu đãi niềng răng mắc cài chỉ từ 32 triệu - 36 t...",
+        "insertedAt": "2026-09-20T11:33:04.000000",
+        "updatedAt": "2026-09-20T11:48:47.812000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "e29290ae-f618-4685-8f28-dde15ab55958",
+            "message": "0367752731  - VÕ THỊ TIỀN GIANG , NG THÂN - KTV CN - WEB - SNHUNG - ĐN - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789905046056
+          },
+          {
+            "id": "ea12e8ed-ceb6-4251-8823-9cfafbcd9429",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789904824605
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5950752789944895781",
+        "name": "Thanh Trúc",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/81/c6414d46fc0b84eae4b11cb821397b69.jpg?key=VzG0nWe_WR64apxKZEwesA&time=1795082484",
+        "phone": "0339743212",
+        "hasPhone": true,
+        "snippet": "[❤️ Thanh Trúc] dạ bên em chưa có chi nhánh ở Lạc long quân ạ",
+        "insertedAt": "2026-09-20T10:01:23.000000",
+        "updatedAt": "2026-09-20T10:03:27.704000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 55,
+            "text": "HếtNC",
+            "color": "#1f0c25"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a8f666ce-93a2-4746-8b6b-b9758c46af1d",
+            "message": "0339743212 - nhầm nk",
+            "author": "Hồng Nhung",
+            "time": 1789898618668
+          },
+          {
+            "id": "85658712-570c-4c74-b122-461934aedb97",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789898501453
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_6283736394259279236",
+        "name": "Võ Minh Thành",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/6/33b302f46265aaabb05642ffd7feedae.jpg?key=NYCBQzjk6Qj_W3cq8Kk8Ng&time=1795081941",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Em là Nhung - Trợ lý bác sĩ tại hệ thống Nha khoa Tâm Đức Smi...",
+        "insertedAt": "2026-09-20T09:52:20.000000",
+        "updatedAt": "2026-09-20T10:07:29.634000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 23,
+            "text": "Trang",
+            "color": "#11c532"
+          }
+        ],
+        "notes": [
+          {
+            "id": "bd84a3a8-7550-42fb-aea0-c42b1c49b71f",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789898830795
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3453335150986431836",
+        "name": "Mai",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/5eea12584ec77efd1e81f22851734bcc.jpg?key=o15y9iRvWzZyE5Lj4POQpg&time=1795080685",
+        "phone": "0932651592",
+        "hasPhone": true,
+        "snippet": "Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ tân để đượ...",
+        "insertedAt": "2026-09-20T09:30:49.000000",
+        "updatedAt": "2026-09-20T09:34:12.942000",
+        "messageCount": 8,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "03950d06-efae-4174-9309-a3d3539451d1",
+            "message": "0932651592 - trương lê thanh ngân",
+            "author": "Hồng Nhung",
+            "time": 1789896709344
+          },
+          {
+            "id": "13f2a712-05c7-4b8a-8724-0f339be624b9",
+            "message": "kb",
+            "author": "Hồng Nhung",
+            "time": 1789896694017
+          },
+          {
+            "id": "ef92126c-525f-419c-a809-cfea1c1cf068",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789896691517
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_6362002145667964154",
+        "name": "San",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/68/9e52e3ef7f048877bab84b271a04e89c.jpg?key=VVvNibFVymp8KiwN1TKmvA&time=1795079558",
+        "phone": "0353217644",
+        "hasPhone": true,
+        "snippet": "dạ",
+        "insertedAt": "2026-09-20T09:12:08.000000",
+        "updatedAt": "2026-09-20T13:06:49.978000",
+        "messageCount": 22,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#003eff"
+          },
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          }
+        ],
+        "notes": [
+          {
+            "id": "31d0eaf3-b561-4637-90d4-3aa0e923db2e",
+            "message": "khách fb - cũ",
+            "author": "Hồng Nhung",
+            "time": 1789909976885
+          },
+          {
+            "id": "42662d27-4b54-43b1-aaf7-ddf58c8ac1e7",
+            "message": "0353217644 - QUÁCH GIA ÁI SAN  , 2004 , NG THÂN - KTV TQ - DH 8H30 , 21/9 - WEB - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789909772534
+          },
+          {
+            "id": "bd0b9499-41e6-4823-8e0a-0704fd94fea0",
+            "message": "C_X00544558",
+            "author": "Hồng Nhung",
+            "time": 1789897328956
+          },
+          {
+            "id": "dc8db625-921e-4673-b202-0df69aa491b6",
+            "message": "San , ng thân  - ktv tq - sx ghé - q3 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789897279641
+          },
+          {
+            "id": "3aff353c-72ce-41a9-8b3f-cecdec22bf9a",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789897260924
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "zl_3718988534263433028_2431459061975054267",
+        "name": "Zalo User",
+        "avatar": "",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ em vẫn đợi phản hồi của anh ạ",
+        "insertedAt": "2026-09-20T08:29:13.436285",
+        "updatedAt": "2026-09-20T09:42:26.032000",
+        "messageCount": 4,
+        "tags": [],
+        "notes": [
+          {
+            "id": "e9208d7f-6ffe-4eec-b03d-8e21d0a82eb1",
+            "message": "PHẠM LÊ TRIỀU , NG THÂN - KTV IMP - SX GHÉ - Q1 - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789896254901
+          },
+          {
+            "id": "e26556e2-95b6-47ce-9010-8f498da473db",
+            "message": "hết tiền tk k rep được khách",
+            "author": "Hồng Nhung",
+            "time": 1789896129648
+          },
+          {
+            "id": "b280ae37-683b-488a-aece-8751dec6612b",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789895848655
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "zl_3718988534263433028",
+        "pageName": "Zalo OA - Nha Khoa Tâm Đức Smile",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_517102346895156381",
+        "name": "Hoàn",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/11/27f462c5b515d242940d07edbb50b473.jpg?key=L3iaq8BKTETlXU6bO0tSoA&time=1795076277",
+        "phone": "0329818002",
+        "hasPhone": true,
+        "snippet": "[❤️ Hoàn] G_X00544552\nNGUYỄN THỊ THU THÙY\nDạ, khi đến nha khoa...",
+        "insertedAt": "2026-09-20T08:17:27.000000",
+        "updatedAt": "2026-09-20T12:16:48.543000",
+        "messageCount": 19,
+        "tags": [
+          {
+            "id": 7,
+            "text": "CN",
+            "color": "#469ea1"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "88fa267e-484e-4a4e-b898-17d2a9753d7c",
+            "message": "0329818002 - 0333490903 - NGUYỄN THỊ THU THÙY , 2005  , HOÀN , NG THÂN - KTV CN - XMO - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789895368811
+          },
+          {
+            "id": "80260b10-0949-4c3c-b027-b3f3d36104b3",
+            "message": "C_X00544547  Normal\r\nHoàn\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789893407205
+          },
+          {
+            "id": "2faf6031-b30b-4773-af81-4e5d7068d0c9",
+            "message": "Hoàn , ng thân - ktv cn - sx ghé - web - q3 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789893275877
+          },
+          {
+            "id": "0df8c45e-fcb7-4ea7-b66e-27fec97138da",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789893057468
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Niềng Răng / Chỉnh Nha",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3158495579388620901",
+        "name": "Gia Hân",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/1/b495961a7709006da9da34d99dca1861.jpg?key=sT1teL8wkzw_9fbaxJW5EQ&time=1795075756",
+        "phone": "0902915830",
+        "hasPhone": true,
+        "snippet": "[Photo]",
+        "insertedAt": "2026-09-20T08:09:15.000000",
+        "updatedAt": "2026-09-21T02:37:36.043000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 27,
+            "text": "SPAM",
+            "color": "#000000"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a38cc11d-29fe-476b-9f28-b17687415cd7",
+            "message": "klq răng",
+            "author": "Hồng Nhung",
+            "time": 1789958399032
+          },
+          {
+            "id": "99289a56-c72c-4285-88fd-3606b12319b7",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789892968381
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7622054286156620150",
+        "name": "Tuấn Lâm Gia",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/738e9e2b96a5ef2bfcb78d19c4cca8a0.jpg?key=NLgqMgc-g_bXf7nataUP2A&time=1795075499",
+        "phone": "0338664899",
+        "hasPhone": true,
+        "snippet": "Dạ anh Tuấn ghé khám vào 8h sáng mai được không ạ",
+        "insertedAt": "2026-09-20T08:04:28.000000",
+        "updatedAt": "2026-09-20T08:16:54.020000",
+        "messageCount": 11,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "d53d204c-7e75-4871-9722-64e8b98ba28c",
+            "message": "MKT00544545  Normal\r\nLÂM GIA TUẤN\r\n*******899",
+            "author": "Hồng Nhung",
+            "time": 1789892172131
+          },
+          {
+            "id": "52d1261d-94c7-4a66-bdd6-664f5141f92e",
+            "message": "0338664899 -  LÂM GIA TUẤN , NG THÂN - KTV TQ - SX GHÉ - WEB - TL - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789892037859
+          },
+          {
+            "id": "8d7c39f7-acb5-4547-877d-9389a70afee3",
+            "message": "Gia Tuấn Lâm , ng thân - ktv tq - sx ghé - tl - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789891885504
+          },
+          {
+            "id": "9840ba64-d968-4f5c-b91f-2d6a9cf6d7d7",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789891818401
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4622325210911124373",
+        "name": "Cty Nam Mỹ",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/14/45f645407c40bf75c313018a4c69f46d.jpg?key=pGljzD3QGJpZPkCXQYxxAQ&time=1795073866",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ anh ạ",
+        "insertedAt": "2026-09-20T07:35:33.000000",
+        "updatedAt": "2026-09-20T07:48:57.959000",
+        "messageCount": 10,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "5ae9c256-ebb8-4770-9ae3-9001dc61cc35",
+            "message": "KB",
+            "author": "Hồng Nhung",
+            "time": 1789889996298
+          },
+          {
+            "id": "d3cfbdbe-1adb-49d5-a31c-2a4ceebf0c48",
+            "message": "G_X00544539  Normal\r\nBÙI VĂN CHUẨN\r\n*******666",
+            "author": "Hồng Nhung",
+            "time": 1789889875993
+          },
+          {
+            "id": "66928cb0-69bb-431d-94e2-ee97e1187dc0",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789889873740
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5252550666491126356",
+        "name": "Elvy",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/117/36b0ed338dc29ac8cbbc09480d7f67be.jpg?key=nH7ErHzcAz3-TyhfsGyqOA&time=1795072322",
+        "phone": "0899990620",
+        "hasPhone": true,
+        "snippet": "dạ mình cho nha khoa xin họ tên và năm sinh người khám ạ",
+        "insertedAt": "2026-09-20T07:11:31.000000",
+        "updatedAt": "2026-09-20T08:09:43.141000",
+        "messageCount": 71,
+        "tags": [
+          {
+            "id": 31,
+            "text": "XA",
+            "color": "#042237"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "83c0b8f7-531c-4d2a-9548-c50548f1bfb3",
+            "message": "0899990620 - Elvy ,ng thân - ktv imp - sx ghé - q1 - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789889159479
+          },
+          {
+            "id": "5e8866ed-3cc9-49bc-9388-c6e14ac215ba",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789888444132
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_8196699485631953391",
+        "name": "Thảo Vi",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/3/0e71fbdf365b9391e766fe82461d6d7a.jpg?key=Re6g5MDVO_cedCayiS0eZw&time=1795071765",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ nha khoa vẫn đợi phản hồi và sẵn sàng hỗ trợ mình ạ",
+        "insertedAt": "2026-09-20T07:02:14.000000",
+        "updatedAt": "2026-09-20T10:06:49.793000",
+        "messageCount": 14,
+        "tags": [
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "73c6e4e9-1ac5-43dc-b791-38d94fe41132",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789888183235
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4365879891020997670",
+        "name": "Nguyễn Quế Đạt",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/54b9314a53317a112762c90ea1441812.jpg?key=REi1GePfe1nPDgxD7FY9tA&time=1795070954",
+        "phone": "0979925631",
+        "hasPhone": true,
+        "snippet": "[Link] Địa chỉ : 255 Cách Mạng Tháng 8, phường Bà Rịa, TP.HCM...",
+        "insertedAt": "2026-09-20T06:48:44.000000",
+        "updatedAt": "2026-09-20T07:55:03.431000",
+        "messageCount": 15,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "aa40e2db-1caf-4815-b190-02430226e8e9",
+            "message": "0979925631 - NGUYỄN  QUẾ ĐẠT , NG THÂN - KTV TQ - SX GHÉ - BR - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789890757435
+          },
+          {
+            "id": "fb9212a2-210a-422c-9c89-1b771c323824",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789887428562
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "108815332304510_28947937628145406",
+        "name": "Home Rental",
+        "avatar": "",
+        "phone": "0914986789",
+        "hasPhone": true,
+        "snippet": "dạ vâng ạ",
+        "insertedAt": "2026-09-20T05:29:38.301531",
+        "updatedAt": "2026-09-20T06:35:41.296000",
+        "messageCount": 21,
+        "tags": [
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          },
+          {
+            "id": 58,
+            "text": "KHÁC",
+            "color": "#ffcc66"
+          }
+        ],
+        "notes": [
+          {
+            "id": "dcfe6b0f-bd6e-43b5-9be0-8319c8e3d854",
+            "message": "0914986789 - KHIẾU NGỌC TÙNG , NG THÂN - KTV IMP  - DH 17H30 , 21/9 - Q1 - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789884315181
+          },
+          {
+            "id": "c8aece04-93f8-4e18-be20-f51e86f0f2dc",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789882899796
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "108815332304510",
+        "pageName": "Fanpage - Răng Tốt Sức Khoẻ Tốt",
+        "channelType": "facebook"
+      },
+      {
+        "id": "pzl_u_400255603301941410_8173354280842105922",
+        "name": "Anh Tấn",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/3/0684ed3e0fcf0808c1bfbf4ac0a32c98.jpg?key=eUztnyDFYUtwlaCI2dhWrg&time=1795064364",
+        "phone": "0566665255",
+        "hasPhone": true,
+        "snippet": "Dạ",
+        "insertedAt": "2026-09-20T04:58:53.000000",
+        "updatedAt": "2026-09-20T05:13:37.037000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 29,
+            "text": "Kênh Khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "34bf0fbe-566e-4655-8945-26c46588c5d9",
+            "message": "khách pk",
+            "author": "Hồng Nhung",
+            "time": 1789881264906
+          },
+          {
+            "id": "24329293-6971-4ada-b98f-5f2a7dbbbcdf",
+            "message": "0566665255 - ANH TẤN , NG THÂN - KTV TQ - SX GHÉ - WEB - SNHUNG - HO",
+            "author": "Hồng Nhung",
+            "time": 1789881051941
+          },
+          {
+            "id": "c655ec4e-7de1-435b-ab36-7188c17244b9",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789880923519
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7618252222088846857",
+        "name": "Lucy",
+        "avatar": "https://s160-ava-talk.zadn.vn/default",
+        "phone": "0868453590",
+        "hasPhone": true,
+        "snippet": "Buổi khám và tư vấn đầu tiên (30 phút) hoàn toàn **Miễn phí**...",
+        "insertedAt": "2026-09-20T04:57:20.000000",
+        "updatedAt": "2026-09-20T06:42:53.308000",
+        "messageCount": 23,
+        "tags": [
+          {
+            "id": 7,
+            "text": "CN",
+            "color": "#469ea1"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "00d25516-16b7-49fe-b8d5-a54695c3b3ed",
+            "message": "0868453590 - LUCY , NG THÂN - KTV CN - SX GHÉ - Q3 - SNHUNG  - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789880582004
+          },
+          {
+            "id": "656b6e43-1891-48e1-bd5d-bbbc1652bb5d",
+            "message": "0868453590",
+            "author": "Hồng Nhung",
+            "time": 1789880366907
+          },
+          {
+            "id": "2841e866-38cc-479d-861d-8fe6b9b20dcc",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789880363030
+          },
+          {
+            "id": "9778e525-fc47-4193-9010-4b93ab98c12a",
+            "message": "0868453590",
+            "author": "Hồng Nhung",
+            "time": 1789880355497
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Niềng Răng / Chỉnh Nha",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7335937531587782014",
+        "name": "Thảo Nguyên",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/43/864e6a22dfacfcde5dc4e6c18ed83942.jpg?key=4gGJZ5G-feIf-VbOilVJZQ&time=1795063210",
+        "phone": "0899450172",
+        "hasPhone": true,
+        "snippet": "Dạ mấy giờ chị ghé ạ",
+        "insertedAt": "2026-09-20T04:40:09.000000",
+        "updatedAt": "2026-09-20T04:54:24.776000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 17,
+            "text": "Liểu",
+            "color": "#003eff"
+          },
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          }
+        ],
+        "notes": [
+          {
+            "id": "d4b59caa-fdcb-4f89-a323-d995b920fba5",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789879228083
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3442781891333039735",
+        "name": "Thanh Hoà",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/15/0f2ef25cca6097113ea10e902bd4d6ad.jpg?key=sv9PguAlRcsc1SLQ2fIQ9g&time=1795062873",
+        "phone": "0858082066",
+        "hasPhone": true,
+        "snippet": "Dạ nếu được Em có thể đặt 1 lịch hẹn mời mình đến phòng khám ...",
+        "insertedAt": "2026-09-20T04:34:02.000000",
+        "updatedAt": "2026-09-21T04:54:29.123000",
+        "messageCount": 19,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "e0712292-ddb6-45fd-915c-bbb16e2e4e09",
+            "message": "0858082066 - THANH HÒA , NG THÂN - KTV TRÁM - SX GHÉ - WEB - SNHUNG - Q3",
+            "author": "Hồng Nhung",
+            "time": 1789879881587
+          },
+          {
+            "id": "a64717d2-1273-409b-bb12-09eb44ffbbb8",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789879088315
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_6211530881640147843",
+        "name": "Thái",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/3/a3c942d99fc0f410f94ea5ff5849797b.jpg?key=wfrsdKMFl7NdyPhyqwY_3Q&time=1795061776",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ anh đang quan tâm đến dán sứ loại nào ạ",
+        "insertedAt": "2026-09-20T04:15:45.000000",
+        "updatedAt": "2026-09-21T05:00:54.131000",
+        "messageCount": 14,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "11006a1d-b901-462e-bf97-60f25557a4bc",
+            "message": "C_X00544806  Normal\r\nThái\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789966728229
+          },
+          {
+            "id": "c41c968d-9786-4b83-923d-babd1f86414e",
+            "message": "Thái , ng thân - ktv sứ - sx ghé - web - q3 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789966560688
+          },
+          {
+            "id": "ac5b2a30-4934-4cd6-ad21-c45657b73bb8",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789878306431
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "zl_3718988534263433028_4156487371000545195",
+        "name": "Zalo User",
+        "avatar": "",
+        "phone": "0966555598",
+        "hasPhone": true,
+        "snippet": "Dạ",
+        "insertedAt": "2026-09-20T03:46:18.103977",
+        "updatedAt": "2026-09-20T10:29:21.771000",
+        "messageCount": 7,
+        "tags": [],
+        "notes": [],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "zl_3718988534263433028",
+        "pageName": "Zalo OA - Nha Khoa Tâm Đức Smile",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_2106144779210910090",
+        "name": "Na",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/67/dc49d5cda388fb62388150a8d15e77fd.jpg?key=k4VeWcbxOsqUgmORhxP4xQ&time=1795059489",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Em là Nhung - Trợ lý bác sĩ tại hệ thống Nha khoa Tâm Đức Smi...",
+        "insertedAt": "2026-09-20T03:37:39.000000",
+        "updatedAt": "2026-09-20T03:57:46.904000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "85815c15-5d45-4586-b805-1d3e31069944",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789876657162
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5549650214679054260",
+        "name": "Yuki",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/14/afb0a8da8529c15de8989506fc6c54e6.jpg?key=b1WJS-OTp5-IN5j7VnUpig&time=1795058380",
+        "phone": "0972741439",
+        "hasPhone": true,
+        "snippet": "Dạ c",
+        "insertedAt": "2026-09-20T03:19:09.000000",
+        "updatedAt": "2026-09-20T04:41:31.817000",
+        "messageCount": 40,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 46,
+            "text": "Loan",
+            "color": "#416840"
+          },
+          {
+            "id": 56,
+            "text": "TRÙNG",
+            "color": "#1e1319"
+          }
+        ],
+        "notes": [
+          {
+            "id": "9857f879-5365-4129-8f3d-10132a8288f6",
+            "message": "web cũ loan",
+            "author": "LOAN KIM",
+            "time": 1789877033939
+          },
+          {
+            "id": "46855dda-717e-4daf-a51f-5f4a03886bed",
+            "message": "0972741439 - c Minh- ngthan- đính đá - sx ghé-hlw",
+            "author": "Hồng Nhung",
+            "time": 1789876802409
+          },
+          {
+            "id": "c9b5db54-fe9c-440c-85af-97157cca426e",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789874463829
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_8036269779322429865",
+        "name": "Duy Khanhh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/99/2be757ff9a586fe988908df7db762dad.jpg?key=83QE8-2X0LGxgQ2XmXhBdw&time=1795058052",
+        "phone": "0968773076",
+        "hasPhone": true,
+        "snippet": "21.9.26",
+        "insertedAt": "2026-09-20T03:13:41.000000",
+        "updatedAt": "2026-09-21T04:32:23.861000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 52,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "8fac0d46-0076-4e56-aa44-84c5eb3fe998",
+            "message": "L_H00544781  Normal\r\nDUY KHANH\r\n*******076",
+            "author": "Hồng Nhung",
+            "time": 1789964744640
+          },
+          {
+            "id": "d253b38a-1888-496c-a4c1-bb74378707da",
+            "message": "0968773076 - DUY KHANH , NG THÂN - KTV TTR - SX GHÉ - FB - SNHUNG - Q9",
+            "author": "Hồng Nhung",
+            "time": 1789875117878
+          },
+          {
+            "id": "f1891afc-c21d-415f-b419-a5b83f9f2065",
+            "message": "0968773076 - DUY KHANH , NG THÂN - KTV TTR - SX GHÉ - FB - SNHUNG - Q9",
+            "author": "Hồng Nhung",
+            "time": 1789875113037
+          },
+          {
+            "id": "4eb215f7-d50b-4709-bd9b-bf665f1d095d",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789875073310
+          },
+          {
+            "id": "f4b87e22-44aa-4266-a0e6-f01c2dd9e0e3",
+            "message": "0968773076",
+            "author": "Hồng Nhung",
+            "time": 1789875069973
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_795752144257076923",
+        "name": "bích tuyền",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/7/c7be1abd5f87a980219793c536b51c9a.jpg?key=VdmfLa1IQqyzCnpEf5jP0Q&time=1795057346",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
+        "insertedAt": "2026-09-20T03:01:55.000000",
+        "updatedAt": "2026-09-21T04:48:11.649000",
+        "messageCount": 15,
+        "tags": [
+          {
+            "id": 37,
+            "text": "KPH",
+            "color": "#2c373e"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 59,
+            "text": "BumKPH",
+            "color": "#2f74d0"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "3198db63-a7ff-45e3-9421-d70c8196d09d",
+            "message": "C_X00544802  Normal\r\nbích tuyền\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789966283942
+          },
+          {
+            "id": "5b63f966-3e04-419c-9eeb-2a7053f637a2",
+            "message": "bích tuyền , ng thân - ktv cn - sx ghé - web - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789966133703
+          },
+          {
+            "id": "90ca4434-cdae-4ac1-b099-dc4b00e41453",
+            "message": "bích tuyền , ng thân - ktv cn - sx ghé - fb - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789963973471
+          },
+          {
+            "id": "43e05857-9e13-4f7d-aea3-4ac28aaecdc5",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789873907448
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_8074382003431519165",
+        "name": "Nhung Duong",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/0d881afa2b8879c00bff328e982ede87.jpg?key=WoZ60L2Krx7MWLl8OqqBKg&time=1795056415",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ tân để đượ...",
+        "insertedAt": "2026-09-20T02:46:24.000000",
+        "updatedAt": "2026-09-21T04:09:48.590000",
+        "messageCount": 14,
+        "tags": [
+          {
+            "id": 37,
+            "text": "KPH",
+            "color": "#2c373e"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 59,
+            "text": "BumKPH",
+            "color": "#2f74d0"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "f4050c53-205e-4083-8578-826968e9dd73",
+            "message": "C_X00544767  Normal\r\nNhung Duong\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789963774912
+          },
+          {
+            "id": "1d9067c1-47bc-4453-a7dd-c76b80a82d3d",
+            "message": "Nhung Duong , ng thân bé - ktv tq - sx ghé - fb - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789963630802
+          },
+          {
+            "id": "7cfbd52d-c510-4e3c-aa0e-b5d5eae3f8e4",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789872455839
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_8002583667531100094",
+        "name": "Vân Nguyễn",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/22/f0e29516bab712915edeb718acfbc605.jpg?key=Ps-o8pzEmRixN7j8jA7Drg&time=1795054839",
+        "phone": "0988198405",
+        "hasPhone": true,
+        "snippet": "[❤️ Vân Nguyễn] Mình sẽ được tư vấn rõ ràng mọi phương án cũng...",
+        "insertedAt": "2026-09-20T02:19:58.000000",
+        "updatedAt": "2026-09-20T02:32:08.756000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "5427698a-6269-4e15-9c49-fbc461911101",
+            "message": "0988198405 - NGUYỄN QUANG MINH , 2015 , nguyễn thị vân , ng thân - ktv cn - da - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789871187464
+          },
+          {
+            "id": "fdf91ebc-8d84-4b59-9471-6cb3985b400d",
+            "message": "NGUYỄN QUANG MINH , 2015 , nguyễn thị vân",
+            "author": "Hồng Nhung",
+            "time": 1789870918175
+          },
+          {
+            "id": "fe0142a5-8f41-48bc-85f7-104b87e4bd6f",
+            "message": "kb hlw",
+            "author": "Hồng Nhung",
+            "time": 1789870870612
+          },
+          {
+            "id": "12f03fcf-49a7-4e7a-a30e-1d92defa6ff7",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789870853487
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_5134308339198988143",
+        "name": "La",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/ffbd2486deb8ebfe6177e52afe3b7798.jpg?key=Gf6-Qo9qvDRBbxSzjcZSGw&time=1795054811",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình đang muốn tham khảo dịch vụ hay đặt hẹn khám răng ạ",
+        "insertedAt": "2026-09-20T02:19:40.000000",
+        "updatedAt": "2026-09-21T04:01:30.839000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 56,
+            "text": "TRÙNG",
+            "color": "#1e1319"
+          }
+        ],
+        "notes": [
+          {
+            "id": "c7edee57-bb06-4877-a533-bd39a5038938",
+            "message": "chat 2 trang",
+            "author": "Hồng Nhung",
+            "time": 1789871757253
+          },
+          {
+            "id": "42eee4e5-b06b-4efc-acf8-9b37d9e8ca96",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789871733037
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7691439665516681485",
+        "name": "Anh Nguyen",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/95/213b4e2612d96543c30f8751d4826eee.jpg?key=s8J8-MAvyXaGZIzeBGOe8w&time=1795054427",
+        "phone": "01900272727",
+        "hasPhone": true,
+        "snippet": "Nha khoa Tâm Đức Smile xin kính chào anh/chị",
+        "insertedAt": "2026-09-20T02:13:46.000000",
+        "updatedAt": "2026-09-20T15:54:39.162000",
+        "messageCount": 31,
+        "tags": [
+          {
+            "id": 27,
+            "text": "SPAM",
+            "color": "#000000"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a13b38ec-6a57-4907-a90d-b52680fc541e",
+            "message": "klq răng",
+            "author": "Hồng Nhung",
+            "time": 1789870620216
+          },
+          {
+            "id": "a1785c19-4af6-4be1-bebf-8685cd6f9471",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789870553054
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4811059275743873140",
+        "name": "Dung Thu",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/a30fcc45d033ee0da81e52966a031eb9.jpg?key=g4sjGmnPKwbPRkJwpsenHg&time=1795053715",
+        "phone": "0346214744",
+        "hasPhone": true,
+        "snippet": "dạ anh ghé ngày nào ạ",
+        "insertedAt": "2026-09-20T02:01:09.000000",
+        "updatedAt": "2026-09-20T02:07:34.971000",
+        "messageCount": 10,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "c1c65f09-a343-4c7c-be02-ddca3da26eca",
+            "message": "kb",
+            "author": "Hồng Nhung",
+            "time": 1789869850392
+          },
+          {
+            "id": "f2083e0d-ed90-45c2-b130-474e9ef3ca34",
+            "message": "0346214744 - NGUYỄN TUẤN DŨNG , 1969 , NG THAN - KTV IMP - SX GHÉ - HLW - SNHUNG - ST",
+            "author": "Hồng Nhung",
+            "time": 1789869839380
+          },
+          {
+            "id": "880e8238-fcaa-441c-aac8-89105b836516",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789869837832
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4701982547851923440",
+        "name": "Đoàn Thái Minh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/114/9fce3ab08681bfef4a1ecf2e80639a66.jpg?key=C7lj_0BXDccZ4chngKzA8Q&time=1795051952",
+        "phone": "0937812939",
+        "hasPhone": true,
+        "snippet": "dạ anh ạ",
+        "insertedAt": "2026-09-20T01:32:02.000000",
+        "updatedAt": "2026-09-21T01:26:16.069000",
+        "messageCount": 24,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 12,
+            "text": "#ĐẬU",
+            "color": "#925828"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "fb67ba4e-74f7-4edb-a041-f608543bee30",
+            "message": "0937812939 - ĐOÀN THÁI MINH , ng thân - ktv tq - sx ghé - gv - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789869281845
+          },
+          {
+            "id": "b11c1b8b-d1e9-42d5-92a1-58fc5798d465",
+            "message": "Đoàn Thái Minh , ng thân - ktv tq - sx ghé - gv - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789868134570
+          },
+          {
+            "id": "ba2f4932-7c91-44ed-b362-a669dfa68c57",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789868077809
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": true,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_8811430819568876792",
+        "name": "Đỗ Minh Đức",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/6/b75a245c5f46ed6d0e8714a3e2f6a348.jpg?key=hpvOedQ-wTM88yCcUQaZ-A&time=1795051949",
+        "phone": "0379226343",
+        "hasPhone": true,
+        "snippet": "dạ mình ạ",
+        "insertedAt": "2026-09-20T01:31:58.000000",
+        "updatedAt": "2026-09-20T05:08:28.429000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 27,
+            "text": "SPAM",
+            "color": "#000000"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "2d2de3e9-007c-429e-8da6-de99dad113c2",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789868185438
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_9195082379964951083",
+        "name": "Đặng Thúy Vy",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/27/18bc0f363f04fd7f0e25c7c0d38a2a96.jpg?key=m7AM1V26IfRyWdFCzpyKtA&time=1795051800",
+        "phone": "0706849787",
+        "hasPhone": true,
+        "snippet": "Dạ mình đang muốn đặt hẹn khám răng ạ",
+        "insertedAt": "2026-09-20T01:29:00.000000",
+        "updatedAt": "2026-09-20T01:30:43.947000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "3506c755-30ce-42d2-a238-77e2d0bea697",
+            "message": "kb",
+            "author": "Hồng Nhung",
+            "time": 1789867811896
+          },
+          {
+            "id": "6053c7f6-e401-42b8-bc90-ea0e6df3c50b",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789867808865
+          },
+          {
+            "id": "77943d45-6ca3-4e08-b9db-b062c805e337",
+            "message": "0706849787",
+            "author": "Hồng Nhung",
+            "time": 1789867805534
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3204507970640321224",
+        "name": "Đặng Trần Xuân Bình",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/3/7cdd9a55a8da97dbe40a153c25f41431.jpg?key=3U00rvnC0cVRytidz0Bobw&time=1795051519",
+        "phone": "0979598794",
+        "hasPhone": true,
+        "snippet": "[❤️ Đặng Trần Xuân Bình] Dạ, khi đến nha khoa, mình gửi mã hồ ...",
+        "insertedAt": "2026-09-20T01:24:45.000000",
+        "updatedAt": "2026-09-20T01:27:40.189000",
+        "messageCount": 8,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "b45b5fc0-784e-4172-9ea1-06ea2ec11cf9",
+            "message": "KB",
+            "author": "Hồng Nhung",
+            "time": 1789867531950
+          },
+          {
+            "id": "9e213268-53c8-424c-be1f-cf65d0e6278d",
+            "message": "0979598794 - ĐẶNG TRẦN XUÂN BÌNH , NG THÂN - KTV TQ - HL  - BCH - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789867526667
+          },
+          {
+            "id": "5ede4314-9003-4835-a5cd-e6e87e5453b0",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789867524349
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7714230609189579710",
+        "name": "Niềm Tin",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/299/e60952c35d6b74b563567230aaba9293.jpg?key=Lu2ptRyXtwNiPMzQ9RMtJw&time=1795050273",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
+        "insertedAt": "2026-09-20T01:03:53.000000",
+        "updatedAt": "2026-09-20T04:27:01.311000",
+        "messageCount": 21,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "d24f607c-7b4b-4280-9a74-1bad24a87eaa",
+            "message": "C_X00544502  Normal\r\nNiềm Tin\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789878473970
+          },
+          {
+            "id": "7918869b-7623-4bfe-8102-2faaec2f8c95",
+            "message": "Niềm Tin , ng thân - ktv sứ - sx ghé - bl - fb - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789878438588
+          },
+          {
+            "id": "167ad218-aa7e-4119-9f44-4cf7cba427bb",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789867224280
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7318739226453719585",
+        "name": "Bichdang",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/21/27bc93c0c89cdbca7e749c35bac9434b.jpg?key=VVx5TZAggTrBjYySaxk5-A&time=1795049954",
+        "phone": "0937123368",
+        "hasPhone": true,
+        "snippet": "[❤️ Bichdang] dạ chị yên tâm nhé",
+        "insertedAt": "2026-09-20T00:59:13.000000",
+        "updatedAt": "2026-09-20T01:54:13.517000",
+        "messageCount": 20,
+        "tags": [
+          {
+            "id": 8,
+            "text": "Sứ",
+            "color": "#cf6dab"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "44e356e1-9a4c-4a3d-b73c-38d31351277e",
+            "message": "0937123368 - ĐẶNG THỊ NGỌC BÍCH , 1971, NG THÂN - KTV SỨ - GV - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789866876501
+          },
+          {
+            "id": "e3e86ff3-7f92-40ac-ae28-3e4e2d3b2222",
+            "message": "Bich dang  , NG THÂN - KTV SỨ - SX GHÉ - WEB - GV - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789866506265
+          },
+          {
+            "id": "f22ebd4f-680a-4480-90b8-4bf4c9cd952d",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789866478815
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7479459190578144636",
+        "name": "Mai Lụa",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/1/5a9dff8ad2c4728ce3c142fdd2f1f5af.jpg?key=vfKbKi8dfvX3LBQXH6_Imw&time=1795049685",
+        "phone": "0934084673",
+        "hasPhone": true,
+        "snippet": "Mình sẽ được tư vấn rõ ràng mọi phương án cũng như chi phí để...",
+        "insertedAt": "2026-09-20T00:53:55.000000",
+        "updatedAt": "2026-09-21T03:56:27.063000",
+        "messageCount": 8,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "84acbbce-145b-47b7-a66b-7d87c1474f13",
+            "message": "ĐK WEB",
+            "author": "Hồng Nhung",
+            "time": 1789962917852
+          },
+          {
+            "id": "288caf1c-b84e-4b9f-9dd1-e3f15f12fd06",
+            "message": "0934084673 - MAI THỊ LỤA , NG THÂN - KTV TQ - SX GHÉ - TP - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789962910541
+          },
+          {
+            "id": "6708d4cd-13c4-48ce-af10-ff37f1fffcdc",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789865735645
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4572332101251401156",
+        "name": "Kim Linh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/d04884d29e73f990977a7bff8218279d.jpg?key=YUyw0c9btMljVgkgQFxVqg&time=1795049569",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ nha khoa vẫn đợi phản hồi và sẵn sàng hỗ trợ mình ạ",
+        "insertedAt": "2026-09-20T00:52:11.000000",
+        "updatedAt": "2026-09-21T03:51:55.249000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "b82c9327-239f-4ee2-81ce-1dc473273d4a",
+            "message": "đk web",
+            "author": "Hồng Nhung",
+            "time": 1789865576792
+          },
+          {
+            "id": "42ab0b24-5a5d-4e17-a166-ad5688257634",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789865573653
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3383670892617897285",
+        "name": "Thuý Anh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/84/024e7a3d5153f5385008ae101ffd1467.jpg?key=FxF5-yBH5SZjo_kBM8WRFw&time=1795049374",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ nha khoa vẫn đợi phản hồi và sẵn sàng hỗ trợ mình ạ",
+        "insertedAt": "2026-09-20T00:48:52.000000",
+        "updatedAt": "2026-09-21T03:54:11.293000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "966049fe-0da9-4a85-9261-da1a0252aea1",
+            "message": "đk web",
+            "author": "Hồng Nhung",
+            "time": 1789865387172
+          },
+          {
+            "id": "cccb8c26-1f21-472f-ac52-e970185ecffd",
+            "message": "20.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789865378714
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_6585189123088840403",
+        "name": "Nguyễn Huệ",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/1/863736a96af82479d4b385b91a34549e.jpg?key=jzHkUXopAHyPljjF3ZW4Dw&time=1795053715",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "@GIF 🌶️ vụ vụ",
+        "insertedAt": "2026-09-19T22:20:53.000000",
+        "updatedAt": "2026-09-19T22:22:23.710000",
+        "messageCount": 2,
+        "tags": [],
+        "notes": [],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_8695857460585667357",
+        "name": "thế kiệt",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/11/5b1fc4e596a9f17d6828ac189dd4a5db.jpg?key=tL_mZwsRiV7OATCHRVoESA&time=1795018663",
+        "phone": "0971471740",
+        "hasPhone": true,
+        "snippet": "dạ đúng ạ",
+        "insertedAt": "2026-09-19T16:17:12.000000",
+        "updatedAt": "2026-09-20T01:27:55.780000",
+        "messageCount": 27,
+        "tags": [
+          {
+            "id": 46,
+            "text": "Loan",
+            "color": "#416840"
+          },
+          {
+            "id": 56,
+            "text": "TRÙNG",
+            "color": "#1e1319"
+          }
+        ],
+        "notes": [
+          {
+            "id": "398d7eb5-ce45-485e-a22c-5b2ef0795f74",
+            "message": "VLB00221479  NORMAL\nNGUYỄN ĐỨC ANH KIỆT\n*******740 - web cũ Loan",
+            "author": "LOAN KIM",
+            "time": 1789867900179
+          },
+          {
+            "id": "0ea7cea1-0a15-4998-8d6d-05a385193b47",
+            "message": "0971471740 - THẾ KIỆT , 2002 , NG THÂN - KTV CN - SX GHÉ - WEB - TP - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789835225971
+          },
+          {
+            "id": "8048a78b-e6df-49a1-8456-53cdb1a6d852",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789834844631
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4665663235356864783",
+        "name": "Thùy Linh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/42/09e67069406f638fee032faec1007283.jpg?key=y4IE0T_Ecj-toUBjYAh2mA&time=1795014574",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "và tiếp tục hỗ trợ bằng tin nhắn cho mình ạ",
+        "insertedAt": "2026-09-19T15:09:33.000000",
+        "updatedAt": "2026-09-19T15:35:09.449000",
+        "messageCount": 14,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "cef68ca2-608c-4413-9fe2-4d0b1b5b828c",
+            "message": "Thùy Linh , ng thân - ktv imp - sx ghé - imp - sx ghé - tb - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789832417357
+          },
+          {
+            "id": "adfc2ffa-8181-4aa8-acba-7b9bcd5190aa",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789831282212
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_374651600231331971",
+        "name": "Ngọc Trần",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/11/86ebadf4d72f84ca5836f6d08e13cb0d.jpg?key=10cs9yM48-oTUzLGYZ4pVg&time=1795014273",
+        "phone": "0964433454",
+        "hasPhone": true,
+        "snippet": "Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ tân để đượ...",
+        "insertedAt": "2026-09-19T15:04:02.000000",
+        "updatedAt": "2026-09-19T16:45:06.331000",
+        "messageCount": 23,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "b392bf1a-49c8-47e7-8cf8-dac989273e1f",
+            "message": "0964433454 - TRẦN NGỌC , NG THÂN - KTV TQ - SX GHÉ - TB - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789836171335
+          },
+          {
+            "id": "e1db7539-4086-4f9b-becb-9e3b6a62f130",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789831243416
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5372461216162613822",
+        "name": "Ngọc Anh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/28/cc23a11374d6ec1dcbbafaa2763f7b50.jpg?key=2R3XUUVkAXRd8y4wSr8ahw&time=1795012004",
+        "phone": "0356646907",
+        "hasPhone": true,
+        "snippet": "dạ chị",
+        "insertedAt": "2026-09-19T14:26:10.000000",
+        "updatedAt": "2026-09-21T02:38:47.261000",
+        "messageCount": 43,
+        "tags": [
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 55,
+            "text": "HếtNC",
+            "color": "#1f0c25"
+          }
+        ],
+        "notes": [
+          {
+            "id": "08be048d-0afe-4751-a657-c26fb5e25963",
+            "message": "KB WEB",
+            "author": "Hồng Nhung",
+            "time": 1789828023393
+          },
+          {
+            "id": "25893328-d2f0-4168-8a5a-b44fc308c54e",
+            "message": "0356646907 - NGỌC ANH , NG THÂN - KTV TQ - SX GHÉ - WEB - TP - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789828017745
+          },
+          {
+            "id": "609a0cc6-6abe-4d0b-a603-4d3606d98581",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789828016082
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4153651940692972308",
+        "name": "DieuHienTran",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/4/5f80bfa60098a6cb331b68db8ee48b1d.jpg?key=o4DZfSwnOx8lLsnyPdUBKQ&time=1795011579",
+        "phone": "0975733019",
+        "hasPhone": true,
+        "snippet": "dạ mình ạ",
+        "insertedAt": "2026-09-19T14:19:08.000000",
+        "updatedAt": "2026-09-19T14:57:05.047000",
+        "messageCount": 35,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "3bf99d9f-2bc2-4d52-acb0-62fb11cb751c",
+            "message": "khách cũ đã ghé",
+            "author": "Hồng Nhung",
+            "time": 1789829836361
+          },
+          {
+            "id": "45b82326-de26-4512-afaf-ca95204e28ee",
+            "message": "0975733019 - TRẦN DIỆU HIỀN , NG THÂN - KTV NR - SX GHÉ - TP - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789829304376
+          },
+          {
+            "id": "797a1730-dde3-4acc-867d-7bb832d36a4e",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789827762910
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_7450918158392479702",
+        "name": "Kiem",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/46/bbd742b7d1d9af7b1637f27c5958b9bc.jpg?key=TIwIPGERa9MEx8rVN6a9Lw&time=1795010654",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Hệ thống Nha Khoa Tâm Đức Smile có hơn 45 chi nhánh gồm các t...",
+        "insertedAt": "2026-09-19T14:04:13.000000",
+        "updatedAt": "2026-09-19T14:09:52.040000",
+        "messageCount": 20,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 55,
+            "text": "HếtNC",
+            "color": "#1f0c25"
+          }
+        ],
+        "notes": [
+          {
+            "id": "bbfa1114-5108-49e3-bcc9-1c1ebc975220",
+            "message": "nhầm nk",
+            "author": "Hồng Nhung",
+            "time": 1789827000121
+          },
+          {
+            "id": "25d1ae85-d7a6-440c-904d-1572209cdce4",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789826795669
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4380633971202636155",
+        "name": "Ho Kha",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/33/94d122c21ed58c734523f459e0da5e02.jpg?key=R3R2-XC0e-p6Lv1dBK0hpw&time=1795008972",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
+        "insertedAt": "2026-09-19T13:36:11.000000",
+        "updatedAt": "2026-09-20T02:02:22.142000",
+        "messageCount": 12,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "e789a51b-6054-4b04-bcf5-5ebac7afdec1",
+            "message": "C_X00544293  Normal\r\nHo Kha\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789825739273
+          },
+          {
+            "id": "f0ff635b-6195-491a-9231-0e615303ddab",
+            "message": "Ho Kha , ng thân - ktv tq - sx ghé - q3 - web - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789825704482
+          },
+          {
+            "id": "6a6bc3d5-7847-494c-a9c3-8cd1eaed8741",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789825269099
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_37746252232312886",
+        "name": "La",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/5/ffbd2486deb8ebfe6177e52afe3b7798.jpg?key=XgohQGF6TtSaxoLDjCJEkQ&time=1795007997",
+        "phone": "0835857894",
+        "hasPhone": true,
+        "snippet": "dạ chị ạ",
+        "insertedAt": "2026-09-19T13:19:26.000000",
+        "updatedAt": "2026-09-19T13:46:37.978000",
+        "messageCount": 31,
+        "tags": [
+          {
+            "id": 7,
+            "text": "CN",
+            "color": "#469ea1"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "f31aa0fc-9099-499e-86a3-89b8a1d0ef83",
+            "message": "L_H00544292  Normal\r\nTHẢO UYÊN\r\n*******894",
+            "author": "Hồng Nhung",
+            "time": 1789824709179
+          },
+          {
+            "id": "e4170922-9f59-4a5c-9c2f-f15138ce0260",
+            "message": "0835857894  - THẢO UYÊN  . LA , NG THÂN - KTV CN - GV - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789824660663
+          },
+          {
+            "id": "73c3e17c-f363-4f33-95bb-5ba089da26b3",
+            "message": "0835857894 -  la , uyen  , ng thân - ktv cn - sx ghé - web - lm - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789824291778
+          },
+          {
+            "id": "2d5a16fc-b5ad-42f5-9048-a21ff5893a46",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789824156598
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Niềng Răng / Chỉnh Nha",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_400255603301941410_535220121450275394",
+        "name": "Nguyễn Thế Luân",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/13/0b9942746e8bd3022440a01739ee5609.jpg?key=I9eZYKN-HvhLteE0zTpxWQ&time=1795007707",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ nha khoa vẫn đợi phản hồi và sẵn sàng hỗ trợ mình ạ",
+        "insertedAt": "2026-09-19T13:15:06.000000",
+        "updatedAt": "2026-09-19T14:10:30.388000",
+        "messageCount": 16,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 31,
+            "text": "KPH",
+            "color": "#2c373e"
+          },
+          {
+            "id": 37,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "59e836fe-177f-493e-83e1-cdd34eb5fde0",
+            "message": "C_X00544294  Normal\r\nNguyễn Thế Luân\r\n*******222",
+            "author": "Hồng Nhung",
+            "time": 1789827205284
+          },
+          {
+            "id": "409b6a68-b2d5-4372-a682-fd3658b8c9a8",
+            "message": "Nguyễn Thế Luân , ng thân - ktv tq - sx ghé - web - q3 - snhung",
+            "author": "Hồng Nhung",
+            "time": 1789827054361
+          },
+          {
+            "id": "c9394e1f-653f-4e65-adb3-5c11b4f49a1c",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789823805099
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_400255603301941410",
+        "pageName": "Zalo OA - 0329851079 (Hotline)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4134632980682348241",
+        "name": "Bảo Thư",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/822d32eca5dc7eb14dfdd299f3746251.jpg?key=5t_Af4SvYu1SkSi7UHQleA&time=1795005680",
+        "phone": "0328176240",
+        "hasPhone": true,
+        "snippet": "dạ mình ạ",
+        "insertedAt": "2026-09-19T12:40:49.000000",
+        "updatedAt": "2026-09-19T13:23:12.138000",
+        "messageCount": 24,
+        "tags": [
+          {
+            "id": 8,
+            "text": "Sứ",
+            "color": "#cf6dab"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "c7643361-94a9-40d6-8aa8-6b36fd44ef6f",
+            "message": "NGUYỄN THỊ BẢO THƯ , NG THÂN - KTV SỨ - SX GHÉ - BD - FB - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789823995204
+          },
+          {
+            "id": "5b749cb6-13a2-4f5e-941e-828a5dcb1b41",
+            "message": "0328176240 - BẢO THƯ , NG THÂN - KTV SỨ - SX GHÉ  - HM - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789822912661
+          },
+          {
+            "id": "b9eb0dd5-16f9-4d16-a163-dad2ae4da9d6",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789821923503
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_678660812289649883",
+        "name": "Minh Thư",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/10/33905201124c0c77b4aecbffe56d71eb.jpg?key=xIQSazqCOo0mO_kAUog5SA&time=1795001439",
+        "phone": "0329286894",
+        "hasPhone": true,
+        "snippet": "[❤️ Minh Thư] Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho ...",
+        "insertedAt": "2026-09-19T11:30:38.000000",
+        "updatedAt": "2026-09-19T11:33:13.127000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "5b17342c-b1cb-45c2-ad2c-0823687c4596",
+            "message": "ĐK HLW",
+            "author": "Hồng Nhung",
+            "time": 1789817488359
+          },
+          {
+            "id": "224ed4cd-edc0-4818-adf9-5ed0cd6129dc",
+            "message": "0329286894 - TRẦN THỊ MINH THƯ , NG THÂN - KTV TQ - SX GHÉ  - VT - HLW - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789817481498
+          },
+          {
+            "id": "2505f7f7-103b-4697-9128-88088f50937e",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789817478784
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_4617951510571686054",
+        "name": "Kim Hường",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/6/d0c8c34ac47c7994994d09ecf80c167e.jpg?key=4wKNKFdh12UJNK_hOKUV8A&time=1795001193",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "[❤️ Kim Hường] Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho...",
+        "insertedAt": "2026-09-19T11:26:32.000000",
+        "updatedAt": "2026-09-19T11:29:53.358000",
+        "messageCount": 9,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "29a19784-2d49-436b-8ca4-e212149b0463",
+            "message": "kb",
+            "author": "Hồng Nhung",
+            "time": 1789817298278
+          },
+          {
+            "id": "e7bda92c-68fb-480a-bbdf-d5ccd0ce5871",
+            "message": "MKT00544278  Normal\r\nNGUYỄN THỊ HAI\r\n*******271",
+            "author": "Hồng Nhung",
+            "time": 1789817291849
+          },
+          {
+            "id": "dc11e2c9-1748-4788-88bc-884c8ed807bb",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789817289557
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_2077580097735460709",
+        "name": "Jakub Raichl",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/1/435fe500868eed938ea2cbd2b061de6b.jpg?key=eBCSUzOgO-6R3ceNmRjTPg&time=1794998329",
+        "phone": "0366547300",
+        "hasPhone": true,
+        "snippet": "See you at 10:30 AM today",
+        "insertedAt": "2026-09-19T10:38:18.000000",
+        "updatedAt": "2026-09-20T03:11:32.439000",
+        "messageCount": 17,
+        "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 42,
+            "text": "NN",
+            "color": "#4a9586"
+          }
+        ],
+        "notes": [
+          {
+            "id": "34e964ec-4e10-4240-8219-263e35ce9c07",
+            "message": "0366547300 - Jakib Raichl  , NG THÂN - KTV CVR - SX GHÉ - WEB - TNI - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789873419990
+          },
+          {
+            "id": "1f8ac4b7-93a1-4928-9af3-5e09dd4375cb",
+            "message": "C_X00544436\r\nJakub Raichl",
+            "author": "Hồng Nhung",
+            "time": 1789873324902
+          },
+          {
+            "id": "c58074a0-1de7-45b1-a9a3-d372212324d2",
+            "message": "Jakub Raichl , NG THÂN - KTV TQ - SX GHÉ - TNI - WEB - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789873277692
+          },
+          {
+            "id": "2f9ababe-b8a4-4a03-893f-a8ba378240e3",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789816270329
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Khám Tổng Quát",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3651643572001820957",
+        "name": "Lan Anh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/43/3fa194560ff85d81cf96d8a33bc258f2.jpg?key=xsrqUdaVanbLsineA35gug&time=1794997551",
+        "phone": "0366949855",
+        "hasPhone": true,
+        "snippet": "[❤️ Lan Anh] Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho l...",
+        "insertedAt": "2026-09-19T10:25:20.000000",
+        "updatedAt": "2026-09-19T10:28:31.564000",
+        "messageCount": 6,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "0a9f4ca6-24ee-4241-b620-3f167c4573c5",
+            "message": "NGUỒN FB TRƯỚC",
+            "author": "Hồng Nhung",
+            "time": 1789960969960
+          },
+          {
+            "id": "1bde512d-7602-458d-8fe8-68d3aedeb668",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789813648582
+          },
+          {
+            "id": "c090566d-2a69-4062-bd28-48bfafdc9f85",
+            "message": "0366949855",
+            "author": "Hồng Nhung",
+            "time": 1789813643802
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_5469703982160932184",
+        "name": "Trang Đặng",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/24/81a7dfa5e7fb15936c2e891723aaeb64.jpg?key=aBR6i7hZLnx4EeuiCC3chg&time=1794997255",
+        "phone": "0387161799",
+        "hasPhone": true,
+        "snippet": "dạ chị ơi mình ghé tới chưa ạ",
+        "insertedAt": "2026-09-19T10:20:25.000000",
+        "updatedAt": "2026-09-20T02:49:09.121000",
+        "messageCount": 30,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "46614636-cf0a-4f65-90bf-fd58d99b90dc",
+            "message": "KB WEB",
+            "author": "Hồng Nhung",
+            "time": 1789813368379
+          },
+          {
+            "id": "5b2f7deb-c3f9-4755-82d7-9e344234c9f2",
+            "message": "0387161799",
+            "author": "Hồng Nhung",
+            "time": 1789813365611
+          },
+          {
+            "id": "5030b0c8-6972-4607-b13b-05202e9520a0",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789813363824
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_2834094627465182692",
+        "name": "Thế Anh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/28aa492e423608b9a2f9b60d5fd22456.jpg?key=ai8a9wgiaXiXJzVkCupVqA&time=1794996557",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "Anh/Chị đang quan tâm dịch vụ nào ạ em tư vấn cụ thể cho mình...",
+        "insertedAt": "2026-09-19T10:09:17.000000",
+        "updatedAt": "2026-09-19T10:11:48.400000",
+        "messageCount": 7,
+        "tags": [
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "9a49f188-d041-456e-93cc-0e3d7065eb66",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789812693311
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_855699970154931536",
+        "name": "Thanh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/19/69fa05136c113a9fe7a6c8a10463a9bb.jpg?key=j0omr_YBLdoz6NW1yKtfVw&time=1794996525",
+        "phone": "0376704109",
+        "hasPhone": true,
+        "snippet": "Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ tân để đượ...",
+        "insertedAt": "2026-09-19T10:08:14.000000",
+        "updatedAt": "2026-09-19T10:11:14.908000",
+        "messageCount": 10,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "a0954475-0e0a-48e9-89b7-dcdb564cfe2d",
+            "message": "dk web",
+            "author": "Hồng Nhung",
+            "time": 1789812725996
+          },
+          {
+            "id": "efc093d1-fc79-4bc3-95c8-4c14e6b0b5af",
+            "message": "0376704109 - NGUYỄN NHẬT THANH , NG THÂN - KTV SỨ - SX GHÉ - Q9 - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789812538182
+          },
+          {
+            "id": "2b05f711-c847-47fc-88d8-01b482515688",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789812536583
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Răng Sứ",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_2966811571780832156",
+        "name": "Den",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/2/461f81ed81e759215b04abfbd3ebe3aa.jpg?key=LE_-FFqYRcSwihKgNNFRLA&time=1794994392",
+        "phone": "0382467003",
+        "hasPhone": true,
+        "snippet": "[❤️ Den] Dạ được ạ, em hẹn lại thứ 3 anh ghé ạ",
+        "insertedAt": "2026-09-19T09:32:41.000000",
+        "updatedAt": "2026-09-20T08:13:00.492000",
+        "messageCount": 19,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 44,
+            "text": "Hạ",
+            "color": "#3fc72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "84facc9d-0236-4837-bda3-ba6d67d7d762",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789810770564
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_1874906474210972085",
+        "name": "Bích Tuyền",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/335/943e41a26ee9df68b44246a80e8321d3.jpg?key=2ny5y5UO89HIGsRRimcoWA&time=1794993766",
+        "phone": "0399397697",
+        "hasPhone": true,
+        "snippet": "Dạ",
+        "insertedAt": "2026-09-19T09:22:16.000000",
+        "updatedAt": "2026-09-19T09:54:11.967000",
+        "messageCount": 37,
+        "tags": [
+          {
+            "id": 7,
+            "text": "CN",
+            "color": "#469ea1"
+          },
+          {
+            "id": 10,
+            "text": "DDH",
+            "color": "#26a8ff"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          },
+          {
+            "id": 54,
+            "text": "SDT",
+            "color": "#08d72d"
+          }
+        ],
+        "notes": [
+          {
+            "id": "17e8c38e-1832-4fa3-b535-95c76c2a1622",
+            "message": "0399397697 - BÍCH TUYỀN ,  NG THÂN - KTV CN - SX GHÉ - TNI - WEB  - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789810671547
+          },
+          {
+            "id": "40f7283e-c6d4-49e7-91ad-342c5c9560e5",
+            "message": "Bích Tuyền , NG THÂN - KTV CN - SX GHÉ - Q3 - SNHUNG",
+            "author": "Hồng Nhung",
+            "time": 1789810570882
+          },
+          {
+            "id": "353e7f68-6fb0-48c7-85e5-2b3f96846b03",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789810536747
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Niềng Răng / Chỉnh Nha",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": true,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
+      {
+        "id": "pzl_u_329635242261010723_3715656392110107936",
+        "name": "Trần Ngọc Quỳnh",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/12/9be010c1ce21c1b8ad5fbd8a21095c18.jpg?key=xJ9VFCASzuTH9EtLuwK3_A&time=1794993471",
+        "phone": "0987057469",
+        "hasPhone": true,
+        "snippet": "[❤️ Trần Ngọc Quỳnh] Dạ, khi đến nha khoa, mình gửi mã hồ sơ n...",
+        "insertedAt": "2026-09-19T09:17:21.000000",
+        "updatedAt": "2026-09-19T09:23:07.388000",
+        "messageCount": 11,
+        "tags": [
+          {
+            "id": 30,
+            "text": "Kênh khác",
+            "color": "#172d00"
+          },
+          {
+            "id": 39,
+            "text": "Nhung",
+            "color": "#ff0066"
+          }
+        ],
+        "notes": [
+          {
+            "id": "4cb1ca3d-1f58-4826-b082-e48f89f71467",
+            "message": "kb",
+            "author": "Hồng Nhung",
+            "time": 1789809721585
+          },
+          {
+            "id": "dd569ae7-b21d-4448-b1b9-d467204ae793",
+            "message": "0987057469  - TRẦN NGỌC QUỲNH , NG THÂN - KTV NR - SX GHÉ - HLW - SNHUNG - DA",
+            "author": "Hồng Nhung",
+            "time": 1789809714746
+          },
+          {
+            "id": "09a88c0c-db0f-4a26-9463-3f76d0d9d6ca",
+            "message": "19.9.26",
+            "author": "Hồng Nhung",
+            "time": 1789809712381
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
       {
         "id": "pzl_u_329635242261010723_6110638905656006525",
         "name": "Vo Phuong",
         "avatar": "https://s120-26-ava-talk.zadn.vn/42/96266ab9a962db299b6d2fa2fd8fe912.jpg?key=hmzYyQFNJUSMLgFXsYN2vA&time=1794991979",
         "phone": "",
         "hasPhone": false,
-        "snippet": "C muốn đặt lịch nhổ răng",
+        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
         "insertedAt": "2026-09-19T08:52:28.000000",
-        "updatedAt": "2026-09-19T08:58:43.848000",
-        "messageCount": 6,
+        "updatedAt": "2026-09-19T09:03:27.573000",
+        "messageCount": 8,
         "tags": [
           {
             "id": 39,
@@ -96,13 +4062,18 @@
         "id": "pzl_u_329635242261010723_1262708638141503798",
         "name": "Hari Nguyễn",
         "avatar": "https://s120-26-ava-talk.zadn.vn/17/da17f9feb65516cf298248b5c78c7593.jpg?key=WbPPPMoHB8sJWKm4w-lAKA&time=1794991504",
-        "phone": "",
-        "hasPhone": false,
-        "snippet": "em muốn lấy cao vôi \nlắm trắng với làm miệng bớt hôi thì giá ...",
+        "phone": "0946205858",
+        "hasPhone": true,
+        "snippet": "[Link] Địa chỉ Nha Khoa Tâm Đức Smile : 139 Nguyễn Văn Linh, ...",
         "insertedAt": "2026-09-19T08:44:34.000000",
-        "updatedAt": "2026-09-19T08:58:05.076000",
-        "messageCount": 9,
+        "updatedAt": "2026-09-19T10:02:04.461000",
+        "messageCount": 18,
         "tags": [
+          {
+            "id": 9,
+            "text": "TQ",
+            "color": "#e06dbe"
+          },
           {
             "id": 39,
             "text": "Nhung",
@@ -111,6 +4082,12 @@
         ],
         "notes": [
           {
+            "id": "332e6c73-a27f-4a85-a6b6-a173f3cb8b8e",
+            "message": "0946205858 - Nguyễn Thanh Hải 2008 , ng thân - ktv cbr - sx ghé - ho - snhung - web",
+            "author": "Hồng Nhung",
+            "time": 1789812093627
+          },
+          {
             "id": "adf1db9b-c538-439c-b97e-fa791d15f9cc",
             "message": "19.9.26",
             "author": "Hồng Nhung",
@@ -118,7 +4095,7 @@
           }
         ],
         "branch": "Toàn Hệ Thống",
-        "service": "Tư Vấn Chung",
+        "service": "Khám Tổng Quát",
         "isWon": false,
         "isLost": false,
         "isBooked": false,
@@ -132,10 +4109,10 @@
         "avatar": "https://s120-26-ava-talk.zadn.vn/24/5e2b3eb2b3ace7aab4317317159034cc.jpg?key=FrxSP6_Nxg12fWzReAcOMA&time=1794991337",
         "phone": "",
         "hasPhone": false,
-        "snippet": "Dạ mình tiện ghé khám ngày mấy ạ",
+        "snippet": "[❤️ Nguyễn Bảo Nghi] Dạ, khi đến nha khoa, mình gửi  2 mã hồ s...",
         "insertedAt": "2026-09-19T08:42:16.000000",
-        "updatedAt": "2026-09-19T08:55:53.397000",
-        "messageCount": 12,
+        "updatedAt": "2026-09-19T10:02:22.052000",
+        "messageCount": 15,
         "tags": [
           {
             "id": 39,
@@ -322,12 +4299,12 @@
         "id": "pzl_u_329635242261010723_9177779061517968",
         "name": "Xuân",
         "avatar": "https://s120-26-ava-talk.zadn.vn/9/9ba681c9185bdde29c0987fd0445f88a.jpg?key=IFj6ekMsVgjBKyFi_sMnVA&time=1794986974",
-        "phone": "",
-        "hasPhone": false,
-        "snippet": "Dạ mình gửi giúp em  HỌ TÊN, NĂM SINH  người thăm khám + SĐT ...",
+        "phone": "0981592711",
+        "hasPhone": true,
+        "snippet": "[❤️ Xuân] Dạ, khi đến nha khoa, mình gửi mã hồ sơ này cho lễ t...",
         "insertedAt": "2026-09-19T07:29:33.000000",
-        "updatedAt": "2026-09-19T08:57:36.872000",
-        "messageCount": 11,
+        "updatedAt": "2026-09-19T09:58:58.026000",
+        "messageCount": 19,
         "tags": [
           {
             "id": 39,
@@ -336,6 +4313,12 @@
           }
         ],
         "notes": [
+          {
+            "id": "db28ea9a-3f54-4a1a-a0b9-314dc634be95",
+            "message": "0981592711 - XUÂN , NG THÂN - KTV TRÁM - SX GHÉ - LBB - SNHUNG - WEB",
+            "author": "Hồng Nhung",
+            "time": 1789811259051
+          },
           {
             "id": "04f3a2d8-9786-493d-9703-f0523bdb6b13",
             "message": "19.9.26",
@@ -172705,6 +176688,6 @@
         "isBooked": false
       }
     ],
-    "cachedAt": "2026-09-19T08:59:37.464Z"
+    "cachedAt": "2026-09-21T05:01:09.224Z"
   }
 }
