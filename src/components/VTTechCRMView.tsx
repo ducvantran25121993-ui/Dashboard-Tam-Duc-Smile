@@ -134,6 +134,82 @@ const getLatestDateFromTickets = (list: VTTechTicket[]): string => {
   return getVietnamTodayStr();
 };
 
+// Dental Specialty Service names for VTTech
+export const VTTECH_SERVICES = [
+  'Răng Sứ',
+  'Implant',
+  'Niềng Răng',
+  'Trám Răng',
+  'Nhổ Răng',
+  'Cạo Vôi',
+  'Tẩy Trắng',
+  'Chữa Tủy',
+  'Hàm Tháo Lắp',
+  'Khám Tổng Quát',
+  'Điều Trị',
+  'Tư Vấn',
+];
+
+// Helper to detect dental service from VTTech ticket fields (ServiceCare IDs, Content, TypeName)
+export const getTicketService = (t: VTTechTicket): string => {
+  const sc = (t.ServiceCare || '').trim();
+  const services: string[] = [];
+
+  // Mapped from VTTech ServiceCare ID numbers to Dental Specialties
+  if (sc.includes('8,')) services.push('Implant');
+  if (sc.includes('1,') || sc.includes('11,')) {
+    if (!services.includes('Răng Sứ')) services.push('Răng Sứ');
+  }
+  if (sc.includes('9,') || sc.includes('10,')) {
+    if (!services.includes('Niềng Răng')) services.push('Niềng Răng');
+  }
+  if (sc.includes('4,')) services.push('Trám Răng');
+  if (sc.includes('3,')) services.push('Nhổ Răng');
+  if (sc.includes('5,')) services.push('Chữa Tủy');
+  if (sc.includes('6,')) services.push('Hàm Tháo Lắp');
+  if (sc.includes('7,')) services.push('Tẩy Trắng');
+  if (sc.includes('12,') || sc.includes('2,')) {
+    if (!services.includes('Cạo Vôi')) services.push('Cạo Vôi');
+  }
+
+  if (services.length > 0) return services.join(', ');
+
+  // Parse from Content / ContentLast / Campaign / SourceDetailName
+  const text = `${t.Content || ''} ${t.ContentLast || ''} ${t.Campaign || ''} ${t.SourceDetailName || ''}`.toLowerCase();
+  
+  if (text.includes('implant') || /\bimp\b/.test(text) || text.includes('cấy ghép') || text.includes('all on') || text.includes('all-on')) return 'Implant';
+  if (text.includes('răng sứ') || text.includes('bọc sứ') || text.includes('dán sứ') || text.includes('veneer') || /\bnrs\b/.test(text) || /\btv sứ\b/.test(text) || /\bktv sứ\b/.test(text)) return 'Răng Sứ';
+  if (text.includes('niềng') || text.includes('chỉnh nha') || text.includes('mắc cài') || text.includes('invisalign') || /\btvcn\b/.test(text) || /\bktv cn\b/.test(text)) return 'Niềng Răng';
+  if (text.includes('trám') || /\btram\b/.test(text) || /\bktv trám\b/.test(text)) return 'Trám Răng';
+  if (text.includes('nhổ') || /\bnr\b/.test(text) || /\bnrk\b/.test(text) || text.includes('tiểu phẫu')) return 'Nhổ Răng';
+  if (text.includes('tủy') || /\bctuy\b/.test(text) || text.includes('nội nha')) return 'Chữa Tủy';
+  if (text.includes('tháo lắp') || /\bktv tl\b/.test(text)) return 'Hàm Tháo Lắp';
+  if (text.includes('tẩy trắng') || /\bttr\b/.test(text)) return 'Tẩy Trắng';
+  if (text.includes('cạo vôi') || /\bcvr\b/.test(text)) return 'Cạo Vôi';
+  if (text.includes('tổng quát') || text.includes('ktra răng') || text.includes('kiểm tra')) return 'Khám Tổng Quát';
+
+  if (t.TypeName && t.TypeName.trim()) return t.TypeName.trim();
+
+  return '—';
+};
+
+// Distinctive badge styling for dental services
+export const getServiceBadgeColor = (serviceName: string): string => {
+  if (serviceName.includes('Implant')) return 'bg-purple-500/10 text-purple-300 border-purple-500/30';
+  if (serviceName.includes('Răng Sứ')) return 'bg-sky-500/10 text-sky-300 border-sky-500/30';
+  if (serviceName.includes('Niềng')) return 'bg-teal-500/10 text-teal-300 border-teal-500/30';
+  if (serviceName.includes('Trám')) return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+  if (serviceName.includes('Nhổ')) return 'bg-rose-500/10 text-rose-300 border-rose-500/30';
+  if (serviceName.includes('Cạo Vôi')) return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
+  if (serviceName.includes('Tẩy Trắng')) return 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30';
+  if (serviceName.includes('Tủy')) return 'bg-orange-500/10 text-orange-300 border-orange-500/30';
+  if (serviceName.includes('Tháo Lắp')) return 'bg-blue-500/10 text-blue-300 border-blue-500/30';
+  if (serviceName.includes('Khám')) return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+  if (serviceName.includes('Điều Trị')) return 'bg-blue-500/10 text-blue-300 border-blue-500/30';
+  if (serviceName.includes('Tư Vấn')) return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+  return 'bg-slate-800 text-slate-300 border-slate-700';
+};
+
 export const VTTechCRMView: React.FC = () => {
   const [tickets, setTickets] = useState<VTTechTicket[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -151,6 +227,7 @@ export const VTTechCRMView: React.FC = () => {
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedService, setSelectedService] = useState<string>('all');
   // Default to today view so user immediately sees real-time stats for today
   const [dateFrom, setDateFrom] = useState<string>(() => getVietnamTodayStr());
   const [dateTo, setDateTo] = useState<string>(() => getVietnamTodayStr());
@@ -837,13 +914,15 @@ export const VTTechCRMView: React.FC = () => {
   const filteredTickets = useMemo(() => {
     return tickets.filter((t) => {
       const search = searchTerm.toLowerCase();
+      const serviceName = getTicketService(t);
       const matchSearch =
         !searchTerm ||
         (t.TicketName && t.TicketName.toLowerCase().includes(search)) ||
         (t.Phone && t.Phone.includes(search)) ||
         (t.CustCode && t.CustCode.toLowerCase().includes(search)) ||
         (t.Content && t.Content.toLowerCase().includes(search)) ||
-        (t.TicketID && String(t.TicketID).includes(search));
+        (t.TicketID && String(t.TicketID).includes(search)) ||
+        serviceName.toLowerCase().includes(search);
 
       // Scope match
       let matchScope = true;
@@ -866,13 +945,14 @@ export const VTTechCRMView: React.FC = () => {
       }
 
       const matchStatus = selectedStatus === 'all' || t.StatusName === selectedStatus;
+      const matchService = selectedService === 'all' || serviceName.toLowerCase().includes(selectedService.toLowerCase());
 
       // Filter by date matching any relevant ticket date
       const matchDate = ticketMatchesDate(t, dateFrom, dateTo);
 
-      return matchSearch && matchScope && matchStatus && matchDate;
+      return matchSearch && matchScope && matchStatus && matchService && matchDate;
     });
-  }, [tickets, searchTerm, channelScope, selectedSource, selectedStatus, dateFrom, dateTo]);
+  }, [tickets, searchTerm, channelScope, selectedSource, selectedStatus, selectedService, dateFrom, dateTo]);
 
   // Source & Date filtered tickets specifically for KPI summary cards
   const kpiTickets = useMemo(() => {
@@ -967,12 +1047,13 @@ export const VTTechCRMView: React.FC = () => {
   // Export to CSV
   const handleExportCSV = () => {
     if (filteredTickets.length === 0) return;
-    const headers = ['Mã Ticket', 'Khách hàng', 'SĐT', 'Nguồn', 'Trạng thái', 'Chi nhánh', 'Thời gian hẹn', 'GCLID Google Ads', 'Nội dung tư vấn', 'Ngày tạo'];
+    const headers = ['Mã Ticket', 'Khách hàng', 'SĐT', 'Nguồn', 'Dịch vụ', 'Trạng thái', 'Chi nhánh', 'Thời gian hẹn', 'GCLID Google Ads', 'Nội dung tư vấn', 'Ngày tạo'];
     const rows = filteredTickets.map((t) => [
       t.TicketID,
       `"${(t.TicketName || '').replace(/"/g, '""')}"`,
       `"${t.Phone || ''}"`,
       `"${(t.SourceName || '').replace(/"/g, '""')}"`,
+      `"${(getTicketService(t) || '').replace(/"/g, '""')}"`,
       `"${(t.StatusName || '').replace(/"/g, '""')}"`,
       `"${(t.AppBranch || '').replace(/"/g, '""')}"`,
       `"${t.AppDateFrom && !t.AppDateFrom.startsWith('1900') ? t.AppDateFrom : ''}"`,
@@ -1794,7 +1875,7 @@ export const VTTechCRMView: React.FC = () => {
           </div>
 
           {/* Filter Source */}
-          <div className="w-full md:w-64">
+          <div className="w-full md:w-56">
             <select
               value={selectedSource}
               onChange={(e) => setSelectedSource(e.target.value)}
@@ -1815,8 +1896,24 @@ export const VTTechCRMView: React.FC = () => {
             </select>
           </div>
 
+          {/* Filter Service */}
+          <div className="w-full md:w-52">
+            <select
+              value={selectedService}
+              onChange={(e) => setSelectedService(e.target.value)}
+              className="w-full px-3 py-2.5 bg-slate-950/70 border border-slate-800 rounded-xl text-sm text-slate-200 focus:outline-none focus:border-orange-500"
+            >
+              <option value="all">Tất cả Dịch Vụ</option>
+              {VTTECH_SERVICES.map((svc) => (
+                <option key={svc} value={svc}>
+                  {svc}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Filter Status */}
-          <div className="w-full md:w-56">
+          <div className="w-full md:w-52">
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
@@ -1907,12 +2004,13 @@ export const VTTechCRMView: React.FC = () => {
               </span>
             )}
 
-            {(searchTerm || selectedSource !== 'all' || selectedStatus !== 'all' || dateFrom || dateTo) && (
+            {(searchTerm || selectedSource !== 'all' || selectedStatus !== 'all' || selectedService !== 'all' || dateFrom || dateTo) && (
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedSource('all');
                   setSelectedStatus('all');
+                  setSelectedService('all');
                   setAllTime();
                 }}
                 className="text-orange-400 hover:underline ml-1 text-xs"
@@ -2083,6 +2181,7 @@ export const VTTechCRMView: React.FC = () => {
                 <th className="px-4 py-3.5">Khách Hàng</th>
                 <th className="px-4 py-3.5">Số Điện Thoại</th>
                 <th className="px-4 py-3.5">Nguồn</th>
+                <th className="px-4 py-3.5">Dịch Vụ</th>
                 <th className="px-4 py-3.5">Trạng Thái</th>
                 <th className="px-4 py-3.5">Lịch Hẹn / Cơ Sở</th>
                 <th className="px-4 py-3.5">Nội Dung Tư Vấn</th>
@@ -2093,7 +2192,7 @@ export const VTTechCRMView: React.FC = () => {
             <tbody className="divide-y divide-slate-800/60">
               {loading && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-slate-400">
+                  <td colSpan={10} className="px-4 py-12 text-center text-slate-400">
                     <div className="flex items-center justify-center gap-2">
                       <RefreshCw className="w-5 h-5 animate-spin text-orange-400" />
                       <span>Đang tải danh sách vé VTTech...</span>
@@ -2104,7 +2203,7 @@ export const VTTechCRMView: React.FC = () => {
 
               {!loading && filteredTickets.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={10} className="px-4 py-10 text-center text-slate-500">
                     <div className="max-w-xl mx-auto space-y-4">
                       <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
                         <Calendar className="w-7 h-7" />
@@ -2233,6 +2332,21 @@ export const VTTechCRMView: React.FC = () => {
                         )}
                       </td>
 
+                      {/* Service (Dịch vụ) */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        {(() => {
+                          const svc = getTicketService(t);
+                          if (svc !== '—') {
+                            return (
+                              <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getServiceBadgeColor(svc)}`}>
+                                {svc}
+                              </span>
+                            );
+                          }
+                          return <span className="text-xs text-slate-500 italic">Chưa xác định</span>;
+                        })()}
+                      </td>
+
                       {/* Status */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <span
@@ -2320,7 +2434,7 @@ export const VTTechCRMView: React.FC = () => {
 
             {/* Modal Body */}
             <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
                   <span className="text-xs text-slate-500">Số Điện Thoại</span>
                   <div className="font-mono text-sm font-semibold text-white">{selectedTicket.Phone || 'Không có'}</div>
@@ -2332,11 +2446,18 @@ export const VTTechCRMView: React.FC = () => {
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                  <span className="text-xs text-slate-500">Dịch Vụ Quan Tâm</span>
+                  <div className="text-sm font-semibold text-purple-300">
+                    {getTicketService(selectedTicket) !== '—' ? getTicketService(selectedTicket) : 'Chưa xác định'}
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
                   <span className="text-xs text-slate-500">Trạng Thái Ticket</span>
                   <div className="text-sm font-semibold text-orange-400">{selectedTicket.StatusName || 'Dữ Liệu Mới'}</div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1 sm:col-span-2">
                   <span className="text-xs text-slate-500">Chi Nhánh / Cơ Sở Hẹn</span>
                   <div className="text-sm font-semibold text-emerald-400">{selectedTicket.AppBranch || 'Chưa chọn'}</div>
                 </div>
