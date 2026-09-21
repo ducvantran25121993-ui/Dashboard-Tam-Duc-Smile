@@ -79,7 +79,17 @@ export default function App() {
     try {
       localStorage.setItem('dashboard_active_sidebar_tab', tab);
     } catch {}
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
+
+  // Ensure window and document are scrolled to top whenever activeSidebarTab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [activeSidebarTab]);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 

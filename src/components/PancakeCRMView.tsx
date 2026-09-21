@@ -567,6 +567,13 @@ export const PancakeCRMView: React.FC = () => {
     return true;
   });
 
+  // Always scroll to top when mounting the Pancake CRM view
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, selectedService, selectedStatusFilter, selectedTag, selectedPageFilter, selectedChannelFilter, pageSize]);
