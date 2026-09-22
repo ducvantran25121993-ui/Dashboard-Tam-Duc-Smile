@@ -1889,7 +1889,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                   <div className="space-y-3">
                     {cycleConclusions.insights.map((item, idx) => (
                       <div
-                        key={idx}
+                        key={`cycle-insight-${item.title}-${idx}`}
                         className={`p-3.5 rounded-xl border flex gap-3 ${
                           item.type === 'positive'
                             ? 'bg-emerald-950/25 border-emerald-500/30'
@@ -1939,7 +1939,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
 
                     <div className="space-y-2.5">
                       {cycleConclusions.recommendations.map((rec, i) => (
-                        <div key={i} className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-2.5 text-xs text-slate-200">
+                        <div key={`cycle-rec-${i}`} className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-2.5 text-xs text-slate-200">
                           <span className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                             {i + 1}
                           </span>
@@ -2328,7 +2328,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                       </div>
                       <div className="space-y-1.5 text-[11px]">
                         {funnelAnalysis.recommendations.map((rec, i) => (
-                          <div key={i} className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 flex items-start gap-2">
+                          <div key={`funnel-rec-${i}`} className="p-2 rounded-lg bg-slate-950/80 border border-slate-800 flex items-start gap-2">
                             <span className="text-cyan-400 font-bold mt-0.5">•</span>
                             <div>
                               <p className="text-slate-300">{rec.text}</p>
@@ -2352,7 +2352,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                       </div>
                       <div className="space-y-2">
                         {searchCampaignsStats.searchWinners.map((c, idx) => (
-                          <div key={idx} className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-center justify-between">
+                          <div key={`search-win-${c.name}-${idx}`} className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-center justify-between">
                             <div className="truncate max-w-[200px]">
                               <p className="font-bold text-white truncate">{c.name}</p>
                               <p className="text-[10px] text-slate-400">CTR: {c.ctr} • CR: {c.convRate}</p>
@@ -2376,7 +2376,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                       </div>
                       <div className="space-y-2">
                         {searchCampaignsStats.searchNeedsOptimization.map((c, idx) => (
-                          <div key={idx} className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-center justify-between">
+                          <div key={`search-opt-${c.name}-${idx}`} className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs flex items-center justify-between">
                             <div className="truncate max-w-[200px]">
                               <p className="font-bold text-white truncate">{c.name}</p>
                               <p className="text-[10px] text-slate-400">Chi phí: {formatVND(c.spent)}</p>
@@ -4115,7 +4115,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                         </thead>
                         <tbody className="divide-y divide-slate-800/60">
                           {locationData.map((loc, idx) => (
-                            <tr key={idx} className="hover:bg-slate-900/50 transition-colors">
+                            <tr key={`loc-${loc.location}-${idx}`} className="hover:bg-slate-900/50 transition-colors">
                               <td className="py-2.5 px-3 font-bold text-white flex items-center gap-2">
                                 <MapPin className="w-3.5 h-3.5 text-teal-400" />
                                 <span>{loc.location}</span>
@@ -4342,7 +4342,7 @@ ${currentRsa.callouts.join(' | ')}`;
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                           {currentRsa.headlines.map((h, i) => (
-                            <div key={i} className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-2">
+                            <div key={`rsa-hl-${i}-${h}`} className="p-2 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start gap-2">
                               <span className="text-[10px] font-bold text-slate-500 mt-0.5">{String(i + 1).padStart(2, '0')}</span>
                               <div className="min-w-0">
                                 <p className="font-semibold text-slate-200 text-[11px] truncate">{h}</p>
@@ -4365,7 +4365,7 @@ ${currentRsa.callouts.join(' | ')}`;
                           </div>
                           <div className="space-y-2 text-xs">
                             {currentRsa.descriptions.map((d, i) => (
-                              <div key={i} className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
+                              <div key={`rsa-desc-${i}`} className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1">
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] font-bold text-purple-400">Mô tả {i + 1}</span>
                                   <span className="text-[9px] text-slate-500">{d.length}/90 ký tự</span>
@@ -4386,7 +4386,7 @@ ${currentRsa.callouts.join(' | ')}`;
                             <div className="text-[10px] text-slate-400 font-bold uppercase">4 Tiện ích Đường Liên Kết (Sitelinks):</div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {currentRsa.sitelinks.map((s, i) => (
-                                <div key={i} className="p-2 rounded-xl bg-slate-900 border border-slate-800">
+                                <div key={`rsa-site-${i}-${s.title}`} className="p-2 rounded-xl bg-slate-900 border border-slate-800">
                                   <p className="font-bold text-cyan-300 text-[11px]">{s.title}</p>
                                   <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{s.desc}</p>
                                 </div>
@@ -4396,7 +4396,7 @@ ${currentRsa.callouts.join(' | ')}`;
                               <div className="text-[10px] text-slate-400 font-bold uppercase mb-1.5">Tiện ích Chú Thích (Callouts):</div>
                               <div className="flex flex-wrap gap-1.5">
                                 {currentRsa.callouts.map((c, i) => (
-                                  <span key={i} className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-[11px] font-medium">
+                                  <span key={`rsa-co-${i}-${c}`} className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-[11px] font-medium">
                                     ✓ {c}
                                   </span>
                                 ))}
@@ -4421,7 +4421,7 @@ ${currentRsa.callouts.join(' | ')}`;
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {topPerformers.map((c, idx) => (
-                  <div key={idx} className="p-3.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-2">
+                  <div key={`top-perf-${c.name}-${idx}`} className="p-3.5 rounded-xl bg-slate-950/80 border border-emerald-500/30 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-white truncate">{c.name}</span>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">
@@ -4528,7 +4528,7 @@ ${currentRsa.callouts.join(' | ')}`;
                       const isLowCtr = parseFloat(c.ctr) < 2.0;
 
                       return (
-                        <div key={idx} className="p-4 rounded-2xl bg-slate-950/90 border border-rose-500/40 hover:border-rose-500/70 transition-all space-y-3 shadow-lg shadow-rose-950/20 flex flex-col justify-between">
+                        <div key={`warn-camp-${c.name}-${idx}`} className="p-4 rounded-2xl bg-slate-950/90 border border-rose-500/40 hover:border-rose-500/70 transition-all space-y-3 shadow-lg shadow-rose-950/20 flex flex-col justify-between">
                           <div className="space-y-3">
                             <div className="flex items-center justify-between gap-2">
                               <div className="space-y-0.5 min-w-0">

@@ -550,7 +550,7 @@ Tôi có thể trò chuyện và giải đáp **TẤT CẢ MỌI CÂU HỎI** c�
                     <div className="flex flex-wrap gap-1.5">
                       {message.suggestions.map((sug, idx) => (
                         <button
-                          key={idx}
+                          key={`sug-${message.id}-${idx}-${sug.slice(0, 10)}`}
                           onClick={() => handleSendMessage(sug)}
                           className="text-xs px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700/90 text-cyan-300 border border-slate-700 hover:border-cyan-500/40 transition-all text-left flex items-center gap-1"
                         >

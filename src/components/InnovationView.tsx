@@ -733,7 +733,7 @@ export const InnovationView: React.FC = () => {
                   </div>
                   <ul className="space-y-1 text-[11px] text-slate-300">
                     {item.keyActions.map((act, aIdx) => (
-                      <li key={aIdx} className="flex items-start gap-1.5">
+                      <li key={`action-${item.id}-${aIdx}`} className="flex items-start gap-1.5">
                         <span className="text-indigo-400 font-bold">•</span>
                         <span>{act}</span>
                       </li>

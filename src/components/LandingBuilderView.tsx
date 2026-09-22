@@ -1329,7 +1329,7 @@ export default function LandingBuilderView() {
                 </p>
                 <div className="space-y-1.5 pl-3 border-l-2 border-amber-500/40">
                   {pipelineStepsInfo.map((step, idx) => (
-                    <div key={idx} className="text-xs text-slate-300 flex items-center gap-2">
+                    <div key={`pipe-step-${idx}-${step.slice(0, 15)}`} className="text-xs text-slate-300 flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>{step}</span>
                     </div>

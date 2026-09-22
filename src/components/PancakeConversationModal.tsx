@@ -387,7 +387,7 @@ export const PancakeConversationModal: React.FC<PancakeConversationModalProps> =
 
                 return (
                   <div
-                    key={m.id || idx}
+                    key={`msg-${m.id || idx}-${m.inserted_at || m.created_at || idx}`}
                     className={`flex gap-3 max-w-[85%] sm:max-w-[75%] ${
                       isCustomer ? 'mr-auto items-start' : 'ml-auto flex-row-reverse items-start'
                     }`}
@@ -445,7 +445,7 @@ export const PancakeConversationModal: React.FC<PancakeConversationModalProps> =
                               if (attUrl) {
                                 return (
                                   <a
-                                    key={att.id || attIdx}
+                                    key={`att-${att.id || attIdx}-${attUrl.slice(-20)}`}
                                     href={attUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"

@@ -429,7 +429,7 @@ export const LeadsFunnelView: React.FC<LeadsFunnelViewProps> = ({ monthlyDataset
 
               <div className="space-y-3 pt-2">
                 {funnelSteps.map((step, idx) => (
-                  <div key={idx} className="relative">
+                  <div key={`funnel-step-${idx}-${step.title}`} className="relative">
                     <div
                       className={`p-4 rounded-xl border flex flex-col gap-3 transition-all ${
                         step.highlight

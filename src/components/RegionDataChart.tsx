@@ -99,7 +99,7 @@ export const RegionDataChart: React.FC<RegionDataChartProps> = ({
               <span className="text-slate-400 font-medium text-[11px]">Chi tiết dịch vụ:</span>
               <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px]">
                 {data.services.map((s: any, idx: number) => (
-                  <div key={idx} className="flex justify-between text-slate-300">
+                  <div key={`srv-pop-${s.name || idx}`} className="flex justify-between text-slate-300">
                     <span className="text-slate-400">{s.name}:</span>
                     <span className="font-semibold">{s.dataCount || 0}</span>
                   </div>

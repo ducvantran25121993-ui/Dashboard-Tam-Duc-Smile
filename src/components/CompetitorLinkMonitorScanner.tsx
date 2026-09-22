@@ -3078,7 +3078,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                           <div className="grid grid-cols-1 gap-3">
                             {currentPromos.map((promo, pIdx) => (
                               <div
-                                key={pIdx}
+                                key={`promo-${promo.service}-${pIdx}`}
                                 className="p-4 rounded-2xl bg-slate-900/90 border-2 border-rose-500/50 hover:border-rose-400 transition-all space-y-3 shadow-xl"
                               >
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
@@ -3157,7 +3157,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                                           <div className="flex flex-wrap gap-1.5">
                                             {promo.gifts.map((gift, gIdx) => (
                                               <span
-                                                key={gIdx}
+                                                key={`gift-${gIdx}-${gift.slice(0, 10)}`}
                                                 className="px-2.5 py-1 rounded-lg bg-rose-900/80 border border-rose-400 text-white text-[11px] font-bold shadow-sm"
                                               >
                                                 {gift}
@@ -3220,7 +3220,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                               <div className="space-y-3">
                                 {beforeImages.map((bImg, bIdx) => (
                                   <div
-                                    key={bIdx}
+                                    key={`before-img-${bIdx}-${bImg.slice(-20)}`}
                                     className="relative group rounded-xl overflow-hidden border border-rose-500/30 bg-slate-950 space-y-2 p-2"
                                   >
                                     <CompetitorBannerImage
@@ -3279,7 +3279,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                               <div className="space-y-3">
                                 {afterImages.map((aImg, aIdx) => (
                                   <div
-                                    key={aIdx}
+                                    key={`after-img-${aIdx}-${aImg.slice(-20)}`}
                                     className="relative group rounded-xl overflow-hidden border-2 border-rose-500/80 bg-slate-950 shadow-xl p-2.5 space-y-2 ring-1 ring-rose-400"
                                   >
                                     <CompetitorBannerImage
@@ -3953,7 +3953,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {deepAiScanReport.aiAnalysis?.detectedPricing?.map((dp: any, idx: number) => (
-                        <div key={idx} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
+                        <div key={`dp-${dp.serviceName}-${idx}`} className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
                           <div className="flex items-center justify-between gap-1">
                             <h5 className="font-bold text-white text-xs">{dp.serviceName}</h5>
                             <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 font-black text-xs border border-emerald-500/40">
@@ -3984,7 +3984,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                       </h5>
                       <ul className="space-y-1.5 text-xs text-slate-300">
                         {deepAiScanReport.aiAnalysis?.detectedOffers?.map((off: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-1.5">
+                          <li key={`off-${idx}-${off.slice(0, 15)}`} className="flex items-start gap-1.5">
                             <span className="text-amber-400">•</span>
                             <span>{off}</span>
                           </li>
@@ -4037,7 +4037,7 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
                       {deepAiScanReport.aiAnalysis?.counterStrategy?.sitelinks && (
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {deepAiScanReport.aiAnalysis.counterStrategy.sitelinks.map((st: string, idx: number) => (
-                            <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold">
+                            <span key={`counter-st-${idx}-${st}`} className="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold">
                               🔗 {st}
                             </span>
                           ))}

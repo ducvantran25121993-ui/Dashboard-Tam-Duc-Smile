@@ -2123,7 +2123,7 @@ ${activeItems
 
                           return (
                             <td
-                              key={mIdx}
+                              key={`m-col-${mIdx}-${item.id}`}
                               className={`py-3 px-3 text-right font-mono ${
                                 cost === 0
                                   ? 'text-slate-600'
@@ -2486,7 +2486,7 @@ ${activeItems
                 const chBudget = (totalBudget * ch.percent) / 100;
                 return (
                   <div
-                    key={idx}
+                    key={`channel-${ch.name}-${idx}`}
                     className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition-all space-y-2"
                   >
                     <div className="flex items-center justify-between">

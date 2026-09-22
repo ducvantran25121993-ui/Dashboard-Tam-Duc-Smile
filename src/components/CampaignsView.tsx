@@ -967,7 +967,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
               </thead>
               <tbody className="divide-y divide-slate-800/80">
                 {filteredCampaigns.map((camp) => (
-                  <tr key={camp.id} className="hover:bg-slate-800/50 transition-colors">
+                  <tr key={`camp-row-${camp.id}-${camp.name}`} className="hover:bg-slate-800/50 transition-colors">
                     {/* Chiến dịch */}
                     <td className="py-3.5 px-3">
                       <div className="font-bold text-white flex items-center gap-1.5">
@@ -1158,7 +1158,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
               </thead>
               <tbody className="divide-y divide-slate-800/80">
                 {paginatedDaily.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/50 transition-colors">
+                  <tr key={`daily-row-${row.dateFormatted}-${row.campaignName}-${idx}`} className="hover:bg-slate-800/50 transition-colors">
                     {/* Ngày */}
                     <td className="py-3.5 px-3">
                       <div className="font-bold text-cyan-400 font-mono flex items-center gap-1.5">

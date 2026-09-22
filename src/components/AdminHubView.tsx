@@ -2118,7 +2118,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                             const isOver = spent > activeVal && activeVal > 0;
 
                             return (
-                              <tr key={item.id || idx} className="hover:bg-slate-900/50 transition-colors">
+                              <tr key={`plan-row-${item.id || item.name || idx}`} className="hover:bg-slate-900/50 transition-colors">
                                 <td className="py-3 px-4 font-sans font-bold text-white flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
                                   <span>{item.name}</span>
@@ -2187,7 +2187,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                       const isOver = spent > activeVal && activeVal > 0;
 
                       return (
-                        <div key={item.id || idx} className="p-4 rounded-3xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg">
+                        <div key={`plan-card-${item.id || item.name || idx}`} className="p-4 rounded-3xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all space-y-3 shadow-lg">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />

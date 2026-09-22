@@ -1023,7 +1023,7 @@ export const Crawl4AISpyConsole: React.FC<{
           <div className="flex flex-wrap gap-2">
             {PRESET_DENTAL_URLS.map((item, idx) => (
               <button
-                key={idx}
+                key={`preset-${item.url}-${idx}`}
                 type="button"
                 onClick={() => {
                   setTargetUrl(item.url);
@@ -1059,7 +1059,7 @@ export const Crawl4AISpyConsole: React.FC<{
           <div className="space-y-1.5 text-xs">
             {crawlLogs.map((log, index) => (
               <div
-                key={index}
+                key={`log-${index}-${log.slice(0, 15)}`}
                 className={`leading-relaxed ${
                   log.includes('✅')
                     ? 'text-emerald-400 font-bold'
@@ -1328,7 +1328,7 @@ export const Crawl4AISpyConsole: React.FC<{
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {result.extracted.specialOffers.map((offer, idx) => (
-                      <div key={idx} className="px-3 py-2 rounded-xl bg-slate-950/80 border border-amber-500/20 text-xs text-amber-200 flex items-center gap-2">
+                      <div key={`offer-${idx}-${offer.slice(0, 15)}`} className="px-3 py-2 rounded-xl bg-slate-950/80 border border-amber-500/20 text-xs text-amber-200 flex items-center gap-2">
                         <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                         <span>{offer}</span>
                       </div>
@@ -1356,7 +1356,7 @@ export const Crawl4AISpyConsole: React.FC<{
                   <tbody className="divide-y divide-slate-800 text-slate-200">
                     {result.extracted?.services && result.extracted.services.length > 0 ? (
                       result.extracted.services.map((srv, idx) => (
-                        <tr key={idx} className="hover:bg-slate-800/60 transition-colors">
+                        <tr key={`srv-${idx}-${srv.serviceName}`} className="hover:bg-slate-800/60 transition-colors">
                           <td className="px-4 py-3.5 font-bold text-white max-w-xs">
                             {srv.serviceName}
                           </td>
@@ -1437,7 +1437,7 @@ export const Crawl4AISpyConsole: React.FC<{
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {validBanners.map((imgUrl, idx) => (
                           <div
-                            key={idx}
+                            key={`banner-${idx}-${imgUrl.slice(-25)}`}
                             onClick={() => setExpandedImage(imgUrl)}
                             className="group relative rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 cursor-pointer shadow-lg hover:border-indigo-400 transition-all"
                           >
@@ -1537,7 +1537,7 @@ export const Crawl4AISpyConsole: React.FC<{
                     'Nha Khoa Tâm Đức Smile 15+ Năm'
                   ]).map((hl, idx) => (
                     <div
-                      key={idx}
+                      key={`hl-${idx}-${hl.slice(0, 10)}`}
                       className="p-2.5 rounded-xl bg-slate-950 border border-cyan-500/30 flex items-center justify-between gap-2 text-xs"
                     >
                       <span className="font-bold text-white">{hl}</span>
@@ -1569,7 +1569,7 @@ export const Crawl4AISpyConsole: React.FC<{
                     'Ưu đãi duy nhất tháng này: Giảm 50% chi phí, tặng gói chụp CT ConeBeam 3D. Đăng ký ngay!'
                   ]).map((desc, idx) => (
                     <div
-                      key={idx}
+                      key={`desc-${idx}-${desc.slice(0, 15)}`}
                       className="p-3 rounded-xl bg-slate-950 border border-indigo-500/30 flex items-center justify-between gap-2 text-xs"
                     >
                       <span className="text-slate-200 leading-relaxed">{desc}</span>

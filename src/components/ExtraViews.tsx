@@ -83,11 +83,11 @@ export const ConsultationView: React.FC = () => {
         <h3 className="text-base font-bold text-white">Lịch Sử Tương Tác Gần Nhất</h3>
         <div className="space-y-3">
           {[
-            { name: 'Nguyễn Văn H.', service: 'Implant All-on-4', phone: '0908.xxx.123', status: 'Đã đặt lịch hẹn 14:00 Thứ 7', time: '5 phút trước' },
-            { name: 'Trần Thị Mai', service: 'Bọc 16 Răng Sứ Emax', phone: '0912.xxx.456', status: 'Cần gửi thêm ảnh nụ cười qua Zalo', time: '18 phút trước' },
-            { name: 'David Le (Việt Kiều Mỹ)', service: 'Trồng Răng + Tẩy Trắng', phone: '+1 714.xxx.789', status: 'Đã cọc giữ chỗ ngày 20/09', time: '42 phút trước' },
-          ].map((item, idx) => (
-            <div key={idx} className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            { id: 'lead-1', name: 'Nguyễn Văn H.', service: 'Implant All-on-4', phone: '0908.xxx.123', status: 'Đã đặt lịch hẹn 14:00 Thứ 7', time: '5 phút trước' },
+            { id: 'lead-2', name: 'Trần Thị Mai', service: 'Bọc 16 Răng Sứ Emax', phone: '0912.xxx.456', status: 'Cần gửi thêm ảnh nụ cười qua Zalo', time: '18 phút trước' },
+            { id: 'lead-3', name: 'David Le (Việt Kiều Mỹ)', service: 'Trồng Răng + Tẩy Trắng', phone: '+1 714.xxx.789', status: 'Đã cọc giữ chỗ ngày 20/09', time: '42 phút trước' },
+          ].map((item) => (
+            <div key={item.id} className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <div className="font-bold text-white text-sm">{item.name} — <span className="text-cyan-400">{item.service}</span></div>
                 <div className="text-xs text-slate-400 mt-0.5">SĐT: {item.phone} • {item.status}</div>

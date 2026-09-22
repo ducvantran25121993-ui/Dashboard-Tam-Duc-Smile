@@ -477,7 +477,7 @@ export const CampaignAiAnalystModal: React.FC<CampaignAiAnalystModalProps> = ({
               </span>
               {quickPrompts.map((prompt, idx) => (
                 <button
-                  key={idx}
+                  key={`prompt-${idx}-${prompt.slice(0, 15)}`}
                   onClick={() => handleSendQuestion(prompt)}
                   className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 whitespace-nowrap transition-colors"
                 >
