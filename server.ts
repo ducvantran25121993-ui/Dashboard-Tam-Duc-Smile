@@ -4174,6 +4174,127 @@ app.delete('/api/landing/pages/:id', (req, res) => {
   return res.json({ success: true, count: landingPagesStore.length });
 });
 
+// Check AI engine and key availability for Landing Page Builder
+app.get('/api/landing/engine-status', (req, res) => {
+  return res.json({
+    hasServerClaudeKey: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim().length > 0),
+    hasServerGeminiKey: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 0),
+    hasServerOpenAIKey: Boolean(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim().length > 0),
+  });
+});
+
+// Test Claude API Key directly with Anthropic API
+app.post('/api/landing/test-claude-key', async (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    const effectiveKey = (apiKey && String(apiKey).trim()) || process.env.ANTHROPIC_API_KEY;
+    if (!effectiveKey) {
+      return res.status(400).json({ success: false, error: 'Chưa có API Key Claude để kiểm tra.' });
+    }
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': effectiveKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: 'Ping' }],
+      }),
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      return res.status(400).json({ success: false, error: `Anthropic trả về lỗi (${response.status}): ${err}` });
+    }
+    return res.json({
+      success: true,
+      message: 'Kết nối API Claude 3.5 Sonnet (Anthropic) thành công 100%!',
+      model: 'claude-3-5-sonnet-20241022',
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Không thể kết nối tới Anthropic API' });
+  }
+});
+
+// Fetch Skill from GitHub URL or Raw URL
+app.post('/api/landing/fetch-github-skill', async (req, res) => {
+  try {
+    const { url } = req.body;
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ success: false, error: 'Vui lòng cung cấp đường dẫn GitHub.' });
+    }
+
+    let targetUrl = url.trim();
+
+    // Convert github.com blob URLs to raw.githubusercontent.com
+    // e.g. https://github.com/owner/repo/blob/main/skills/SKILL.md -> https://raw.githubusercontent.com/owner/repo/main/skills/SKILL.md
+    if (targetUrl.includes('github.com/') && targetUrl.includes('/blob/')) {
+      targetUrl = targetUrl
+        .replace('github.com/', 'raw.githubusercontent.com/')
+        .replace('/blob/', '/');
+    }
+
+    // If it's a directory or repo root without file, try SKILL.md or README.md
+    if (!targetUrl.match(/\.(md|markdown|txt|json|yaml|yml)$/i)) {
+      if (targetUrl.endsWith('/')) {
+        targetUrl = `${targetUrl}SKILL.md`;
+      } else {
+        targetUrl = `${targetUrl}/SKILL.md`;
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'TamDucSmile-LandingBuilder/1.0',
+        'Accept': 'text/plain, text/markdown, text/x-markdown, application/json, */*',
+      },
+    });
+
+    if (!response.ok) {
+      // If 404 with SKILL.md, try README.md fallback
+      if (response.status === 404 && targetUrl.endsWith('/SKILL.md')) {
+        const readmeUrl = targetUrl.replace(/\/SKILL\.md$/, '/README.md');
+        const retryRes = await fetch(readmeUrl, {
+          headers: {
+            'User-Agent': 'TamDucSmile-LandingBuilder/1.0',
+            'Accept': 'text/plain, text/markdown, text/x-markdown, */*',
+          },
+        });
+        if (retryRes.ok) {
+          const content = await retryRes.text();
+          const fileName = 'README.md';
+          return res.json({
+            success: true,
+            content,
+            resolvedUrl: readmeUrl,
+            fileName,
+          });
+        }
+      }
+
+      return res.status(400).json({
+        success: false,
+        error: `Không thể tải file từ GitHub (${response.status}: ${response.statusText}). Vui lòng kiểm tra lại URL (đảm bảo repository công khai).`,
+      });
+    }
+
+    const content = await response.text();
+    const urlParts = targetUrl.split('/');
+    const fileName = urlParts[urlParts.length - 1] || 'SKILL.md';
+
+    return res.json({
+      success: true,
+      content,
+      resolvedUrl: targetUrl,
+      fileName,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err.message || 'Lỗi khi tải file từ GitHub.' });
+  }
+});
+
 // 4. Generate Landing Page from Screenshot Image or Refine Existing Code
 app.post('/api/landing/generate-from-image', async (req, res) => {
   try {
@@ -4191,6 +4312,9 @@ app.post('/api/landing/generate-from-image', async (req, res) => {
       scopeMode = 'full_page', // 'full_page' | 'section_only'
       engine = 'multi_agent', // 'multi_agent' | 'gemini_flash' | 'gemini_pro' | 'claude_code' | 'cro_sales'
       copywritingStyle = 'cro_high_convert', // 'cro_high_convert' | 'medical_authority' | 'luxury_premium' | 'balanced'
+      claudeApiKey,
+      customSkill,
+      skillName,
     } = req.body;
 
     let gemini: GoogleGenAI;
@@ -4271,8 +4395,21 @@ CHUYÊN GIA GPT-4O DIRECT RESPONSE CRO:
 `;
     }
 
+    let skillInstruction = '';
+    if (customSkill && String(customSkill).trim()) {
+      skillInstruction = `
+BỘ KỸ NĂNG CHUYÊN SÂU ĐƯỢC KÍCH HOẠT (ACTIVE SKILL / FRAMEWORK: ${skillName || 'Kỹ Năng Landing Page Tùy Chỉnh'}):
+===================================================================
+${String(customSkill).trim()}
+===================================================================
+NGUYÊN TẮC BẮT BUỘC: Bạn PHẢI áp dụng nghiêm ngặt các triết lý, cấu trúc giao diện, chuẩn tâm lý học khách hàng và quy tắc thiết kế trong bộ kỹ năng trên vào toàn bộ mã nguồn HTML5 & Tailwind CSS sinh ra!
+`;
+    }
+
     const systemInstruction = `
 Bạn là Kỹ Sư Trưởng Frontend & Chuyên Gia Thiết Kế UI/UX Landing Page Cấp Cao (Chief Frontend Architect & CRO Specialist) chuyên về Landing Page ngành Y Tế, Thẩm Mỹ và Nha Khoa tại Việt Nam.
+
+${skillInstruction}
 
 ${scopeInstruction}
 
@@ -4336,9 +4473,14 @@ QUY TẮC SINH MÃ NGUỒN BẮT BUỘC:
     }
 
     let contentsPayload: any;
+    let promptText = '';
+    let mimeType = 'image/png';
+    let cleanBase64 = '';
+    let svgContextText = '';
+    let isSvg = false;
 
     if (refinementInstruction && existingCode) {
-      const promptText = `
+      promptText = `
 BẠN ĐANG TINH CHỈNH MÃ NGUỒN LANDING PAGE HIỆN TẠI.
 
 MÃ NGUỒN HIỆN CÓ:
@@ -4358,12 +4500,8 @@ Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và 
 `;
       contentsPayload = [{ role: 'user', parts: [{ text: promptText }] }];
     } else if (imageBase64) {
-      let mimeType = 'image/png';
-      let cleanBase64 = '';
-      let svgContextText = '';
-
       const trimmedImg = imageBase64.trim();
-      const isSvg = trimmedImg.includes('image/svg+xml') || trimmedImg.startsWith('<svg') || trimmedImg.includes('<svg');
+      isSvg = trimmedImg.includes('image/svg+xml') || trimmedImg.startsWith('<svg') || trimmedImg.includes('<svg');
 
       if (isSvg) {
         mimeType = 'image/svg+xml';
@@ -4390,7 +4528,7 @@ Hãy áp dụng các thay đổi được yêu cầu vào mã nguồn trên và 
         }
       }
 
-      const promptText = `
+      promptText = `
 DƯỚI ĐÂY LÀ HÌNH ẢNH CHỤP MÀN HÌNH MỘT TRANG WEB / LANDING PAGE MẪU.
 ${svgContextText ? `\nCHI TIẾT BỐ CỤC & VĂN BẢN TRONG ẢNH MẪU:\n${svgContextText.substring(0, 4000)}\n` : ''}
 YÊU CẦU THỰC HIỆN:
@@ -4434,7 +4572,7 @@ Hãy xuất bản toàn bộ mã nguồn HTML5 hoàn chỉnh sẵn sàng sử d�
         };
       }
     } else {
-      const promptText = `
+      promptText = `
 Hãy thiết kế và lập trình một Landing Page HTML5 + Tailwind CSS hoàn chỉnh cho:
 - Thương hiệu: ${brandName}
 - Dịch vụ: ${targetService}
@@ -4452,6 +4590,125 @@ Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ng
     let modelDisplayName = 'Gemini 3.8 Flash';
     const pipelineSteps: string[] = [];
 
+    if (customSkill && String(customSkill).trim()) {
+      pipelineSteps.push(`⚡ Kỹ năng: ${skillName || 'Kỹ Năng Chuyên Sâu Tùy Chỉnh'}`);
+    }
+
+    // Check if Claude Engine is requested and has an API Key
+    const effectiveClaudeKey = (claudeApiKey && String(claudeApiKey).trim()) || process.env.ANTHROPIC_API_KEY;
+
+    if (engine === 'claude_code' && effectiveClaudeKey) {
+      pipelineSteps.push('Anthropic Claude API: Kết nối chính hãng (claude-3-5-sonnet-20241022)');
+      pipelineSteps.push('Claude Vision: Phân tích visual hierarchy & cấu trúc khối');
+      pipelineSteps.push('Claude Sonnet Code Architect: Lập trình HTML5 & Tailwind CSS tinh xảo');
+
+      try {
+        let claudeMessagesContent: any[] = [];
+        if (imageBase64 && cleanBase64 && !isSvg) {
+          const supportedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+          const finalMime = supportedTypes.includes(mimeType) ? mimeType : 'image/jpeg';
+          claudeMessagesContent = [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: finalMime,
+                data: cleanBase64,
+              },
+            },
+            {
+              type: 'text',
+              text: promptText,
+            },
+          ];
+        } else if (svgContextText) {
+          claudeMessagesContent = [
+            {
+              type: 'text',
+              text: `${promptText}\n\n[MÃ NGUỒN CẤU TRÚC BỐ CỤC SVG GỐC]:\n${svgContextText.substring(0, 8000)}`,
+            },
+          ];
+        } else {
+          claudeMessagesContent = [
+            {
+              type: 'text',
+              text: promptText,
+            },
+          ];
+        }
+
+        console.log('Đang gọi Anthropic Claude API với model claude-3-5-sonnet-20241022...');
+        const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': effectiveClaudeKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-sonnet-20241022',
+            max_tokens: 8192,
+            system: systemInstruction,
+            messages: [
+              {
+                role: 'user',
+                content: claudeMessagesContent,
+              },
+            ],
+          }),
+        });
+
+        if (!claudeResponse.ok) {
+          const claudeErrBody = await claudeResponse.text();
+          console.error('Lỗi từ Anthropic Claude API:', claudeErrBody);
+          throw new Error(`Anthropic Claude (${claudeResponse.status}): ${claudeErrBody}`);
+        }
+
+        const claudeData: any = await claudeResponse.json();
+        const claudeRawOutput = claudeData.content?.[0]?.text || '';
+        if (claudeRawOutput && claudeRawOutput.trim().length > 50) {
+          let extractedHtml = claudeRawOutput;
+          const htmlMatch = claudeRawOutput.match(/```html\s*([\s\S]*?)\s*```/i);
+          if (htmlMatch && htmlMatch[1]) {
+            extractedHtml = htmlMatch[1].trim();
+          } else {
+            extractedHtml = claudeRawOutput.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+          }
+
+          let title = `${brandName} - ${targetService}`;
+          const titleMatch = extractedHtml.match(/<title[^>]*>([^<]+)<\/title>/i);
+          if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].trim();
+          }
+
+          let sectionCode = '';
+          const sectionCommentMatch = extractedHtml.match(/<!--\s*BEGIN_SECTION_CODE\s*-->([\s\S]*?)<!--\s*END_SECTION_CODE\s*-->/i);
+          if (sectionCommentMatch && sectionCommentMatch[1]) {
+            sectionCode = sectionCommentMatch[1].trim();
+          }
+
+          return res.json({
+            success: true,
+            htmlCode: extractedHtml,
+            sectionCode,
+            title,
+            modelUsed: 'Anthropic Claude 3.5 Sonnet (Chính Hãng API)',
+            pipelineSteps,
+            skillUsed: skillName || null,
+            generatedAt: new Date().toISOString(),
+          });
+        }
+      } catch (claudeErr: any) {
+        console.warn('Lỗi khi gọi Claude API:', claudeErr.message);
+        if (claudeApiKey) {
+          return res.status(400).json({
+            error: 'Lỗi khi gọi Anthropic Claude API với Key của bạn',
+            details: claudeErr.message,
+          });
+        }
+      }
+    }
+
     if (engine === 'multi_agent') {
       targetModel = 'gemini-3.8-flash';
       modelDisplayName = 'Hợp Lực Đa Tác Tử (Gemini Vision + AI Copywriter + Code Architect)';
@@ -4464,7 +4721,7 @@ Trang web phải có đầy đủ Header, Hero, Các gói dịch vụ, Đội ng
       pipelineSteps.push('Gemini Pro: Phân tích đa tầng và sinh mã giao diện');
     } else if (engine === 'claude_code') {
       targetModel = 'gemini-3.8-flash'; // Optimized under Claude persona
-      modelDisplayName = 'Claude Code Architect (Sonnet Style)';
+      modelDisplayName = 'Claude Code Architect (Mô phỏng qua Gemini Flash)';
       pipelineSteps.push('Claude Architect Engine: Tối ưu hoá từng chi tiết giao diện & Tailwind CSS');
     } else if (engine === 'cro_sales') {
       targetModel = 'gemini-3.8-flash'; // Optimized under GPT-4o persona
@@ -4597,6 +4854,7 @@ Hãy lập trình mã nguồn HTML5 + Tailwind CSS đẹp tuyệt mỹ, hiện �
       modelUsed: modelDisplayName,
       engineKey: engine,
       pipelineSteps,
+      skillUsed: skillName || null,
       generatedAt: new Date().toISOString(),
     });
   } catch (error: any) {

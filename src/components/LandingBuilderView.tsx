@@ -44,7 +44,19 @@ import {
   ChevronRight,
   ArrowRight,
   MessageSquareQuote,
-  Scissors
+  Scissors,
+  Key,
+  EyeOff,
+  Shield,
+  BookOpen,
+  Bookmark,
+  FileText,
+  CheckSquare,
+  Sliders,
+  Code,
+  Link2,
+  Github,
+  DownloadCloud
 } from 'lucide-react';
 
 interface SavedLandingPage {
@@ -85,6 +97,108 @@ const SAMPLE_TEMPLATES = [
     prompt: 'Tông màu xanh ngọc y tế hiện đại, trẻ trung, có video mô phỏng nụ cười 3D Clincheck, form đăng ký quét dấu răng miễn phí.',
     imageSvg: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNjAwIDQwMCI+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiMwNjRlM2IiLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSI1MjAiIGhlaWdodD0iNjAiIHJ4PSI4IiBmaWxsPSIjMDY1ZjQ2Ii8+PHRleHQgeD0iNjAiIHk9Ijc4IiBmaWxsPSIjYTdmM2QwIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiPk5J4buATkcgUsSCTkcgVFJPTkcgU1Xhu5BUIC0gVEjhuqRZIFRSxq/hu5pDIE7hu6QgQ8av4bucSTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMTIwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjE3MCIgcng9IjgiIGZpbGw9IiMwNDc4NTciLz48dGV4dCB4PSI2MCIgeT0iMTY1IiBmaWxsPSIjZmZmZmZmIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9ImJvbGQiPkPDtG5nIE5naOG7hyBTY2FuIDNEIGlUZXJvIEVsZW1lbnQgNUQ8L3RleHQ+PHRleHQgeD0iNjAiIHk9IjIwMCIgZmlsbD0iI2QxZmFlNSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTQiPktoYXkgbmnhu4FuZyB2w7QgaMOsbmggLSBUaMOhbyBs4bqvcCBk4buFIGTDoG5nIC0gUsO6dCBuZ+G6r24gMzAlIHRo4budaSBnaWFuPC90ZXh0PjxyZWN0IHg9IjYwIiB5PSIyMjUiIHdpZHRoPSIyMjAiIGhlaWdodD0iNDAiIHJ4PSI4IiBmaWxsPSIjMTBiOTgxIi8+PHRleHQgeD0iMTcwIiB5PSIyNTAiIGZpbGw9IiNmZmZmZmYiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U0NBTiBSxIJORyBNSeG7hE4gUEjDjSBIw5RNIE5BWTwvdGV4dD48cmVjdCB4PSI0MCIgeT0iMzEwIiB3aWR0aD0iNTIwIiBoZWlnaHQ9IjUwIiByeD0iOCIgZmlsbD0iIzA2NWY0NiIvPjx0ZXh0IHg9IjMwMCIgeT0iMzQwIiBmaWxsPSIjNmVlN2I3IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VOG6t25nIGfDs2kgdOG6qXkgdHLhuq9uZyByxINuZyAzLjUgdHJp4buHdSBraGkgdGhhbmggdG/DoW4gMSBs4bqnbjwvdGV4dD48L3N2Zz4='
   }
+];
+
+export interface LandingSkill {
+  id: string;
+  name: string;
+  badge: string;
+  description: string;
+  category: 'cro' | 'medical' | 'cosmetic' | 'mobile' | 'code' | 'custom';
+  content: string;
+  isCustom?: boolean;
+}
+
+export const BUILTIN_LANDING_SKILLS: LandingSkill[] = [
+  {
+    id: 'cro_dental_master',
+    name: 'Nha Khoa CRO Chuyển Đổi Vàng (AIDA + Hook 3s)',
+    badge: '🏆 TỐI ƯU CONVERSION',
+    category: 'cro',
+    description: 'Đánh trúng nỗi sợ đau/chi phí, lời hứa mạnh mẽ, Social Proof đa tầng, form đặt hẹn 1-chạm & sticky CTA rung lắc.',
+    content: `[KỸ NĂNG: NHA KHOA CRO CHUYỂN ĐỔI CAO (DIRECT RESPONSE & CONVERSION OPTIMIZATION)]
+1. MÔ THỨC AIDA & PAS CHUYỂN ĐỔI:
+- Hook 3 giây đầu Hero: Tiêu đề in đậm, nêu bật giải pháp dứt điểm ("Ăn nhai trọn đời không đau - Phục hồi toàn hàm trong 48h").
+- Nêu bật 3 nỗi đau lớn nhất của bệnh nhân nha khoa: Sợ đau buốt, sợ răng gãy rụng/mất thẩm mỹ, sợ chi phí phát sinh vô lý.
+- Lời hứa bảo chứng mạnh: "Cam kết không đau bằng công nghệ kỹ thuật số - Trợ giá đến 50% - Bảo hành chính hãng 15 năm".
+2. BẰNG CHỨNG XÃ HỘI (SOCIAL PROOF):
+- Khối đánh giá 5.0/5.0 sao từ hơn 10,000+ bệnh nhân thực tế.
+- Khối Before/After thực tế có nhãn so sánh rõ ràng.
+- Huy hiệu uy tín: "Top 10 Nha Khoa Uy Tín Việt Nam", "Giấy phép Bộ Y Tế", "100% Trụ & Sứ nhập khẩu chính hãng".
+3. TỐI ƯU FORM ĐĂNG KÝ (CRO FORM):
+- Form tinh gọn tối đa: Chỉ cần Họ Tên, SĐT, Nhu cầu khám (Chọn dịch vụ, Chi nhánh).
+- Nút bấm to, màu tương phản rực rỡ, chữ hoa: "ĐẶT HẸN NHẬN ƯU ĐÃI NGAY (CÒN 5 SUẤT)".
+- Huy hiệu cam kết bảo mật thông tin & hỗ trợ xe đưa đón miễn phí.
+4. NÚT KÊU GỌI HÀNH ĐỘNG NỔI (STICKY CTA BAR):
+- Luôn có thanh hotline và Zalo nổi góc màn hình kèm hiệu ứng rung lắc nhẹ (pulse/bounce) kích thích khách gọi ngay.`,
+  },
+  {
+    id: 'medical_authority_implant',
+    name: 'Chuyên Sâu Y Khoa & Implant Kỹ Thuật Số',
+    badge: '🩺 UY TÍN BỆNH VIỆN',
+    category: 'medical',
+    description: 'Chuẩn phòng mổ vô trùng áp lực dương, Bác sĩ CKI/CKII 15+ năm kinh nghiệm, máy scan CT 3D & thẻ bảo hành QR quốc tế.',
+    content: `[KỸ NĂNG: UY TÍN CHUYÊN GIA Y KHOA & CẤY GHÉP IMPLANT KỸ THUẬT SỐ]
+1. NGUYÊN TẮC MINH BẠCH VÀ UY TÍN CHUYÊN GIA:
+- Đội ngũ Bác sĩ: Trưng bày học hàm, học vị (Bác sĩ Chuyên Khoa I, Chuyên Khoa II, Thạc sĩ), chứng chỉ tu nghiệp tại Đức, Thụy Sĩ, Hoa Kỳ, số ca cấy ghép thành công (>5,000 ca).
+- Cơ sở vật chất: Phòng phẫu thuật vô trùng khép kín 1 chiều áp lực dương chuẩn Bộ Y Tế, máy chụp phim CT ConeBeam 3D khảo sát xương hàm chuẩn xác từng milimet, máy scan trong miệng iTero 5D.
+2. BẢNG SO SÁNH VẬT LIỆU CHÍNH HÃNG:
+- Bảng so sánh các dòng trụ Implant hàng đầu: Straumann (Thụy Sĩ), Nobel Biocare (Mỹ), Dentium/Osstem (Hàn Quốc).
+- Minh bạch xuất xứ, thời gian tích hợp xương (3 - 6 tuần), thẻ bảo hành điện tử quét mã QR toàn cầu.
+3. KHỐI TRUYỀN THÔNG AN TÂM (PEACE OF MIND):
+- Cam kết không đau với công nghệ tiền mê và sóng siêu âm Piezotome.
+- Chính sách trả góp 0% lãi suất liên kết 25+ ngân hàng lớn, thủ tục 5 phút chỉ cần CCCD.`,
+  },
+  {
+    id: 'cosmetic_dsd_luxury',
+    name: 'Răng Sứ DSD & Thẩm Mỹ Nụ Cười Hoàng Gia',
+    badge: '💎 LUXURY SMILE DSD',
+    category: 'cosmetic',
+    description: 'Thiết kế nụ cười tỉ lệ vàng Digital Smile Design, bảo tồn 99% men răng gốc, phôi sứ Đức & visual Before/After trượt.',
+    content: `[KỸ NĂNG: RĂNG SỨ THẨM MỸ CAO CẤP & DIGITAL SMILE DESIGN (DSD)]
+1. TRIẾT LÝ THIẾT KẾ LUXURY & NGHỆ THUẬT NỤ CƯỜI:
+- Ngôn ngữ hình ảnh và câu từ quý phái, đẳng cấp: "Kiến tạo nụ cười tỉ lệ vàng cá nhân hóa theo đường nét khuôn mặt".
+- Công nghệ Digital Smile Design (DSD): Cho phép xem trước kết quả nụ cười tương lai trên mô phỏng 3D trước khi làm.
+- Tiêu chí bảo tồn tối đa: Mài răng siêu mỏng bảo tồn 99% men răng gốc, không điều trị tủy, không hôi miệng, không đen viền nướu.
+2. KHỐI NGHỆ THUẬT TRƯỚC VÀ SAU (BEFORE & AFTER):
+- Trình bày trực quan kết quả khách hàng biến đổi diện mạo (nghệ sĩ, doanh nhân, kiều bào).
+- Bảng màu răng chuẩn VITA 3D Master nhập khẩu từ Đức, độ trong và phản quang tự nhiên như răng thật dưới ánh đèn sân khấu.
+3. TRẢI NGHIỆM KHÁCH HÀNG VIP:
+- Phòng chờ VIP tiêu chuẩn khách sạn 5 sao, đưa đón tận sân bay cho kiều bào, thẻ bảo hành VIP chính hãng trọn đời.`,
+  },
+  {
+    id: 'mobile_speed_optimized',
+    name: 'Mobile-First & Tốc Độ Siêu Tốc',
+    badge: '⚡ CHẠM LÀ GỌI',
+    category: 'mobile',
+    description: 'Tối ưu 100% cho màn hình điện thoại (vùng ngón tay cái), form 1 chạm, tốc độ tải tức thì & thanh CTA bám đáy.',
+    content: `[KỸ NĂNG: THIẾT KẾ MOBILE-FIRST & TỐC ĐỘ CHUYỂN ĐỔI SIÊU TỐC]
+1. BỐ CỤC VÙNG NGÓN TAY CÁI (THUMB ZONE ARCHITECTURE):
+- Tất cả các nút bấm quan trọng (Đặt hẹn, Gọi điện, Chat Zalo) đều nằm trong tầm với tự nhiên của ngón tay cái khi cầm điện thoại 1 tay.
+- Nút bấm to bản (chiều cao tối thiểu 48px), khoảng cách an toàn tránh bấm nhầm.
+- Thanh Sticky CTA Bar cố định đáy màn hình (Bottom Bar) chứa: Nút Gọi Hotline khẩn cấp + Nút Nhận Báo Giá qua Zalo.
+2. TỐC ĐỘ VÀ SỰ TINH GỌN:
+- Bố cục dạng thẻ (Cards) dễ dàng lướt bằng cử chỉ vuốt ngón tay (scroll & swipe).
+- Font chữ sắc nét (16px cho body text, 22-26px cho heading mobile), tương phản cao, dễ đọc dưới ánh sáng ngoài trời.
+- Form đăng ký chỉ cần 1 ô nhập SĐT nhanh để kích hoạt tư vấn lại trong 60 giây.`,
+  },
+  {
+    id: 'frontend_design_master',
+    name: 'Frontend Design Master (Chuẩn UI/UX Web)',
+    badge: '🎨 CHUẨN UI/UX QUỐC TẾ',
+    category: 'code',
+    description: 'Triệt tiêu phong cách AI generic slop, chuẩn tỷ lệ vàng Typography, Spacing toán học, bóng đổ mềm & Tailwind CSS tinh xảo.',
+    content: `[KỸ NĂNG: FRONTEND DESIGN CONSTITUTION & CHUẨN MỰC UI/UX QUỐC TẾ]
+1. NGUYÊN TẮC ANTI-AI SLOP & THẨM MỸ TINH XẢO:
+- Tuyệt đối không dùng bố cục rập khuôn vô hồn. Sử dụng hệ thống phân cấp thị giác (Visual Hierarchy) sâu sắc.
+- Spacing chuẩn nhịp điệu (8pt grid system: py-12, py-20, gap-6, gap-8).
+- Typography chuẩn: Font Inter/Plus Jakarta Sans, tracking tight cho tiêu đề lớn, leading-relaxed cho đoạn văn bản.
+- Bóng đổ tinh tế: shadow-xl kết hợp border viền mỏng (border border-slate-100 hoặc border-slate-800) tạo chiều sâu 3D sang trọng.
+2. RESPONSIVE HOÀN HẢO ĐA THIẾT BỊ:
+- Grid layout tự co giãn (grid-cols-1 md:grid-cols-2 lg:grid-cols-3).
+- Hình ảnh luôn có object-cover, rounded-2xl, overflow-hidden để không bị vỡ bố cục trên bất kỳ độ phân giải nào.
+- Hiệu ứng tương tác: Hover scale nhẹ (hover:scale-[1.02]), transition-all duration-300, focus ring rõ ràng khi nhập liệu.`,
+  },
 ];
 
 export default function LandingBuilderView() {
@@ -139,12 +253,224 @@ export default function LandingBuilderView() {
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState<boolean>(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
+  // Claude API Key State
+  const [claudeApiKey, setClaudeApiKey] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('landing_claude_api_key');
+      if (saved) return saved;
+      const aiAgentKeys = localStorage.getItem('ai_agent_custom_keys');
+      if (aiAgentKeys) {
+        const parsed = JSON.parse(aiAgentKeys);
+        if (parsed.claude) return parsed.claude;
+      }
+    } catch {}
+    return '';
+  });
+  const [showClaudeKeyConfig, setShowClaudeKeyConfig] = useState<boolean>(false);
+  const [showClaudeKeySecret, setShowClaudeKeySecret] = useState<boolean>(false);
+  const [isTestingClaudeKey, setIsTestingClaudeKey] = useState<boolean>(false);
+  const [claudeKeyTestResult, setClaudeKeyTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [serverEngineStatus, setServerEngineStatus] = useState<{ hasServerClaudeKey: boolean }>({ hasServerClaudeKey: false });
+
+  // Specialized AI Skills State
+  const [customSkills, setCustomSkills] = useState<LandingSkill[]>(() => {
+    try {
+      const saved = localStorage.getItem('tamduc_landing_custom_skills');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [];
+  });
+  const [selectedSkillId, setSelectedSkillId] = useState<string>('cro_dental_master');
+  const [isSkillActive, setIsSkillActive] = useState<boolean>(true);
+  const [showSkillManagerModal, setShowSkillManagerModal] = useState<boolean>(false);
+  const [showSkillDetailDrawer, setShowSkillDetailDrawer] = useState<boolean>(false);
+  const [skillFormName, setSkillFormName] = useState<string>('');
+  const [skillFormDescription, setSkillFormDescription] = useState<string>('');
+  const [skillFormContent, setSkillFormContent] = useState<string>('');
+  const [skillFormCategory, setSkillFormCategory] = useState<'cro' | 'medical' | 'cosmetic' | 'mobile' | 'code' | 'custom'>('custom');
+  const [editingCustomSkillId, setEditingCustomSkillId] = useState<string | null>(null);
+  const [skillToastMsg, setSkillToastMsg] = useState<string | null>(null);
+
+  // GitHub Auto-Fetch Skill State
+  const [githubSkillUrl, setGithubSkillUrl] = useState<string>('');
+  const [isFetchingGitHub, setIsFetchingGitHub] = useState<boolean>(false);
+  const [githubFetchError, setGithubFetchError] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Load saved landing pages on mount
+  const allSkills = [...BUILTIN_LANDING_SKILLS, ...customSkills];
+  const activeSkill = isSkillActive ? allSkills.find((s) => s.id === selectedSkillId) : null;
+
+  const showSkillToast = (msg: string) => {
+    setSkillToastMsg(msg);
+    setTimeout(() => setSkillToastMsg(null), 3500);
+  };
+
+  const handleOpenAddCustomSkill = () => {
+    setEditingCustomSkillId(null);
+    setSkillFormName('');
+    setSkillFormDescription('');
+    setSkillFormCategory('custom');
+    setSkillFormContent('');
+    setGithubSkillUrl('');
+    setGithubFetchError(null);
+    setShowSkillManagerModal(true);
+  };
+
+  const handleOpenEditCustomSkill = (skill: LandingSkill) => {
+    setEditingCustomSkillId(skill.id);
+    setSkillFormName(skill.name);
+    setSkillFormDescription(skill.description);
+    setSkillFormCategory(skill.category);
+    setSkillFormContent(skill.content);
+    setGithubSkillUrl('');
+    setGithubFetchError(null);
+    setShowSkillManagerModal(true);
+  };
+
+  const handleFetchGitHubSkill = async () => {
+    if (!githubSkillUrl.trim()) {
+      setGithubFetchError('Vui lòng nhập đường link GitHub file SKILL.md');
+      return;
+    }
+
+    setIsFetchingGitHub(true);
+    setGithubFetchError(null);
+
+    try {
+      const res = await fetch('/api/landing/fetch-github-skill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: githubSkillUrl.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Không thể tải nội dung file từ GitHub');
+      }
+
+      setSkillFormContent(data.content);
+
+      // Auto-extract Title from content if empty
+      if (!skillFormName.trim()) {
+        const titleMatch = data.content.match(/^#\s+(.+)$/m) || data.content.match(/name:\s*["']?([^"'\n\r]+)["']?/i);
+        if (titleMatch && titleMatch[1]) {
+          setSkillFormName(titleMatch[1].trim());
+        } else {
+          setSkillFormName(data.fileName ? `GitHub Skill: ${data.fileName}` : 'GitHub Skill');
+        }
+      }
+
+      // Auto-extract description if empty
+      if (!skillFormDescription.trim()) {
+        const descMatch = data.content.match(/description:\s*["']?([^"'\n\r]+)["']?/i);
+        if (descMatch && descMatch[1]) {
+          setSkillFormDescription(descMatch[1].trim());
+        } else {
+          setSkillFormDescription(`Tự động đồng bộ từ ${data.resolvedUrl || 'GitHub'}`);
+        }
+      }
+
+      showSkillToast(`Đã tải thành công file từ GitHub!`);
+    } catch (err: any) {
+      setGithubFetchError(err.message || 'Lỗi khi tải file từ GitHub');
+    } finally {
+      setIsFetchingGitHub(false);
+    }
+  };
+
+  const handleSaveCustomSkill = () => {
+    if (!skillFormName.trim()) {
+      showSkillToast('Vui lòng nhập tên Kỹ Năng');
+      return;
+    }
+    if (!skillFormContent.trim()) {
+      showSkillToast('Vui lòng dán hoặc nhập nội dung hướng dẫn của Kỹ Năng');
+      return;
+    }
+
+    if (editingCustomSkillId) {
+      const updated = customSkills.map((s) =>
+        s.id === editingCustomSkillId
+          ? {
+              ...s,
+              name: skillFormName.trim(),
+              description: skillFormDescription.trim() || 'Kỹ năng tùy chỉnh của bạn',
+              category: skillFormCategory,
+              content: skillFormContent.trim(),
+            }
+          : s
+      );
+      setCustomSkills(updated);
+      try {
+        localStorage.setItem('tamduc_landing_custom_skills', JSON.stringify(updated));
+      } catch {}
+      showSkillToast(`Đã cập nhật Kỹ Năng "${skillFormName}"`);
+    } else {
+      const newSkill: LandingSkill = {
+        id: `custom_skill_${Date.now()}`,
+        name: skillFormName.trim(),
+        badge: '✨ KỸ NĂNG TÙY CHỈNH',
+        description: skillFormDescription.trim() || 'Kỹ năng do bạn tự nạp vào hệ thống',
+        category: skillFormCategory,
+        content: skillFormContent.trim(),
+        isCustom: true,
+      };
+      const updated = [...customSkills, newSkill];
+      setCustomSkills(updated);
+      try {
+        localStorage.setItem('tamduc_landing_custom_skills', JSON.stringify(updated));
+      } catch {}
+      setSelectedSkillId(newSkill.id);
+      setIsSkillActive(true);
+      showSkillToast(`Đã lưu và kích hoạt Kỹ Năng "${newSkill.name}"!`);
+    }
+
+    setShowSkillManagerModal(false);
+  };
+
+  const handleDeleteCustomSkill = (id: string, name: string) => {
+    const updated = customSkills.filter((s) => s.id !== id);
+    setCustomSkills(updated);
+    try {
+      localStorage.setItem('tamduc_landing_custom_skills', JSON.stringify(updated));
+    } catch {}
+    if (selectedSkillId === id) {
+      setSelectedSkillId('cro_dental_master');
+    }
+    showSkillToast(`Đã xóa Kỹ Năng "${name}"`);
+  };
+
+  const handleLoadSampleTemplate = () => {
+    setSkillFormName('Nha Khoa Chuyển Đổi Triệu Đô (CRO Formula)');
+    setSkillFormDescription('Công thức tối ưu chuyển đổi độc quyền cho phòng khám nha khoa cao cấp.');
+    setSkillFormCategory('cro');
+    setSkillFormContent(`[KỸ NĂNG: NHA KHOA CHUYỂN ĐỔI TRIỆU ĐÔ - CRO DENTAL FORMULA]
+1. NGUYÊN TẮC THIẾT KẾ & TÂM LÝ KHÁCH HÀNG:
+- Sử dụng tiêu đề Hook thu hút: "Tạm Biệt Mất Răng - Ăn Nhai Trọn Đời - Không Đau, Không Ê Buốt".
+- Trình bày 4 lý do khách hàng nên chọn phòng khám ngay hôm nay: Bác sĩ đầu ngành, công nghệ 3D scan, chi phí công khai minh bạch, trả góp 0% lãi suất.
+2. BỐ CỤC CHUYỂN ĐỔI CAO:
+- Hero Section: Hình ảnh bác sĩ tận tâm tư vấn bệnh nhân, bảng thống kê 10,000+ ca thành công.
+- Khối Bảng Giá: Rõ ràng, có giá gốc gạch ngang và giá ưu đãi độc quyền tháng này.
+- Khối Bác Sĩ & Chuyên Gia: Ảnh chân dung chuyên nghiệp, đầy đủ chứng chỉ tu nghiệp quốc tế.
+- Khối Bằng Chứng Thực Tế: Hình ảnh Before/After nụ cười rạng rỡ của khách hàng kèm lời nhận xét chân thực.
+3. LỜI KÊU GỌI HÀNH ĐỘNG (CTA):
+- Nút CTA chính: "ĐĂNG KÝ KHÁM & CHỤP PHIM CT 3D MIỄN PHÍ".
+- Luôn hiển thị thanh Hotline và Zalo cố định dưới màn hình khi xem trên điện thoại di động.`);
+  };
+
+  // Load saved landing pages & check engine status on mount
   useEffect(() => {
     fetchSavedPages();
+    fetch('/api/landing/engine-status')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && typeof data.hasServerClaudeKey === 'boolean') {
+          setServerEngineStatus(data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // Window paste listener (Ctrl + V from anywhere in the window)
@@ -241,6 +567,41 @@ export default function LandingBuilderView() {
     }
   };
 
+  const handleSaveClaudeKey = (key: string) => {
+    const clean = key.trim();
+    setClaudeApiKey(clean);
+    setClaudeKeyTestResult(null);
+    try {
+      localStorage.setItem('landing_claude_api_key', clean);
+      const aiAgentKeys = localStorage.getItem('ai_agent_custom_keys');
+      let parsed = aiAgentKeys ? JSON.parse(aiAgentKeys) : {};
+      parsed.claude = clean;
+      localStorage.setItem('ai_agent_custom_keys', JSON.stringify(parsed));
+    } catch {}
+  };
+
+  const handleTestClaudeKey = async () => {
+    setIsTestingClaudeKey(true);
+    setClaudeKeyTestResult(null);
+    try {
+      const res = await fetch('/api/landing/test-claude-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: claudeApiKey }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setClaudeKeyTestResult({ success: true, message: data.message || 'Kết nối API Claude 3.5 Sonnet thành công 100%!' });
+      } else {
+        setClaudeKeyTestResult({ success: false, message: data.error || 'Kiểm tra thất bại.' });
+      }
+    } catch (err: any) {
+      setClaudeKeyTestResult({ success: false, message: err.message || 'Lỗi mạng khi kiểm tra kết nối tới Claude.' });
+    } finally {
+      setIsTestingClaudeKey(false);
+    }
+  };
+
   // Main generator trigger
   const handleGenerateLandingPage = async () => {
     if (!selectedImageBase64 && !customPrompt.trim()) {
@@ -301,6 +662,9 @@ export default function LandingBuilderView() {
           scopeMode,
           engine: selectedEngine,
           copywritingStyle,
+          claudeApiKey: claudeApiKey.trim() || undefined,
+          customSkill: isSkillActive && activeSkill ? activeSkill.content : undefined,
+          skillName: isSkillActive && activeSkill ? activeSkill.name : undefined,
         }),
       });
 
@@ -400,6 +764,10 @@ export default function LandingBuilderView() {
           brandName,
           targetService,
           hotline,
+          engine: selectedEngine,
+          claudeApiKey: claudeApiKey.trim() || undefined,
+          customSkill: isSkillActive && activeSkill ? activeSkill.content : undefined,
+          skillName: isSkillActive && activeSkill ? activeSkill.name : undefined,
         }),
       });
 
@@ -922,12 +1290,180 @@ export default function LandingBuilderView() {
             </div>
           </div>
 
-          {/* Card 3: AI Engine & Copywriting Tone (Multi-AI Support) */}
+          {/* Card 3: Nạp & Quản Lý Kỹ Năng Landing Page (AI Skills & CRO Frameworks) */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm sm:text-base font-bold text-white">
+                      3. Nạp Kỹ Năng &amp; Công Thức Landing Page
+                    </h2>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                      AI Skills
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Nạp các bộ quy chuẩn thiết kế, công thức CRO hoặc dán Skill riêng của bạn
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons: Toggle & Add Skill */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsSkillActive(!isSkillActive)}
+                  className={`text-xs px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 transition-all ${
+                    isSkillActive
+                      ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
+                  }`}
+                  title={isSkillActive ? 'Bấm để tắt nạp Kỹ Năng' : 'Bấm để kích hoạt Kỹ Năng'}
+                >
+                  <span className={`w-2 h-2 rounded-full ${isSkillActive ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                  <span>{isSkillActive ? 'Đang Bật Skill' : 'Đang Tắt Skill'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenAddCustomSkill}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                  title="Dán hoặc tạo bộ kỹ năng riêng của bạn"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nạp Skill Mới</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Toast notification inside card */}
+            {skillToastMsg && (
+              <div className="text-[11px] px-3 py-2 rounded-lg bg-amber-950/80 border border-amber-500/50 text-amber-200 flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>{skillToastMsg}</span>
+              </div>
+            )}
+
+            {isSkillActive ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-300">Chọn Bộ Kỹ Năng Muốn Áp Dụng:</span>
+                  <span className="text-[11px] text-slate-400">
+                    <strong className="text-amber-300">{allSkills.length}</strong> Kỹ Năng Khả Dụng
+                  </span>
+                </div>
+
+                {/* Skills Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {allSkills.map((skill) => {
+                    const isSelected = selectedSkillId === skill.id;
+                    return (
+                      <div
+                        key={skill.id}
+                        onClick={() => setSelectedSkillId(skill.id)}
+                        className={`p-3 rounded-xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-950/40 border-amber-400 ring-1 ring-amber-400/40 text-white shadow-lg'
+                            : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-1 mb-1.5">
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold border ${
+                              skill.isCustom
+                                ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                                : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                            }`}>
+                              {skill.badge}
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              {skill.isCustom && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenEditCustomSkill(skill);
+                                    }}
+                                    className="p-1 hover:text-cyan-300 text-slate-400 transition-colors"
+                                    title="Chỉnh sửa Skill này"
+                                  >
+                                    <SlidersHorizontal className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteCustomSkill(skill.id, skill.name);
+                                    }}
+                                    className="p-1 hover:text-rose-400 text-slate-400 transition-colors"
+                                    title="Xóa Skill này"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </>
+                              )}
+                              <div className={`w-3.5 h-3.5 rounded-full border shrink-0 flex items-center justify-center ${
+                                isSelected ? 'border-amber-400 bg-amber-500' : 'border-slate-700'
+                              }`}>
+                                {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
+                              </div>
+                            </div>
+                          </div>
+
+                          <h3 className={`text-xs font-bold leading-tight ${isSelected ? 'text-amber-200' : 'text-slate-200'}`}>
+                            {skill.name}
+                          </h3>
+                          <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                            {skill.description}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Active Skill Preview Bar */}
+                {activeSkill && (
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <div className="text-slate-300">
+                        <span className="text-slate-400">Đang kích hoạt: </span>
+                        <strong className="text-amber-300 font-semibold">{activeSkill.name}</strong>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowSkillDetailDrawer(true)}
+                      className="text-[11px] text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1 underline underline-offset-2 shrink-0 self-start sm:self-auto"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Xem nội dung Prompt của Skill</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-slate-950/50 border border-dashed border-slate-800 text-center text-xs text-slate-500 space-y-1">
+                <p>Đang không áp dụng Kỹ Năng chuyên biệt nào.</p>
+                <p className="text-[11px] text-slate-400">
+                  Bấm nút <strong className="text-emerald-400">"Đang Tắt Skill"</strong> ở trên để bật lại bộ Kỹ Năng chuyển đổi cao.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Card 4: AI Engine & Copywriting Tone (Multi-AI Support) */}
           <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <Bot className="w-4 h-4 text-cyan-400" />
-                <span>3. Mô Hình AI &amp; Văn Phong Bán Hàng (Multi-AI)</span>
+                <span>4. Mô Hình AI &amp; Văn Phong Bán Hàng (Multi-AI)</span>
               </h2>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-medium">
                 Đa Tác Tử
@@ -1028,16 +1564,34 @@ export default function LandingBuilderView() {
                   {/* Claude Code Style */}
                   <button
                     type="button"
-                    onClick={() => setSelectedEngine('claude_code')}
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
+                    onClick={() => {
+                      setSelectedEngine('claude_code');
+                      setShowClaudeKeyConfig(true);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition-all relative ${
                       selectedEngine === 'claude_code'
                         ? 'bg-orange-950/50 border-orange-400 ring-1 ring-orange-400/40 text-white builder-option-active-amber'
                         : 'bg-slate-950/70 border-slate-800 text-slate-400 hover:text-slate-200 builder-option-inactive'
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 font-bold text-xs text-orange-300">
-                      <Code2 className="w-3.5 h-3.5 text-orange-400" />
-                      <span>Claude Sonnet Style</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-orange-300">
+                        <Code2 className="w-3.5 h-3.5 text-orange-400" />
+                        <span>Claude Sonnet</span>
+                      </div>
+                      {serverEngineStatus.hasServerClaudeKey ? (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                          .env Sẵn Sàng
+                        </span>
+                      ) : claudeApiKey ? (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                          Key Sẵn Sàng
+                        </span>
+                      ) : (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                          Cần Nhập Key
+                        </span>
+                      )}
                     </div>
                     <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">
                       Tối ưu Frontend, chuẩn typography, spacing tinh xảo và responsive.
@@ -1063,6 +1617,139 @@ export default function LandingBuilderView() {
                     </p>
                   </button>
                 </div>
+
+                {/* Dedicated Claude API Key Settings Card */}
+                {(selectedEngine === 'claude_code' || showClaudeKeyConfig) && (
+                  <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-br from-orange-950/30 via-slate-900/60 to-slate-950 border border-orange-500/40 space-y-3 animate-in fade-in duration-200">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 shrink-0">
+                          <Key className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-orange-200">Cấu Hình Anthropic Claude API Key</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 font-medium">
+                              Claude 3.5 Sonnet
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-400">
+                            Kết nối trực tiếp API Anthropic chính hãng để sinh mã Landing Page chuẩn Frontend
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Status indicator */}
+                      <div>
+                        {serverEngineStatus.hasServerClaudeKey ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-300 bg-emerald-950/60 border border-emerald-500/40 px-2 py-1 rounded-lg">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Máy chủ đã có ANTHROPIC_API_KEY (.env)
+                          </span>
+                        ) : claudeApiKey ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-300 bg-emerald-950/60 border border-emerald-500/40 px-2 py-1 rounded-lg">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Đã lưu Key trong trình duyệt
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-300 bg-amber-950/60 border border-amber-500/40 px-2 py-1 rounded-lg">
+                            <AlertCircle className="w-3 h-3 text-amber-400" /> Chưa cấu hình Key (Có thể nhập bên dưới)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Key Input & Actions */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <label className="text-slate-300 font-medium flex items-center gap-1.5">
+                          <span>Nhập API Key Claude của bạn (bắt đầu bằng <code className="text-orange-300">sk-ant-api03-...</code>):</span>
+                        </label>
+                        {claudeApiKey && (
+                          <button
+                            type="button"
+                            onClick={() => handleSaveClaudeKey('')}
+                            className="text-[10px] text-rose-400 hover:text-rose-300 underline font-medium"
+                          >
+                            Xóa Key đã lưu
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <input
+                            type={showClaudeKeySecret ? 'text' : 'password'}
+                            value={claudeApiKey}
+                            onChange={(e) => handleSaveClaudeKey(e.target.value)}
+                            placeholder="sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                            className="w-full bg-slate-950/90 border border-orange-500/40 focus:border-orange-400 rounded-lg px-3 py-2 text-xs text-white placeholder-slate-500 pr-9 font-mono focus:outline-none focus:ring-1 focus:ring-orange-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowClaudeKeySecret(!showClaudeKeySecret)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                            title={showClaudeKeySecret ? 'Ẩn Key' : 'Hiện Key'}
+                          >
+                            {showClaudeKeySecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={isTestingClaudeKey || (!claudeApiKey && !serverEngineStatus.hasServerClaudeKey)}
+                          onClick={handleTestClaudeKey}
+                          className="px-3 py-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                          title="Gửi 1 ping nhẹ đến Anthropic Messages API để xác thực Key hợp lệ"
+                        >
+                          {isTestingClaudeKey ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Đang kiểm tra...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="w-3.5 h-3.5 text-amber-200" />
+                              <span>Kiểm tra kết nối</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Test feedback message */}
+                      {claudeKeyTestResult && (
+                        <div
+                          className={`text-[11px] p-2.5 rounded-lg flex items-center gap-2 ${
+                            claudeKeyTestResult.success
+                              ? 'bg-emerald-950/70 border border-emerald-500/50 text-emerald-200'
+                              : 'bg-rose-950/70 border border-rose-500/50 text-rose-200'
+                          }`}
+                        >
+                          {claudeKeyTestResult.success ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-400" />
+                          )}
+                          <span className="font-medium">{claudeKeyTestResult.message}</span>
+                        </div>
+                      )}
+
+                      {/* Instructions for user */}
+                      <div className="bg-slate-900/80 rounded-lg p-3 text-[11px] text-slate-400 border border-slate-800 space-y-1.5">
+                        <div className="font-semibold text-slate-200 flex items-center gap-1.5 text-xs">
+                          <ShieldCheck className="w-3.5 h-3.5 text-orange-400" />
+                          <span>Hướng dẫn kích hoạt Claude API cho Landing Page:</span>
+                        </div>
+                        <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-300 pl-1 leading-relaxed">
+                          <li>
+                            <strong className="text-orange-300">Cách 1 (Nhanh nhất - Không cần sửa file):</strong> Dán API Key Claude vào ô trên (tự động lưu vào trình duyệt của bạn). Khi bấm nút <strong>"Tạo Landing Page Bằng AI"</strong>, hệ thống sẽ tự động dùng model Claude 3.5 Sonnet chính hãng.
+                          </li>
+                          <li>
+                            <strong className="text-cyan-300">Cách 2 (Cấu hình Server):</strong> Mở file <code className="text-cyan-300 bg-slate-950 px-1 py-0.5 rounded font-mono">.env</code> và thêm dòng <code className="text-orange-300 bg-slate-950 px-1 py-0.5 rounded font-mono">ANTHROPIC_API_KEY=sk-ant-api03-...</code> rồi lưu lại.
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1735,6 +2422,266 @@ export default function LandingBuilderView() {
                 className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
               >
                 Đóng Thư Viện
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Nạp & Quản Lý Kỹ Năng Landing Page (Custom Skill Creator / Editor) */}
+      {showSkillManagerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in">
+          <div className="w-full max-w-2xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-800 bg-slate-950/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-white">
+                    {editingCustomSkillId ? 'Chỉnh Sửa Kỹ Năng Landing Page' : 'Nạp Kỹ Năng Tạo Landing Page Mới'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Dán toàn bộ prompt hướng dẫn, công thức CRO hoặc quy chuẩn thiết kế của bạn
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSkillManagerModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+              {/* GitHub Auto-Fetch Card */}
+              <div className="p-3.5 rounded-xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-cyan-500/40 space-y-2.5 shadow-md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-300">
+                      <Github className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-cyan-200">Nạp Tự Động Từ Link GitHub (SKILL.md / Raw)</span>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 font-mono">
+                    GitHub Fetcher
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500">
+                      <Link2 className="w-3.5 h-3.5" />
+                    </div>
+                    <input
+                      type="url"
+                      value={githubSkillUrl}
+                      onChange={(e) => {
+                        setGithubSkillUrl(e.target.value);
+                        setGithubFetchError(null);
+                      }}
+                      placeholder="https://github.com/user/repo/blob/main/skills/SKILL.md hoặc link raw..."
+                      className="w-full pl-8 pr-3 py-2 text-xs bg-slate-950 border border-slate-700 focus:border-cyan-400 rounded-xl text-white font-mono placeholder-slate-600 focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isFetchingGitHub || !githubSkillUrl.trim()}
+                    onClick={handleFetchGitHubSkill}
+                    className="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 shadow-sm"
+                  >
+                    {isFetchingGitHub ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Đang tải...</span>
+                      </>
+                    ) : (
+                      <>
+                        <DownloadCloud className="w-3.5 h-3.5" />
+                        <span>Tải về từ GitHub</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {githubFetchError && (
+                  <div className="text-[11px] p-2 rounded-lg bg-rose-950/70 border border-rose-500/40 text-rose-300 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{githubFetchError}</span>
+                  </div>
+                )}
+                
+                <p className="text-[10px] text-slate-400">
+                  💡 Hỗ trợ: Link github.com file chi tiết, link raw, hoặc link repo chứa file <code>SKILL.md</code>. Hệ thống sẽ tự động bóc tách tên và nội dung vào các ô bên dưới.
+                </p>
+              </div>
+
+              {/* Template quick load button */}
+              <div className="p-3 rounded-xl bg-gradient-to-r from-amber-950/40 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-2">
+                <div className="text-xs text-amber-200">
+                  <span className="font-semibold">Hoặc dùng mẫu có sẵn:</span>
+                  <span className="text-[11px] text-slate-400 block">Bấm để nạp sẵn mẫu công thức Landing Page CRO nha khoa chuẩn quốc tế.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLoadSampleTemplate}
+                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition-colors shrink-0 shadow-sm"
+                >
+                  Nạp Mẫu Chuẩn
+                </button>
+              </div>
+
+              {/* Skill Name & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">
+                    Tên Kỹ Năng / Framework <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={skillFormName}
+                    onChange={(e) => setSkillFormName(e.target.value)}
+                    placeholder="Ví dụ: Công Thức CRO Nha Khoa Triệu Đô, Bọc Sứ DSD..."
+                    className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-300">Nhóm Kỹ Năng</label>
+                  <select
+                    value={skillFormCategory}
+                    onChange={(e) => setSkillFormCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 transition-colors"
+                  >
+                    <option value="cro">🏆 Tối Ưu CRO</option>
+                    <option value="medical">🩺 Y Khoa &amp; Implant</option>
+                    <option value="cosmetic">💎 Răng Sứ &amp; Thẩm Mỹ</option>
+                    <option value="mobile">⚡ Mobile-First</option>
+                    <option value="code">🎨 Chuẩn UI/UX Web</option>
+                    <option value="custom">✨ Tùy Chỉnh Riêng</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-300">Mô Tả Ngắn Gọn</label>
+                <input
+                  type="text"
+                  value={skillFormDescription}
+                  onChange={(e) => setSkillFormDescription(e.target.value)}
+                  placeholder="Mô tả tóm tắt mục tiêu hoặc đặc trưng của kỹ năng này..."
+                  className="w-full px-3 py-2 text-xs bg-slate-950 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+
+              {/* Skill Content Prompt */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                    <span>Nội Dung Hướng Dẫn / Prompt Kỹ Năng Cho AI</span>
+                    <span className="text-rose-400">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    Hỗ trợ định dạng văn bản &amp; Markdown
+                  </span>
+                </div>
+                <textarea
+                  rows={10}
+                  value={skillFormContent}
+                  onChange={(e) => setSkillFormContent(e.target.value)}
+                  placeholder="Dán toàn bộ các nguyên tắc thiết kế, bố cục các khối, tiêu chuẩn viết chữ, rào cản tâm lý khách hàng, hoặc file Claude Skill của bạn vào đây..."
+                  className="w-full px-3.5 py-3 text-xs bg-slate-950 border border-slate-700 rounded-xl text-slate-200 focus:outline-none focus:border-amber-400 font-mono transition-colors leading-relaxed"
+                />
+                <p className="text-[11px] text-slate-400">
+                  💡 <strong>Gợi ý:</strong> Khi bạn bấm tạo trang, toàn bộ nội dung trong ô này sẽ được nạp trực tiếp vào hệ thống chỉ dẫn (System Instruction) của mô hình AI đã chọn.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/60 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowSkillManagerModal(false)}
+                className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCustomSkill}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white text-xs font-bold transition-all shadow-lg flex items-center gap-1.5"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{editingCustomSkillId ? 'Cập Nhật Kỹ Năng' : 'Lưu & Kích Hoạt Kỹ Năng'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drawer: Xem Chi Tiết Kỹ Năng Đang Chọn */}
+      {showSkillDetailDrawer && activeSkill && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-lg bg-slate-900 border-l border-slate-800 h-full p-6 flex flex-col shadow-2xl overflow-hidden animate-slideIn">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-400" />
+                <div>
+                  <h3 className="text-base font-bold text-white line-clamp-1">
+                    {activeSkill.name}
+                  </h3>
+                  <span className="text-[10px] text-amber-300 font-semibold">
+                    {activeSkill.badge}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSkillDetailDrawer(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                <strong className="text-white block mb-1">Mục tiêu kỹ năng:</strong>
+                {activeSkill.description}
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  Nội dung lệnh và chỉ dẫn được nạp cho AI (System Instruction):
+                </label>
+                <pre className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-amber-200/90 whitespace-pre-wrap font-mono leading-relaxed max-h-[60vh] overflow-y-auto">
+                  {activeSkill.content}
+                </pre>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(activeSkill.content);
+                  showSkillToast('Đã sao chép nội dung Skill vào bộ nhớ tạm!');
+                }}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Sao Chép Nội Dung</span>
+              </button>
+              <button
+                onClick={() => setShowSkillDetailDrawer(false)}
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-colors"
+              >
+                Đóng
               </button>
             </div>
           </div>
