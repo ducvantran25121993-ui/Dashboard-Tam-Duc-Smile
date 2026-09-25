@@ -1123,7 +1123,7 @@ export const CampaignAi7DayAnalysis: React.FC<CampaignAi7DayAnalysisProps> = ({
                 ⚡ AI Tự Động Phân Tích Chu Kỳ 7 Ngày & Gợi Ý Tối Ưu Chiến Dịch
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                Gemini 3.7 Flash Engine
+                Gemini 3.8 Flash Engine
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
@@ -4633,7 +4633,7 @@ ${currentRsa.callouts.join(' | ')}`;
                   <div className="max-w-md mx-auto space-y-1">
                     <h4 className="text-sm font-bold text-white">Khởi Động Phân Tích Chuyên Sâu Sau 7 Ngày</h4>
                     <p className="text-xs text-slate-400">
-                      Gemini 3.7 Flash sẽ tự động so sánh số liệu từng chiến dịch Tìm Kiếm (Search) & PMax, đánh giá chỉ số CTR/CPA, tính điểm sức khỏe tài khoản và lập kế hoạch hành động 7 ngày tới.
+                      Gemini 3.8 Flash sẽ tự động so sánh số liệu từng chiến dịch Tìm Kiếm (Search) & PMax, đánh giá chỉ số CTR/CPA, tính điểm sức khỏe tài khoản và lập kế hoạch hành động 7 ngày tới.
                     </p>
                   </div>
                   <button

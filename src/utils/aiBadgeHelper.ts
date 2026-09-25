@@ -1,12 +1,28 @@
 export function getActiveAIModelBadge(): { name: string; shortName: string; color: string } {
   try {
+    const isAuto = localStorage.getItem('ai_agent_auto_update_model') !== 'false';
     const provider = localStorage.getItem('ai_agent_provider') || 'gemini';
-    const model = localStorage.getItem('ai_agent_model') || 'gemini-3.7-flash';
+    let model = localStorage.getItem('ai_agent_model') || 'gemini-3.8-flash';
+
+    // Tự động nâng cấp nếu phát hiện 3.7 hoặc cũ hơn khi ở chế độ auto-update
+    if (isAuto && (model.includes('3.7') || model.includes('3.6') || model.includes('2.0') || !model)) {
+      model = 'gemini-3.8-flash';
+      try {
+        localStorage.setItem('ai_agent_model', 'gemini-3.8-flash');
+      } catch {}
+    }
 
     if (provider === 'gemini') {
-      if (model.includes('3.7')) return { name: 'Gemini 3.7 Flash', shortName: 'Gemini 3.7', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' };
-      if (model.includes('2.5-pro')) return { name: 'Gemini 2.5 Pro', shortName: 'Gemini Pro', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' };
-      return { name: 'Gemini Flash', shortName: 'Gemini AI', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' };
+      if (model.includes('3.8') || model.includes('3.7') || model.includes('flash-latest') || model.includes('flash')) {
+        return {
+          name: 'Gemini 3.8 Flash (Mới nhất)',
+          shortName: 'Gemini 3.8',
+          color: 'bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-300 border-cyan-400/50 shadow-sm shadow-cyan-500/20',
+        };
+      }
+      if (model.includes('3.1-pro')) return { name: 'Gemini 3.1 Pro', shortName: 'Gemini Pro', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' };
+      if (model.includes('3.1-flash')) return { name: 'Gemini 3.1 Flash Lite', shortName: 'Gemini Lite', color: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' };
+      return { name: 'Gemini 3.8 Flash (Mới nhất)', shortName: 'Gemini 3.8', color: 'bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-300 border-cyan-400/50 shadow-sm shadow-cyan-500/20' };
     }
 
     if (provider === 'openai') {
@@ -32,5 +48,5 @@ export function getActiveAIModelBadge(): { name: string; shortName: string; colo
     // fallback
   }
 
-  return { name: 'Gemini 3.7 Flash', shortName: 'Gemini 3.7', color: 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-cyan-400/40' };
+  return { name: 'Gemini 3.8 Flash (Mới nhất)', shortName: 'Gemini 3.8', color: 'bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border-cyan-400/40' };
 }

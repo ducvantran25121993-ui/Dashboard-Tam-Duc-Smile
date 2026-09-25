@@ -1689,7 +1689,7 @@ Hãy trả về danh sách các sáng kiến với định dạng JSON chuẩn (
 `;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -1878,7 +1878,11 @@ PHONG CÁCH TRẢ LỜI:
     }));
 
     let reply = '';
-    const preferredModel = model || 'gemini-3.7-flash';
+    // Auto-upgrade legacy models to the latest gemini-3.8-flash
+    let preferredModel = model || 'gemini-3.8-flash';
+    if (preferredModel.includes('3.7') || preferredModel.includes('3.6') || preferredModel.includes('2.0') || !preferredModel) {
+      preferredModel = 'gemini-3.8-flash';
+    }
 
     try {
       const response = await gemini.models.generateContent({
@@ -1892,10 +1896,10 @@ PHONG CÁCH TRẢ LỜI:
       reply = response.text || '';
     } catch (modelErr: any) {
       console.warn(`Error generating content with model ${preferredModel}:`, modelErr.message);
-      if (preferredModel !== 'gemini-3.7-flash') {
+      if (preferredModel !== 'gemini-3.8-flash') {
         try {
           const fallbackRes = await gemini.models.generateContent({
-            model: 'gemini-3.7-flash',
+            model: 'gemini-3.8-flash',
             contents: formattedContents,
             config: {
               systemInstruction,
@@ -2005,7 +2009,7 @@ Dữ liệu chiến dịch:
    - Tối ưu mẫu quảng cáo và từ khóa phủ định.`;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         { role: 'user', parts: [{ text: userPrompt }] }
       ],
@@ -2127,7 +2131,7 @@ Hãy xây dựng bản Báo Cáo & Đề Xuất Tối Ưu Chiến Dịch sau 7 n
 `;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         { role: 'user', parts: [{ text: userPrompt }] }
       ],
@@ -2398,7 +2402,7 @@ ${previousData ? `- DỮ LIỆU LẦN QUÉT TRƯỚC ĐÂY ĐỂ ĐỐI CHIẾU:
 
     try {
       const response = await gemini.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-3.8-flash',
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         config: {
           systemInstruction: systemPrompt,
@@ -2590,7 +2594,7 @@ Nội dung văn bản thật trích xuất từ trang web:
 ${pageData.cleanText ? pageData.cleanText.substring(0, 8000) : 'Trang web render client-side. Phân tích dựa trên thông tin dịch vụ của ' + domainName}`;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.8-flash',
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       config: {
         systemInstruction: systemPrompt,
@@ -2695,7 +2699,7 @@ Trả về định dạng JSON thuần túy (không bọc markdown \`\`\`json):
 Hãy tìm ra ít nhất 3-4 bài quảng cáo đối thủ với đầy đủ tiêu đề, mô tả, khuyến mãi ngầm và đề xuất mẫu phản công xuất sắc cho Tâm Đức Smile.`;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: 'gemini-3.8-flash',
       contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
       config: {
         systemInstruction: systemPrompt,
@@ -3439,9 +3443,10 @@ Hãy trả về duy nhất một chuỗi JSON hợp lệ theo schema sau:
 
         let aiText = '';
         const targetModels = [
+          'gemini-3.8-flash',
           'gemini-flash-latest',
-          'gemini-3.1-flash-lite',
-          'gemini-3.7-flash'
+          'gemini-3.1-pro-preview',
+          'gemini-3.1-flash-lite'
         ];
         for (const m of targetModels) {
           try {
@@ -3749,7 +3754,7 @@ Hãy trích xuất:
 3. Đề xuất thông điệp Google Ads phản công cho Nha Khoa Tâm Đức Smile.`;
 
           const aiResp = await gemini.models.generateContent({
-            model: 'gemini-3.7-flash',
+            model: 'gemini-3.8-flash',
             contents: aiPrompt,
           });
           aiStrategicAnalysis = aiResp.text;

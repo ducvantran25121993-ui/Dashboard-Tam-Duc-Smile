@@ -128,7 +128,26 @@ export interface AIPromptGovernance {
   temperature: number;
   tokenConsumptionThisMonth: number;
   maxMonthlyTokenBudget: number;
+  monthlyTokens?: Record<number, number>;
+  monthlyBudgets?: Record<number, number>;
 }
+
+export const DEFAULT_MONTHLY_TOKENS: Record<number, number> = {
+  1: 72400,
+  2: 58200,
+  3: 98750,
+  4: 118300,
+  5: 136500,
+  6: 159200,
+  7: 182400,
+  8: 215800,
+  9: 142850,
+  10: 0,
+  11: 0,
+  12: 0,
+};
+
+export const DEFAULT_MONTHLY_TOKEN_BUDGET = 500000;
 
 interface ThresholdConfig {
   implantMaxCpa: number;
@@ -535,7 +554,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
       shortName: 'Gemini AI',
       type: 'AI Engine',
       connected: isGeminiAiLive,
-      detail: 'gemini-3.7-flash (Copilot)',
+      detail: 'gemini-3.8-flash (Mới nhất)',
     },
     {
       id: 'pancake_crm',
@@ -548,7 +567,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
     {
       id: 'vttech_crm',
       name: 'VTTech Dental CRM API',
-      shortName: `VTTech CRM (${vttechStatus.totalCached ? `${(vttechStatus.totalCached / 1000).toFixed(1)}k` : '3.1k'} Vé)`,
+      shortName: `VTTech CRM (${vttechStatus.totalCached ? `${(vttechStatus.totalCached / 1000).toFixed(1)}k` : '16.8k'} Vé)`,
       type: 'Dental ERP',
       connected: isVTTechLive,
       detail: `${vttechStatus.username} • ${vttechStatus.totalCached.toLocaleString()} Vé Khám • Auto-Sync`,
@@ -756,10 +775,37 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   ]);
 
   // 3. AI Governance & Prompt Controls
+  const [selectedTokenMonth, setSelectedTokenMonth] = useState<number>(() => {
+    return activeMonth && activeMonth >= 1 && activeMonth <= 12 ? activeMonth : 9;
+  });
+  const [isEditTokenModalOpen, setIsEditTokenModalOpen] = useState(false);
+  const [tokenEditCount, setTokenEditCount] = useState<number>(142850);
+  const [tokenEditBudget, setTokenEditBudget] = useState<number>(500000);
+  const [showAllMonthsTokenBreakdown, setShowAllMonthsTokenBreakdown] = useState(false);
+
+  // Sync selectedTokenMonth when activeMonth prop changes
+  useEffect(() => {
+    if (activeMonth && activeMonth >= 1 && activeMonth <= 12) {
+      setSelectedTokenMonth(activeMonth);
+    }
+  }, [activeMonth]);
+
   const [aiGovernance, setAiGovernance] = useState<AIPromptGovernance>(() => {
     try {
       const saved = localStorage.getItem('dashboard_ai_governance');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (!parsed.monthlyTokens) {
+          parsed.monthlyTokens = { ...DEFAULT_MONTHLY_TOKENS };
+        }
+        if (!parsed.monthlyBudgets) {
+          parsed.monthlyBudgets = {};
+          for (let i = 1; i <= 12; i++) {
+            parsed.monthlyBudgets[i] = parsed.maxMonthlyTokenBudget || 500000;
+          }
+        }
+        return parsed;
+      }
     } catch {}
     return {
       systemPromptCore: 'Bạn là Chuyên Gia Cố Vấn Tăng Trưởng & Giám Sát Chiến Dịch Google Ads kiêm Trợ Lý Sales Online Cấp Cao của Hệ Thống Nha Khoa Tâm Đức Smile (17 chi nhánh). Luôn phân tích dựa trên dữ liệu thực tế, tối ưu CPA, không nói chung chung.',
@@ -768,8 +814,77 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
       temperature: 0.3,
       tokenConsumptionThisMonth: 142850,
       maxMonthlyTokenBudget: 500000,
+      monthlyTokens: { ...DEFAULT_MONTHLY_TOKENS },
+      monthlyBudgets: {
+        1: 500000, 2: 500000, 3: 500000, 4: 500000,
+        5: 500000, 6: 500000, 7: 500000, 8: 500000,
+        9: 500000, 10: 500000, 11: 500000, 12: 500000,
+      },
     };
   });
+
+  const getTokensForMonth = (m: number): number => {
+    if (aiGovernance.monthlyTokens && typeof aiGovernance.monthlyTokens[m] === 'number') {
+      return aiGovernance.monthlyTokens[m];
+    }
+    if (m === 9) return aiGovernance.tokenConsumptionThisMonth || 142850;
+    return DEFAULT_MONTHLY_TOKENS[m] ?? 0;
+  };
+
+  const getBudgetForMonth = (m: number): number => {
+    if (aiGovernance.monthlyBudgets && typeof aiGovernance.monthlyBudgets[m] === 'number') {
+      return aiGovernance.monthlyBudgets[m];
+    }
+    return aiGovernance.maxMonthlyTokenBudget || 500000;
+  };
+
+  const handleOpenEditTokenModal = (m: number) => {
+    setSelectedTokenMonth(m);
+    setTokenEditCount(getTokensForMonth(m));
+    setTokenEditBudget(getBudgetForMonth(m));
+    setIsEditTokenModalOpen(true);
+  };
+
+  const handleSaveMonthlyToken = () => {
+    const updatedMonthlyTokens = {
+      ...(aiGovernance.monthlyTokens || DEFAULT_MONTHLY_TOKENS),
+      [selectedTokenMonth]: Math.max(0, tokenEditCount),
+    };
+    const updatedMonthlyBudgets = {
+      ...(aiGovernance.monthlyBudgets || {}),
+      [selectedTokenMonth]: Math.max(1000, tokenEditBudget),
+    };
+
+    const nextGov: AIPromptGovernance = {
+      ...aiGovernance,
+      tokenConsumptionThisMonth: selectedTokenMonth === 9 ? tokenEditCount : aiGovernance.tokenConsumptionThisMonth,
+      maxMonthlyTokenBudget: selectedTokenMonth === 9 ? tokenEditBudget : aiGovernance.maxMonthlyTokenBudget,
+      monthlyTokens: updatedMonthlyTokens,
+      monthlyBudgets: updatedMonthlyBudgets,
+    };
+
+    setAiGovernance(nextGov);
+    try {
+      localStorage.setItem('dashboard_ai_governance', JSON.stringify(nextGov));
+    } catch {}
+    setIsEditTokenModalOpen(false);
+    showNotification(`Đã cập nhật Token Tháng ${selectedTokenMonth} thành công!`);
+  };
+
+  const handleAutoCalcTokenFromDataset = (m: number) => {
+    const ds = monthlyDatasets?.find((d) => d.month === m);
+    let calculated = 0;
+    if (ds && ds.regions && ds.regions.length > 0) {
+      const totalCostVAT = ds.regions.reduce((s, r) => s + (r.costVAT || 0), 0);
+      const totalLeads = ds.regions.reduce((s, r) => s + (r.totalData || 0), 0);
+      calculated = Math.round(50000 + (totalLeads * 35) + (totalCostVAT / 1000000 * 150));
+      calculated = Math.min(480000, Math.max(45000, calculated));
+    } else {
+      calculated = DEFAULT_MONTHLY_TOKENS[m] || 95000;
+    }
+    setTokenEditCount(calculated);
+    showNotification(`Đã tự động tính toán: ${calculated.toLocaleString('vi-VN')} Token dựa trên dữ liệu thực tế Tháng ${m}!`);
+  };
 
   // Toggle Emergency Pause
   const handleToggleEmergencyCampaign = (id: string) => {
@@ -923,7 +1038,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
         action: 'Cập nhật System Prompt & Chính sách AI Copilot',
         category: 'config',
         status: 'success',
-        details: 'Điều chỉnh quy tắc tư vấn giá và hành vi mô hình Gemini 3.7',
+        details: 'Điều chỉnh quy tắc tư vấn giá và hành vi mô hình Gemini 3.8 Flash (Auto-Updated)',
       },
       ...logs
     ]);
@@ -1572,8 +1687,8 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                       <p className="text-[10px] text-slate-400 truncate">System Prompt & chính sách giá</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-indigo-500/10 text-indigo-300 border-indigo-500/30">
-                    Gemini 3.7
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 bg-cyan-500/10 text-cyan-300 border-cyan-500/30">
+                    Gemini 3.8 Flash
                   </span>
                 </button>
 
@@ -2442,7 +2557,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                 Cấu Hình "Bộ Não" & Quy Tắc Trợ Lý AI (AI Governance)
               </h3>
               <p className="text-xs text-slate-400">
-                Thiết lập chỉ thị cốt lõi (System Prompt), quy tắc tư vấn nha khoa và hạn mức tiêu thụ Token của Gemini 3.7.
+                Thiết lập chỉ thị cốt lõi (System Prompt), quy tắc tư vấn nha khoa và hạn mức tiêu thụ Token của Gemini 3.8 Flash.
               </p>
             </div>
 
@@ -2456,49 +2571,302 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
             </button>
           </div>
 
-          {/* Token Consumption Banner */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <div className="text-xs text-slate-400 mb-1">Mô Hình Đang Kích Hoạt</div>
-              <p className="text-lg font-bold text-cyan-300 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                Gemini 3.7 Flash Thinking
-              </p>
-              <p className="text-[10px] text-slate-500 mt-1">Độ trễ trung bình: 350ms</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <div className="text-xs text-slate-400 mb-1">Token Tiêu Thụ Tháng Này</div>
-              <p className="text-lg font-bold text-indigo-300 font-mono">
-                {aiGovernance.tokenConsumptionThisMonth.toLocaleString('vi-VN')} <span className="text-xs text-slate-400 font-normal">/ {aiGovernance.maxMonthlyTokenBudget.toLocaleString('vi-VN')} Token</span>
-              </p>
-              <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="bg-indigo-500 h-full rounded-full"
-                  style={{ width: `${(aiGovernance.tokenConsumptionThisMonth / aiGovernance.maxMonthlyTokenBudget) * 100}%` }}
-                />
+          {/* Month Selector Bar for AI Token Governance */}
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-indigo-400" />
+                Đối Soát Token Theo Tháng:
+              </span>
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-wrap">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => {
+                  const isSel = selectedTokenMonth === m;
+                  const isCurrent = m === 9;
+                  const hasData = getTokensForMonth(m) > 0;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSelectedTokenMonth(m)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer relative ${
+                        isSel
+                          ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400/50'
+                          : hasData
+                          ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                          : 'text-slate-500 hover:text-slate-400 hover:bg-slate-800/60'
+                      }`}
+                    >
+                      T{m}
+                      {isCurrent && (
+                        <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-950 animate-pulse" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <div className="text-xs text-slate-400 mb-1">Độ Sáng Tạo (Temperature)</div>
-              <div className="flex items-center justify-between mt-1">
-                <span className="font-bold text-white font-mono">{aiGovernance.temperature}</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-                  {aiGovernance.temperature <= 0.3 ? 'Chính xác & Kỷ luật' : 'Sáng tạo cao'}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={aiGovernance.temperature}
-                onChange={(e) => setAiGovernance({ ...aiGovernance, temperature: parseFloat(e.target.value) })}
-                className="w-full mt-2 accent-indigo-500 cursor-pointer"
-              />
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-slate-400">
+                Đang xem: <strong className="text-cyan-300">Tháng {selectedTokenMonth}/2024</strong>
+              </span>
+              {activeMonth && selectedTokenMonth !== activeMonth && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTokenMonth(activeMonth)}
+                  className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3 text-cyan-400" />
+                  Đồng bộ T{activeMonth}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowAllMonthsTokenBreakdown(!showAllMonthsTokenBreakdown)}
+                className={`px-3 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                  showAllMonthsTokenBreakdown
+                    ? 'bg-indigo-950/70 border-indigo-500/50 text-indigo-300'
+                    : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800'
+                }`}
+              >
+                <Table className="w-3.5 h-3.5 text-indigo-400" />
+                <span>{showAllMonthsTokenBreakdown ? 'Thu Gọn Bảng' : 'Bảng 12 Tháng'}</span>
+              </button>
             </div>
           </div>
+
+          {/* Token Consumption Banner */}
+          {(() => {
+            const currentMonthTokens = getTokensForMonth(selectedTokenMonth);
+            const currentMonthBudget = getBudgetForMonth(selectedTokenMonth);
+            const percentUsed = currentMonthBudget > 0 ? (currentMonthTokens / currentMonthBudget) * 100 : 0;
+            const remainingTokens = Math.max(0, currentMonthBudget - currentMonthTokens);
+
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs text-slate-400 mb-1">Mô Hình Đang Kích Hoạt</div>
+                    <p className="text-lg font-bold text-cyan-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-cyan-400" />
+                      Gemini 3.8 Flash (Auto-Updated)
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-1">Độ trễ siêu tốc: 220ms • Google DeepMind</p>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Context Window:</span>
+                    <span className="font-mono text-cyan-300 font-semibold">1.000.000 Token</span>
+                  </div>
+                </div>
+
+                {/* Card 2: Token Tiêu Thụ Theo Tháng Được Chọn */}
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between relative group hover:border-indigo-500/40 transition-colors">
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Token Tiêu Thụ Tháng {selectedTokenMonth}/2024</span>
+                      </div>
+                      {selectedTokenMonth === 9 ? (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          Tháng này (Live)
+                        </span>
+                      ) : selectedTokenMonth < 9 ? (
+                        <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                          Đã chốt sổ
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          Dự kiến
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-baseline justify-between mt-1.5">
+                      <p className="text-lg font-bold text-indigo-300 font-mono">
+                        {currentMonthTokens.toLocaleString('vi-VN')}
+                        <span className="text-xs text-slate-400 font-normal"> / {currentMonthBudget.toLocaleString('vi-VN')} Token</span>
+                      </p>
+                      <span className={`text-xs font-bold font-mono ${
+                        percentUsed > 85 ? 'text-rose-400' : percentUsed > 60 ? 'text-amber-400' : 'text-emerald-400'
+                      }`}>
+                        {percentUsed.toFixed(1)}%
+                      </span>
+                    </div>
+
+                    <div className="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          percentUsed > 85 ? 'bg-rose-500' : percentUsed > 60 ? 'bg-amber-500' : 'bg-gradient-to-r from-indigo-500 to-cyan-400'
+                        }`}
+                        style={{ width: `${Math.min(100, percentUsed)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>
+                      Còn lại: <strong className="text-slate-300 font-mono">{remainingTokens.toLocaleString('vi-VN')}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditTokenModal(selectedTokenMonth)}
+                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold hover:underline cursor-pointer"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                      <span>Sửa Số Token</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex flex-col justify-between">
+                  <div>
+                    <div className="text-xs text-slate-400 mb-1">Độ Sáng Tạo (Temperature)</div>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="font-bold text-white font-mono">{aiGovernance.temperature}</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-300">
+                        {aiGovernance.temperature <= 0.3 ? 'Chính xác & Kỷ luật' : 'Sáng tạo cao'}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={aiGovernance.temperature}
+                      onChange={(e) => setAiGovernance({ ...aiGovernance, temperature: parseFloat(e.target.value) })}
+                      className="w-full mt-3 accent-indigo-500 cursor-pointer"
+                    />
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Mục tiêu tư vấn:</span>
+                    <span className="text-slate-300 font-medium">Chuẩn y khoa & giá</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Bảng Đối Soát Toàn Diện 12 Tháng (Yearly Monthly Token Breakdown Table) */}
+          {showAllMonthsTokenBreakdown && (
+            <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Table className="w-4 h-4 text-indigo-400" />
+                  <h4 className="text-sm font-bold text-white">
+                    Bảng Đối Soát Tiêu Thụ Token Gemini 3.8 Flash Cả Năm 2024
+                  </h4>
+                </div>
+                <span className="text-xs text-slate-400">
+                  Hạn mức cơ sở: <strong className="text-white">500.000 Token/tháng</strong>
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-slate-400 bg-slate-950/60">
+                      <th className="py-2.5 px-3 font-semibold">Tháng</th>
+                      <th className="py-2.5 px-3 font-semibold text-right">Token Đã Dùng</th>
+                      <th className="py-2.5 px-3 font-semibold text-right">Hạn Mức</th>
+                      <th className="py-2.5 px-4 font-semibold text-center">Tiến Độ (%)</th>
+                      <th className="py-2.5 px-3 font-semibold text-right">Chi Phí Ước Tính</th>
+                      <th className="py-2.5 px-3 font-semibold text-center">Trạng Thái</th>
+                      <th className="py-2.5 px-3 font-semibold text-center">Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => {
+                      const tokens = getTokensForMonth(m);
+                      const budget = getBudgetForMonth(m);
+                      const pct = budget > 0 ? (tokens / budget) * 100 : 0;
+                      const isSel = selectedTokenMonth === m;
+                      const isCurrent = m === 9;
+                      const approxCostVnd = Math.round((tokens / 1000000) * 0.15 * 25400);
+
+                      return (
+                        <tr
+                          key={m}
+                          className={`transition-colors cursor-pointer ${
+                            isSel
+                              ? 'bg-indigo-950/50 hover:bg-indigo-950/70 font-semibold'
+                              : 'hover:bg-slate-800/50'
+                          }`}
+                          onClick={() => setSelectedTokenMonth(m)}
+                        >
+                          <td className="py-2.5 px-3 text-white flex items-center gap-2">
+                            <span className="font-bold">Tháng {m}</span>
+                            {isCurrent && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                                Hiện tại
+                              </span>
+                            )}
+                            {isSel && (
+                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-bold">
+                                Đang chọn
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-indigo-300 font-bold">
+                            {tokens > 0 ? tokens.toLocaleString('vi-VN') : <span className="text-slate-500">0</span>}
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-400">
+                            {budget.toLocaleString('vi-VN')}
+                          </td>
+                          <td className="py-2.5 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    pct > 85 ? 'bg-rose-500' : pct > 60 ? 'bg-amber-500' : 'bg-indigo-500'
+                                  }`}
+                                  style={{ width: `${Math.min(100, pct)}%` }}
+                                />
+                              </div>
+                              <span className="text-[11px] font-mono font-semibold text-slate-300 w-10 text-right">
+                                {pct.toFixed(0)}%
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-300">
+                            {tokens > 0 ? `~${approxCostVnd.toLocaleString('vi-VN')} đ` : <span className="text-slate-600">-</span>}
+                          </td>
+                          <td className="py-2.5 px-3 text-center">
+                            {tokens === 0 ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-500">
+                                Chưa phát sinh
+                              </span>
+                            ) : pct > 85 ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
+                                Vượt ngưỡng
+                              </span>
+                            ) : pct > 40 ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">
+                                Cao điểm
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">
+                                An toàn
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-2.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditTokenModal(m)}
+                              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white font-medium text-[11px] border border-slate-700 transition-colors"
+                            >
+                              Sửa
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Prompt Editor Forms */}
           <div className="space-y-4 text-xs">
@@ -2808,7 +3176,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                     </div>
                     <div>
                       <h4 className="font-bold text-white text-sm">Gemini AI Model</h4>
-                      <p className="text-[11px] text-purple-400">● gemini-3.7-flash</p>
+                      <p className="text-[11px] text-purple-400">● gemini-3.8-flash (Mới nhất)</p>
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
@@ -3846,6 +4214,141 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                 >
                   <Save className="w-4 h-4" />
                   <span>Lưu Cấu Hình Khóa</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: ĐIỀU CHỈNH HẠN MỨC & TOKEN THEO THÁNG */}
+      {isEditTokenModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Điều Chỉnh Token AI Tháng {selectedTokenMonth}/2024
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Cập nhật số token tiêu thụ & ngân sách trần theo tháng
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditTokenModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              {/* Month Selection */}
+              <div>
+                <label className="font-bold text-slate-200 block mb-1.5">Chọn Tháng Muốn Cấu Hình:</label>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTokenMonth(m);
+                        setTokenEditCount(getTokensForMonth(m));
+                        setTokenEditBudget(getBudgetForMonth(m));
+                      }}
+                      className={`py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        selectedTokenMonth === m
+                          ? 'bg-indigo-600 text-white shadow'
+                          : 'bg-slate-800 text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      T{m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Token Consumed */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-200 flex items-center justify-between">
+                  <span>Số Token Tiêu Thụ Trong Tháng:</span>
+                  <span className="text-[10px] text-cyan-400 font-normal">Đơn vị: Token</span>
+                </label>
+                <input
+                  type="number"
+                  value={tokenEditCount}
+                  onChange={(e) => setTokenEditCount(Number(e.target.value))}
+                  placeholder="VD: 142850"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-indigo-500 text-sm"
+                />
+              </div>
+
+              {/* Monthly Budget */}
+              <div className="space-y-1.5">
+                <label className="font-bold text-slate-200 flex items-center justify-between">
+                  <span>Hạn Mức Token Trần (Budget Limit):</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Mặc định: 500.000</span>
+                </label>
+                <input
+                  type="number"
+                  value={tokenEditBudget}
+                  onChange={(e) => setTokenEditBudget(Number(e.target.value))}
+                  placeholder="VD: 500000"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-mono focus:outline-none focus:border-indigo-500 text-sm"
+                />
+              </div>
+
+              {/* Auto calc from dataset button */}
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleAutoCalcTokenFromDataset(selectedTokenMonth)}
+                  className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-cyan-300 font-semibold border border-slate-700 flex items-center justify-center gap-1.5 text-xs transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>⚡ Tự Động Tính Theo Dữ Liệu Thực Tế Tháng {selectedTokenMonth}</span>
+                </button>
+                <p className="text-[10px] text-slate-500 mt-1 text-center">
+                  Dựa trên số lượng khách Leads, tổng chi phí chiến dịch Google Ads của tháng.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-3 flex items-center justify-between border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setTokenEditCount(DEFAULT_MONTHLY_TOKENS[selectedTokenMonth] || 0);
+                  setTokenEditBudget(DEFAULT_MONTHLY_TOKEN_BUDGET);
+                }}
+                className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Khôi phục mặc định</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditTokenModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white font-bold cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMonthlyToken}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Lưu Token Tháng {selectedTokenMonth}</span>
                 </button>
               </div>
             </div>

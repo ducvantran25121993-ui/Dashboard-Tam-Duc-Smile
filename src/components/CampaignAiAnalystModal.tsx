@@ -208,7 +208,7 @@ export const CampaignAiAnalystModal: React.FC<CampaignAiAnalystModalProps> = ({
                   AI Phân Tích & Tối Ưu Chiến Dịch Google Ads
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  Gemini 3.7 Flash
+                  Gemini 3.8 Flash
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-0.5">

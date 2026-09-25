@@ -487,7 +487,7 @@ export const InnovationView: React.FC = () => {
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Tính Năng AI Gợi Ý Sáng Kiến Tự Động</span>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                  Gemini 3.7 Flash
+                  Gemini 3.8 Flash
                 </span>
               </h3>
               <p className="text-xs text-slate-400">Chọn chủ đề hoặc nhập bài toán bạn muốn AI đề xuất giải pháp</p>

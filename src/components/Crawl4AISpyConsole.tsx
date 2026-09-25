@@ -857,7 +857,7 @@ export const Crawl4AISpyConsole: React.FC<{
       setCrawlProgressStep(4);
       setCrawlLogs(prev => [
         ...prev,
-        `[${((data.executionTimeMs || 1500) / 1000).toFixed(2)}s] ✅ geminiCrawler.ts & Gemini 3.6 Flash hoàn tất phân tích!`
+        `[${((data.executionTimeMs || 1500) / 1000).toFixed(2)}s] ✅ geminiCrawler.ts & Gemini 3.8 Flash hoàn tất phân tích!`
       ]);
 
       setResult(data);

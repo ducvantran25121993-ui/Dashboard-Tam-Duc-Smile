@@ -26,7 +26,7 @@ export async function callClientGemini(
   messages: ChatMessage[],
   contextData: any,
   apiKey: string,
-  modelName: string = 'gemini-3.7-flash'
+  modelName: string = 'gemini-3.8-flash'
 ): Promise<string> {
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
@@ -264,5 +264,5 @@ Chào bạn, đây là thông tin giải đáp cho câu hỏi của bạn:
    * **Mở rộng kiến thức:** Bạn có thể đặt thêm câu hỏi chi tiết về bất kỳ khía cạnh nào để cùng đào sâu hơn!
 
 ---
-✨ *Gợi ý:* Bạn có thể bấm nút **"Cấu hình kết nối AI"** để kết nối trực tiếp với các mô hình mạnh nhất thế giới như **GPT-4o, Claude 3.5 Sonnet hoặc Gemini 3.7**!`;
+✨ *Gợi ý:* Bạn có thể bấm nút **"Cấu hình kết nối AI"** để kết nối trực tiếp với các mô hình mạnh nhất thế giới như **GPT-4o, Claude 3.5 Sonnet hoặc Gemini 3.8**!`;
 }

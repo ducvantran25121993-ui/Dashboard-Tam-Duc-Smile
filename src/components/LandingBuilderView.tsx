@@ -1542,7 +1542,7 @@ export default function LandingBuilderView() {
                     </p>
                   </button>
 
-                  {/* Gemini 2.5 Pro */}
+                  {/* Gemini 3.1 Pro */}
                   <button
                     type="button"
                     onClick={() => setSelectedEngine('gemini_pro')}
@@ -1554,7 +1554,7 @@ export default function LandingBuilderView() {
                   >
                     <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-300">
                       <BrainCircuit className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>Gemini 2.5 Pro</span>
+                      <span>Gemini 3.1 Pro (Deep)</span>
                     </div>
                     <p className="text-[10px] text-slate-400 mt-1 line-clamp-2">
                       Tư duy kiến trúc sâu, giải mã bố cục ảnh phức tạp và các trang dài.

@@ -55,12 +55,12 @@ const AI_PROVIDERS: AIProviderConfig[] = [
   {
     id: 'gemini',
     name: 'Google Gemini AI',
-    badge: 'Mặc định có sẵn',
+    badge: 'Mặc định có sẵn (3.8 Flash)',
     badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-400/30',
-    models: ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-3.7-flash', 'gemini-3.1-pro-preview'],
-    defaultModel: 'gemini-flash-latest',
+    models: ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-pro-preview', 'gemini-3.1-flash-lite'],
+    defaultModel: 'gemini-3.8-flash',
     apiKeyPlaceholder: 'Đã cấu hình server-side (Có thể nhập key riêng)',
-    description: 'Mô hình siêu tốc độ cao & suy luận sâu từ Google DeepMind.',
+    description: 'Mô hình thế hệ mới Gemini 3.8 Flash siêu tốc độ, suy luận cực sắc bén từ Google DeepMind.',
     docUrl: 'https://aistudio.google.com/app/apikey',
   },
   {
@@ -133,11 +133,28 @@ export const AIAgentView: React.FC<AIAgentViewProps> = ({ monthlyDatasets }) => 
     }
   });
 
+  // Auto-update to latest recommended Google Gemini model (default true)
+  const [autoUpdateModel, setAutoUpdateModel] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem('ai_agent_auto_update_model');
+      return stored === null ? true : stored === 'true';
+    } catch {
+      return true;
+    }
+  });
+
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     try {
-      return localStorage.getItem('ai_agent_model') || 'gemini-3.7-flash';
+      const isAuto = localStorage.getItem('ai_agent_auto_update_model') !== 'false';
+      const stored = localStorage.getItem('ai_agent_model');
+      // Tự động nâng cấp các phiên bản cũ lên gemini-3.8-flash
+      if (isAuto && (!stored || stored.includes('3.7') || stored.includes('3.6') || stored.includes('2.0'))) {
+        localStorage.setItem('ai_agent_model', 'gemini-3.8-flash');
+        return 'gemini-3.8-flash';
+      }
+      return stored || 'gemini-3.8-flash';
     } catch {
-      return 'gemini-3.7-flash';
+      return 'gemini-3.8-flash';
     }
   });
 
@@ -198,10 +215,26 @@ Tôi có thể trò chuyện và giải đáp **TẤT CẢ MỌI CÂU HỎI** c�
     scrollToBottom();
   }, [messages, isLoading]);
 
+  // Auto-sync effect: when autoUpdateModel is active and provider is gemini, ensure gemini-3.8-flash is active
+  useEffect(() => {
+    if (autoUpdateModel && selectedProvider === 'gemini') {
+      if (selectedModel.includes('3.7') || selectedModel.includes('3.6') || selectedModel.includes('2.0') || !selectedModel) {
+        setSelectedModel('gemini-3.8-flash');
+        try {
+          localStorage.setItem('ai_agent_model', 'gemini-3.8-flash');
+          window.dispatchEvent(new Event('storage'));
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [autoUpdateModel, selectedProvider, selectedModel]);
+
   const handleSaveSettings = () => {
     try {
       localStorage.setItem('ai_agent_provider', selectedProvider);
       localStorage.setItem('ai_agent_model', selectedModel);
+      localStorage.setItem('ai_agent_auto_update_model', String(autoUpdateModel));
       localStorage.setItem('ai_agent_custom_keys', JSON.stringify(apiKeys));
       localStorage.setItem('ai_agent_custom_base_url', customBaseUrl);
       window.dispatchEvent(new Event('storage'));
@@ -409,9 +442,14 @@ Tôi có thể trò chuyện và giải đáp **TẤT CẢ MỌI CÂU HỎI** c�
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1.5 hover:scale-105 ${currentProviderObj.badgeColor}`}
                 title="Bấm để chuyển đổi mô hình hoặc cài đặt API Key"
               >
-                <Sparkles className="w-3 h-3" />
+                <Sparkles className="w-3 h-3 text-cyan-300" />
                 <span>{currentProviderObj.name}</span>
-                <span className="opacity-75 text-[10px]">({selectedModel})</span>
+                <span className="font-mono text-[10px] text-cyan-200">({selectedModel})</span>
+                {autoUpdateModel && selectedProvider === 'gemini' && (
+                  <span className="px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-300 text-[9px] font-semibold border border-cyan-400/30">
+                    ⚡ Auto 3.8
+                  </span>
+                )}
                 <SlidersHorizontal className="w-3 h-3 ml-0.5 opacity-80" />
               </button>
             </div>
@@ -732,9 +770,61 @@ Tôi có thể trò chuyện và giải đáp **TẤT CẢ MỌI CÂU HỎI** c�
 
               {/* Model Selection */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">
-                  2. Chọn Mô Hình (Model):
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    2. Chọn Mô Hình (Model):
+                  </label>
+                  {selectedProvider === 'gemini' && (
+                    <span className="text-[11px] text-cyan-300 font-semibold flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-cyan-400" />
+                      Gemini 3.8 Flash Mới Nhất
+                    </span>
+                  )}
+                </div>
+
+                {/* Auto Update Toggle Card */}
+                {selectedProvider === 'gemini' && (
+                  <div className="mb-3 p-3 rounded-xl bg-gradient-to-r from-cyan-950/40 via-indigo-950/30 to-purple-950/20 border border-cyan-500/30 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                        <Sparkles className="w-4 h-4 animate-pulse" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-cyan-200">
+                            Tự Động Cập Nhật Model Mới Nhất (Auto-Update)
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                            Khuyên Dùng
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Tự động nâng cấp lên <strong className="text-cyan-300">Gemini 3.8 Flash</strong> mới nhất từ Google, đảm bảo tốc độ phản hồi nhanh nhất và độ chính xác cao nhất.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextVal = !autoUpdateModel;
+                        setAutoUpdateModel(nextVal);
+                        if (nextVal) {
+                          setSelectedModel('gemini-3.8-flash');
+                        }
+                      }}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        autoUpdateModel ? 'bg-cyan-500' : 'bg-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          autoUpdateModel ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                )}
+
                 {selectedProvider === 'custom' ? (
                   <input
                     type="text"
@@ -749,11 +839,20 @@ Tôi có thể trò chuyện và giải đáp **TẤT CẢ MỌI CÂU HỎI** c�
                     onChange={(e) => setSelectedModel(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
-                    {currentProviderObj.models.map((m) => (
-                      <option key={m} value={m}>
-                        {m} {m === currentProviderObj.defaultModel ? ' (Khuyên dùng)' : ''}
-                      </option>
-                    ))}
+                    {currentProviderObj.models.map((m) => {
+                      let label = m;
+                      if (m === 'gemini-3.8-flash') label = 'gemini-3.8-flash ⭐ [Mới nhất 3.8 - Siêu Nhanh & Đột Phá - Khuyên Dùng]';
+                      else if (m === 'gemini-flash-latest') label = 'gemini-flash-latest ⚡ [Tự động trỏ Flash mới nhất của Google]';
+                      else if (m === 'gemini-3.1-pro-preview') label = 'gemini-3.1-pro-preview 🧠 [Suy luận sâu & Lập luận phức tạp]';
+                      else if (m === 'gemini-3.1-flash-lite') label = 'gemini-3.1-flash-lite 🪶 [Siêu nhẹ & Tiết kiệm]';
+                      else if (m === currentProviderObj.defaultModel) label = `${m} (Khuyên dùng)`;
+
+                      return (
+                        <option key={m} value={m}>
+                          {label}
+                        </option>
+                      );
+                    })}
                   </select>
                 )}
               </div>

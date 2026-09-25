@@ -312,7 +312,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       { id: 'vttech_crm', title: 'VTTech CRM (Vé & Lịch Hẹn)', subtitle: 'Đồng bộ Ticket, trạng thái hẹn khám, đối soát Gclid và cơ sở từ VTTech Solution', icon: Ticket, iconColor: 'text-orange-400 bg-orange-500/10 border-orange-500/30', keywords: ['vttech', 'ticket', 've', 'lich hen', 'tam duc', 'gclid'] },
       { id: 'innovation', title: 'Sáng Tạo & Đổi Mới (Innovation)', subtitle: 'Đề xuất ý tưởng marketing & tối ưu quy trình', icon: Sparkles, iconColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' },
       { id: 'landing_builder', title: 'Tạo Landing Page AI (Vision to Code)', subtitle: 'Sinh trang đích từ ảnh mẫu & giao diện chuẩn nha khoa', icon: Wand2, iconColor: 'text-pink-400 bg-pink-500/10 border-pink-500/30' },
-      { id: 'ai_agent', title: 'AI — Trợ Lý Tăng Trưởng (Gemini 3.7)', subtitle: 'Hỏi đáp chiến lược & trợ lý phân tích dữ liệu marketing', icon: Bot, iconColor: 'text-violet-400 bg-violet-500/10 border-violet-500/30' },
+      { id: 'ai_agent', title: 'AI — Trợ Lý Tăng Trưởng (Gemini 3.8)', subtitle: 'Hỏi đáp chiến lược & trợ lý phân tích dữ liệu marketing', icon: Bot, iconColor: 'text-violet-400 bg-violet-500/10 border-violet-500/30' },
     ];
 
     if (userRole === 'admin') {

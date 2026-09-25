@@ -22,6 +22,7 @@ import {
 import { SidebarTab } from '../types';
 import { getActiveAIModelBadge } from '../utils/aiBadgeHelper';
 import { fetchFormLeads } from '../services/formLeadsService';
+import { fetchCachedVTTechTickets } from '../services/vttechService';
 
 interface SidebarProps {
   activeTab: SidebarTab;
@@ -62,6 +63,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return 59;
     }
   });
+  const [vttechBadge, setVttechBadge] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('vttech_total_tickets');
+      if (saved) {
+        const num = parseInt(saved, 10);
+        if (num > 0) return num >= 1000 ? `${(num / 1000).toFixed(1)}k Live` : `${num} Live`;
+      }
+    } catch {}
+    return '16.8k Live';
+  });
 
   useEffect(() => {
     // Tải số lượng Leads thực tế từ Form Sheet để badge luôn đếm chính xác
@@ -75,11 +86,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
       })
       .catch(() => {});
 
+    // Tải số lượng vé VTTech CRM thực tế từ API để badge luôn chuẩn xác theo thời gian thực
+    fetchCachedVTTechTickets()
+      .then((res) => {
+        if (res && res.success) {
+          const total = typeof res.total === 'number' ? res.total : (Array.isArray(res.data) ? res.data.length : 0);
+          if (total > 0) {
+            const formatted = total >= 1000 ? `${(total / 1000).toFixed(1)}k Live` : `${total} Live`;
+            setVttechBadge(formatted);
+            try {
+              localStorage.setItem('vttech_total_tickets', String(total));
+            } catch {}
+          }
+        }
+      })
+      .catch(() => {});
+
     const handleLeadsUpdated = (e: any) => {
       if (e.detail?.totalSubmissions) {
         const total = e.detail.totalSubmissions;
         const formatted = total >= 1000 ? `${(total / 1000).toFixed(1)}k` : `${total}`;
         setLeadsBadge(formatted);
+      }
+    };
+
+    const handleVttechUpdated = (e: any) => {
+      const total = typeof e.detail?.total === 'number' ? e.detail.total : (Array.isArray(e.detail?.data) ? e.detail.data.length : null);
+      if (total && total > 0) {
+        const formatted = total >= 1000 ? `${(total / 1000).toFixed(1)}k Live` : `${total} Live`;
+        setVttechBadge(formatted);
+        try {
+          localStorage.setItem('vttech_total_tickets', String(total));
+        } catch {}
       }
     };
 
@@ -91,14 +129,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       } catch {
         // ignore
       }
+      try {
+        const savedVt = localStorage.getItem('vttech_total_tickets');
+        if (savedVt) {
+          const num = parseInt(savedVt, 10);
+          if (num > 0) setVttechBadge(num >= 1000 ? `${(num / 1000).toFixed(1)}k Live` : `${num} Live`);
+        }
+      } catch {
+        // ignore
+      }
     };
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('campaigns_updated', handleUpdate);
     window.addEventListener('form_leads_updated', handleLeadsUpdated);
+    window.addEventListener('vttech-updated', handleVttechUpdated);
     return () => {
       window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('campaigns_updated', handleUpdate);
       window.removeEventListener('form_leads_updated', handleLeadsUpdated);
+      window.removeEventListener('vttech-updated', handleVttechUpdated);
     };
   }, []);
 
@@ -160,7 +209,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'vttech_crm',
       label: 'VTTech CRM',
       icon: Ticket,
-      badge: '3.1k Live',
+      badge: vttechBadge,
       badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     },
     {

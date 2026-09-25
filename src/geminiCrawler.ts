@@ -15,9 +15,10 @@ function getGeminiAI() {
 
 // Danh sách các model Gemini thế hệ mới hỗ trợ chính thức (ưu tiên các model có độ sẵn sàng cao nhất)
 const FALLBACK_MODELS = [
+  'gemini-3.8-flash',
   'gemini-flash-latest',
-  'gemini-3.1-flash-lite',
-  'gemini-3.7-flash'
+  'gemini-3.1-pro-preview',
+  'gemini-3.1-flash-lite'
 ];
 
 async function callGeminiWithFallback(
