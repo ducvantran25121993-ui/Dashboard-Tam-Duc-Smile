@@ -1,13 +1,13 @@
 {
-  "lastFetched": 1790580594201,
+  "lastFetched": 1790581213718,
   "days": 999,
   "data": {
-    "totalInPancake": 4144,
-    "returned": 4144,
+    "totalInPancake": 4145,
+    "returned": 4145,
     "pageNumber": 1,
     "summary": {
-      "totalLeads": 4144,
-      "withPhone": 2403,
+      "totalLeads": 4145,
+      "withPhone": 2404,
       "booked": 940,
       "won": 236,
       "lost": 136,
@@ -16,7 +16,7 @@
           "pageId": "pzl_329635242261010723",
           "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
           "type": "zalo",
-          "totalLeads": 950,
+          "totalLeads": 951,
           "withPhone": 575,
           "booked": 207,
           "won": 41
@@ -26,7 +26,7 @@
           "pageName": "Zalo OA - 0329851079 (Hotline)",
           "type": "zalo",
           "totalLeads": 208,
-          "withPhone": 121,
+          "withPhone": 122,
           "booked": 42,
           "won": 8
         },
@@ -54,10 +54,49 @@
         "porcelain": 355,
         "ortho": 292,
         "vietKieu": 7,
-        "general": 3230
+        "general": 3231
       }
     },
     "leads": [
+      {
+        "id": "pzl_u_329635242261010723_6155250650477162715",
+        "name": "Thoại",
+        "avatar": "https://s120-26-ava-talk.zadn.vn/48/e2447d2a084be872e5e7a8ede104c951.jpg?key=HA_43vc0PYoBxyDLl5G1eA&time=1795764641",
+        "phone": "",
+        "hasPhone": false,
+        "snippet": "dạ hiện tại em đang bận k thể nghe đt đc ấy ạ",
+        "insertedAt": "2026-09-28T07:30:10.000000",
+        "updatedAt": "2026-09-28T07:37:18.246000",
+        "messageCount": 5,
+        "tags": [
+          {
+            "id": 23,
+            "text": "Trang",
+            "color": "#11c532"
+          },
+          {
+            "id": 63,
+            "text": "WEB",
+            "color": "#fb5353"
+          }
+        ],
+        "notes": [
+          {
+            "id": "19db3467-82b0-4c41-a2c0-6bd1b966796b",
+            "message": "28.9.2026",
+            "author": "CHANG CHANG",
+            "time": 1790580847297
+          }
+        ],
+        "branch": "Toàn Hệ Thống",
+        "service": "Tư Vấn Chung",
+        "isWon": false,
+        "isLost": false,
+        "isBooked": false,
+        "pageId": "pzl_329635242261010723",
+        "pageName": "Zalo OA - 0866802030 (Nha Khoa Tâm Đức Smile)",
+        "channelType": "zalo"
+      },
       {
         "id": "pzl_u_329635242261010723_2809322022026974284",
         "name": "Nguyễn Xuân Trị",
@@ -101,12 +140,12 @@
         "id": "pzl_u_400255603301941410_8978942066546601908",
         "name": "Kim Ngân",
         "avatar": "https://s120-26-ava-talk.zadn.vn/23/374d3b8cc04410bf91ca4abdf4d3dde0.jpg?key=022JQa2MsnieY1YlukLx-A&time=1795761411",
-        "phone": "",
-        "hasPhone": false,
-        "snippet": "dạ ko chị , đăng kí mới dc áp dung ạ",
+        "phone": "0368018535",
+        "hasPhone": true,
+        "snippet": "khi nào chị ghé khám ạ em kiểm tra lịch ậ",
         "insertedAt": "2026-09-28T06:36:20.000000",
-        "updatedAt": "2026-09-28T07:13:36.593000",
-        "messageCount": 11,
+        "updatedAt": "2026-09-28T07:33:39.839000",
+        "messageCount": 16,
         "tags": [
           {
             "id": 23,
@@ -186421,6 +186460,6 @@
         "channelType": "zalo"
       }
     ],
-    "cachedAt": "2026-09-28T07:29:54.217Z"
+    "cachedAt": "2026-09-28T07:40:13.721Z"
   }
 }

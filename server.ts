@@ -1011,7 +1011,7 @@ function parseFilterRange(query: any) {
 function applyFilterRange(
   leads: any[],
   filterRange: { startMs: number; endMs: number } | null,
-  filterBy: 'inserted' | 'updated' | 'both' = 'both'
+  filterBy: 'inserted' | 'updated' | 'both' = 'inserted'
 ) {
   if (!filterRange) return leads;
   return leads.filter((l) => {
@@ -1021,6 +1021,8 @@ function applyFilterRange(
     const matchesUpdate = !isNaN(updateMs) && updateMs >= filterRange.startMs && updateMs <= filterRange.endMs;
 
     if (filterBy === 'inserted') {
+      // Chuẩn xác nghiệp vụ: Ngày nào bắt đầu chat thì tính cho ngày đó (theo insertedAt).
+      // Khách cũ nhắn lại hôm nay không tính vào hội thoại hôm nay.
       if (!isNaN(insertMs) && insertMs > 0) {
         return matchesInsert;
       }
@@ -1052,7 +1054,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
     }
 
     const { mode, isToday, filterRange, queryDays } = parseFilterRange(req.query);
-    const filterBy = (String(req.query.filterBy || 'both').toLowerCase() as 'inserted' | 'updated' | 'both');
+    // Chuẩn xác: Mặc định luôn lọc theo 'inserted' (ngày bắt đầu chat)
+    const filterBy = (String(req.query.filterBy || 'inserted').toLowerCase() as 'inserted' | 'updated' | 'both');
     const pageNumber = Math.max(parseInt((req.query.page_number as string) || '1', 10), 1);
     const search = ((req.query.search as string) || '').toLowerCase().trim();
     const tagFilter = ((req.query.tag as string) || '').toLowerCase().trim();

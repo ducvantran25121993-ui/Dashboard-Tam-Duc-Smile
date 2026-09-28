@@ -182,7 +182,7 @@ export const PancakeCRMView: React.FC = () => {
   const [customEndDate, setCustomEndDate] = useState<string>('');
   const [filterLabel, setFilterLabel] = useState<string>('Hôm nay');
   const [isCalendarOpen, setIsCalendarOpen] = useState<boolean>(false);
-  const [calendarTab, setCalendarTab] = useState<'day' | 'range' | 'month'>('day');
+  const [calendarTab, setCalendarTab] = useState<'range' | 'month'>('range');
   const [isRealtimeActive, setIsRealtimeActive] = useState<boolean>(true);
   const [countdownSeconds, setCountdownSeconds] = useState<number>(15);
   const [lastSyncedTime, setLastSyncedTime] = useState<string>(new Date().toLocaleTimeString('vi-VN'));
@@ -830,35 +830,31 @@ export const PancakeCRMView: React.FC = () => {
                   setIsCalendarOpen(!isCalendarOpen);
                   if (timeFilterMode === 'month') {
                     setCalendarTab('month');
-                  } else if (timeFilterMode === 'custom') {
-                    setCalendarTab('range');
                   } else {
-                    setCalendarTab('day');
+                    setCalendarTab('range');
                   }
                 }}
                 className={`px-3 py-1.5 rounded-lg font-semibold transition flex items-center gap-1.5 border ${
-                  timeFilterMode === 'day' || timeFilterMode === 'month' || timeFilterMode === 'custom'
+                  timeFilterMode === 'month' || timeFilterMode === 'custom'
                     ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-sm'
                     : 'bg-slate-800 text-cyan-400 border-cyan-500/30 hover:bg-slate-700'
                 }`}
-                title="Chọn ngày cụ thể, khoảng ngày hoặc theo tháng"
+                title="Chọn khoảng ngày hoặc theo tháng"
               >
                 {timeFilterMode === 'custom' ? (
                   <CalendarRange className="w-3.5 h-3.5" />
                 ) : (
                   <CalendarDays className="w-3.5 h-3.5" />
                 )}
-                {timeFilterMode === 'day' && singleDate
-                  ? `Ngày ${singleDate.split('-').reverse().join('/')}`
-                  : timeFilterMode === 'month'
+                {timeFilterMode === 'month'
                   ? `Tháng ${selectedMonth.split('-')[1]}/${selectedMonth.split('-')[0]}`
                   : timeFilterMode === 'custom' && customStartDate && customEndDate
                   ? `${customStartDate.split('-').slice(1).reverse().join('/')} → ${customEndDate.split('-').slice(1).reverse().join('/')}`
-                  : 'Chọn Ngày Cụ Thể / Lịch 📅'}
+                  : 'Chọn Tháng / Lịch Ngày 📅'}
                 <ChevronDown className="w-3 h-3 opacity-70" />
               </button>
 
-              {/* Dropdown 3 Tabs: 1 Ngày Cụ Thể, Khoảng Ngày, Theo Tháng */}
+              {/* Dropdown 2 Tabs: Khoảng Ngày, Theo Tháng */}
               {isCalendarOpen && (
                 <>
                   <div
@@ -871,38 +867,26 @@ export const PancakeCRMView: React.FC = () => {
                       <div className="flex bg-slate-800/90 p-0.5 rounded-xl border border-slate-700/60 w-full mr-2">
                         <button
                           type="button"
-                          onClick={() => setCalendarTab('day')}
-                          className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition ${
-                            calendarTab === 'day'
-                              ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
-                              : 'text-slate-400 hover:text-white'
-                          }`}
-                        >
-                          <Calendar className="w-3 h-3" />
-                          1 Ngày
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => setCalendarTab('range')}
-                          className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition ${
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                             calendarTab === 'range'
                               ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
                               : 'text-slate-400 hover:text-white'
                           }`}
                         >
-                          <CalendarRange className="w-3 h-3" />
+                          <CalendarRange className="w-3.5 h-3.5" />
                           Khoảng Ngày
                         </button>
                         <button
                           type="button"
                           onClick={() => setCalendarTab('month')}
-                          className={`flex-1 py-1 px-1.5 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition ${
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
                             calendarTab === 'month'
                               ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm'
                               : 'text-slate-400 hover:text-white'
                           }`}
                         >
-                          <CalendarDays className="w-3 h-3" />
+                          <CalendarDays className="w-3.5 h-3.5" />
                           Tháng
                         </button>
                       </div>
@@ -914,115 +898,7 @@ export const PancakeCRMView: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Tab 1: 1 Ngày Cụ Thể */}
-                    {calendarTab === 'day' && (
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-[11px] text-slate-400 block mb-1 font-medium">
-                            Chọn ngày bất kỳ để xem số liệu:
-                          </label>
-                          <input
-                            type="date"
-                            value={singleDate}
-                            max={new Date().toISOString().slice(0, 10)}
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                setSingleDate(e.target.value);
-                                setTimeFilterMode('day');
-                                setIsCalendarOpen(false);
-                              }
-                            }}
-                            className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-xs font-mono focus:outline-none focus:border-cyan-500"
-                          />
-                        </div>
-
-                        <div>
-                          <div className="text-[10px] text-slate-400 font-medium mb-1.5">Chọn nhanh ngày đã qua:</div>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {[
-                              {
-                                label: 'Hôm qua',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 1);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                              {
-                                label: '2 ngày trước',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 2);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                              {
-                                label: '3 ngày trước',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 3);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                              {
-                                label: '7 ngày trước',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 7);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                              {
-                                label: '14 ngày trước',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 14);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                              {
-                                label: '30 ngày trước',
-                                getDate: () => {
-                                  const d = new Date();
-                                  d.setDate(d.getDate() - 30);
-                                  return d.toISOString().slice(0, 10);
-                                },
-                              },
-                            ].map((item) => (
-                              <button
-                                key={item.label}
-                                type="button"
-                                onClick={() => {
-                                  const val = item.getDate();
-                                  setSingleDate(val);
-                                  setTimeFilterMode('day');
-                                  setIsCalendarOpen(false);
-                                }}
-                                className={`px-2 py-1.5 text-[11px] rounded-lg text-left transition ${
-                                  timeFilterMode === 'day' && singleDate === item.getDate()
-                                    ? 'bg-cyan-500 text-slate-950 font-bold'
-                                    : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
-                                }`}
-                              >
-                                {item.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => {
-                            setTimeFilterMode('day');
-                            setIsCalendarOpen(false);
-                          }}
-                          className="w-full py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition shadow-sm"
-                        >
-                          Xem Số Liệu Ngày Này
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Tab 2: Khoảng Ngày Tùy Biến */}
+                    {/* Tab 1: Khoảng Ngày Tùy Biến */}
                     {calendarTab === 'range' && (
                       <div className="space-y-2.5">
                         <div className="grid grid-cols-2 gap-2">
@@ -1774,15 +1650,16 @@ export const PancakeCRMView: React.FC = () => {
 
                     return (
                       <div className="flex flex-col sm:items-end gap-1 text-[11px]">
-                        <div className="flex items-center gap-1.5 text-slate-300 font-medium" title="Thời gian hội thoại">
+                        <div className="flex items-center gap-1.5 text-slate-300 font-medium" title="Thời điểm bắt đầu hội thoại">
                           <Calendar className="w-3 h-3 text-teal-400" />
-                          <span className="font-mono text-slate-200 font-bold">{updateDisplay || startDisplay}</span>
+                          <span className="text-slate-400 text-[10px]">Bắt đầu:</span>
+                          <span className="font-mono text-teal-300 font-bold">{startDisplay}</span>
                         </div>
 
                         <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                          {isDifferentDate && (
-                            <span className="text-[10px] text-slate-400" title={`Bắt đầu chat lần đầu từ: ${startDisplay}`}>
-                              Tạo từ: {startDate?.toLocaleDateString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' })}
+                          {isDifferentDate && updateDate && (
+                            <span className="text-[10px] text-amber-400/90 font-medium" title={`Tin nhắn tương tác gần nhất: ${updateDisplay}`}>
+                              Chat lại: {updateDate.toLocaleTimeString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
                           <span className="text-slate-400 font-mono">• {item.messageCount} tin</span>
