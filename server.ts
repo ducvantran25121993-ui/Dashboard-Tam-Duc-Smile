@@ -887,15 +887,17 @@ function parseTimestampMs(ts: string | number | undefined | null): number {
   if (typeof ts === 'number') {
     return ts < 1e11 ? ts * 1000 : ts;
   }
-  const s = String(ts).trim();
+  let s = String(ts).trim();
   if (!s) return 0;
   if (/^\d+$/.test(s)) {
     const num = parseInt(s, 10);
     return num < 1e11 ? num * 1000 : num;
   }
-  const isoStr = s.endsWith('Z') || s.includes('+') || (s.includes('-') && s.lastIndexOf('-') > 10)
-    ? s
-    : `${s}Z`;
+  if (s.includes(' ') && !s.includes('T')) {
+    s = s.replace(' ', 'T');
+  }
+  const hasTimezone = s.endsWith('Z') || s.includes('+') || (s.includes('-') && s.lastIndexOf('-') > 10);
+  const isoStr = hasTimezone ? s : `${s}Z`;
   const t = new Date(isoStr).getTime();
   return isNaN(t) ? 0 : t;
 }
@@ -948,18 +950,40 @@ function parseFilterRange(query: any) {
       mode: 'month',
       isToday: false,
       filterRange: { startMs, endMs, label: `Tháng ${m}/${y}` },
-      queryDays: 28,
+      queryDays: 31,
+    };
+  }
+
+  if (mode === 'day' && query.date) {
+    const startMs = new Date(`${query.date}T00:00:00+07:00`).getTime();
+    const endMs = new Date(`${query.date}T23:59:59.999+07:00`).getTime();
+    const parts = String(query.date).split('-');
+    const formatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : query.date;
+    return {
+      mode: 'day',
+      isToday: false,
+      filterRange: { startMs, endMs, label: `Ngày ${formatted}` },
+      queryDays: 2,
     };
   }
 
   if (mode === 'custom' && query.startDate && query.endDate) {
     const startMs = new Date(`${query.startDate}T00:00:00+07:00`).getTime();
     const endMs = new Date(`${query.endDate}T23:59:59.999+07:00`).getTime();
+    const isSingleDay = query.startDate === query.endDate;
+    const formatDay = (dStr: string) => {
+      const parts = dStr.split('-');
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dStr;
+    };
     return {
       mode: 'custom',
       isToday: false,
-      filterRange: { startMs, endMs, label: `${query.startDate} - ${query.endDate}` },
-      queryDays: Math.min(Math.ceil(Math.abs(endMs - startMs) / (86400 * 1000)), 28) || 14,
+      filterRange: {
+        startMs,
+        endMs,
+        label: isSingleDay ? `Ngày ${formatDay(query.startDate)}` : `${formatDay(query.startDate)} - ${formatDay(query.endDate)}`,
+      },
+      queryDays: Math.min(Math.ceil(Math.abs(endMs - startMs) / (86400 * 1000)), 365) || 1,
     };
   }
 
@@ -968,30 +992,44 @@ function parseFilterRange(query: any) {
       mode: 'all',
       isToday: false,
       filterRange: null, // Tất cả lịch sử
-      queryDays: 28,
+      queryDays: 365,
     };
   }
 
   // Số ngày theo lịch Việt Nam: 3, 7, 14, 30... ngày qua
-  const daysNum = Math.min(Math.max(parseInt(mode, 10) || 14, 1), 30);
+  const daysNum = Math.min(Math.max(parseInt(mode, 10) || 14, 1), 60);
   const startMs = getVnDate(-(daysNum - 1)).startMs;
   const endMs = getVnDate(0).endMs;
   return {
     mode: `${daysNum}`,
     isToday: false,
     filterRange: { startMs, endMs, label: `${daysNum} ngày qua` },
-    queryDays: Math.min(daysNum + 1, 28),
+    queryDays: Math.min(daysNum + 1, 60),
   };
 }
 
-function applyFilterRange(leads: any[], filterRange: { startMs: number; endMs: number } | null) {
+function applyFilterRange(
+  leads: any[],
+  filterRange: { startMs: number; endMs: number } | null,
+  filterBy: 'inserted' | 'updated' | 'both' = 'both'
+) {
   if (!filterRange) return leads;
   return leads.filter((l) => {
-    // QUY TẮC CỐT LÕI: Hội thoại chia ĐÚNG theo ngày BẮT ĐẦU chat (insertedAt).
-    // - Hôm nay: chỉ tính hội thoại bắt đầu trong ngày hôm nay.
-    // - Khách đã chat hôm qua/ngày trước, hôm nay chat lại -> vẫn tính vào ngày hôm qua/ngày trước đó!
-    const startMs = parseTimestampMs(l.insertedAt) || parseTimestampMs(l.updatedAt);
-    return !isNaN(startMs) && startMs >= filterRange.startMs && startMs <= filterRange.endMs;
+    const insertMs = parseTimestampMs(l.insertedAt);
+    const updateMs = parseTimestampMs(l.updatedAt);
+    const matchesInsert = !isNaN(insertMs) && insertMs >= filterRange.startMs && insertMs <= filterRange.endMs;
+    const matchesUpdate = !isNaN(updateMs) && updateMs >= filterRange.startMs && updateMs <= filterRange.endMs;
+
+    if (filterBy === 'inserted') {
+      if (!isNaN(insertMs) && insertMs > 0) {
+        return matchesInsert;
+      }
+      return matchesUpdate;
+    }
+    if (filterBy === 'updated') {
+      return matchesUpdate;
+    }
+    return matchesInsert || matchesUpdate;
   });
 }
 
@@ -1014,6 +1052,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
     }
 
     const { mode, isToday, filterRange, queryDays } = parseFilterRange(req.query);
+    const filterBy = (String(req.query.filterBy || 'both').toLowerCase() as 'inserted' | 'updated' | 'both');
     const pageNumber = Math.max(parseInt((req.query.page_number as string) || '1', 10), 1);
     const search = ((req.query.search as string) || '').toLowerCase().trim();
     const tagFilter = ((req.query.tag as string) || '').toLowerCase().trim();
@@ -1023,11 +1062,23 @@ app.get('/api/pancake/conversations', async (req, res) => {
     const cacheAgeMs = nowMs - pancakeCacheStore.lastFetched;
     // Đối với Hôm nay: cache chỉ giữ 15 giây để đảm bảo realtime liên tục. Đối với các mốc khác: giữ 4 phút.
     const maxCacheAgeMs = isToday ? 15 * 1000 : 4 * 60 * 1000;
-    const isCacheFresh = pancakeCacheStore.data && !force && (cacheAgeMs < maxCacheAgeMs);
+
+    // Kiểm tra xem trong cache hiện tại có hội thoại nào khớp với khoảng ngày này không
+    const cachedMatchingLeads = (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads))
+      ? applyFilterRange(pancakeCacheStore.data.leads, filterRange, filterBy)
+      : [];
+
+    // Chỉ dùng cache nếu:
+    // 1. Không bị force refresh
+    // 2. Cache chưa quá hạn maxCacheAgeMs
+    // 3. Và: hoặc là chế độ "hôm nay", hoặc là trong cache đã có dữ liệu (> 0) của khoảng thời gian này.
+    //    Nếu trong cache chưa có dữ liệu nào cho khoảng ngày được chọn, PHẢI gọi Pancake API để kéo về!
+    const isCacheFresh = pancakeCacheStore.data && !force && (cacheAgeMs < maxCacheAgeMs) &&
+      (!filterRange || isToday || cachedMatchingLeads.length > 0);
 
     // Trả về từ cache nếu dữ liệu còn mới và không yêu cầu force sync
     if (isCacheFresh && pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads)) {
-      let activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+      let activeLeads = cachedMatchingLeads;
       if (requestedPageId !== 'all') {
         activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
       }
@@ -1053,6 +1104,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
         success: true,
         fromCache: true,
         mode,
+        filterBy,
         selectedPageId: requestedPageId,
         filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
         cacheAgeSeconds: Math.round(cacheAgeMs / 1000),
@@ -1066,77 +1118,113 @@ app.get('/api/pancake/conversations', async (req, res) => {
       });
     }
 
-    // Cần fetch mới từ Pancake qua tất cả trang được chọn
-    const safeDays = Math.min(queryDays, 28);
-    const now = Math.floor(Date.now() / 1000);
-    const since = now - safeDays * 86400;
+    // Pancake API bắt buộc khoảng thời gian truy vấn 'since' và 'until' phải nhỏ hơn 1 tháng (< 30 ngày).
+    // Nếu vượt quá, Pancake trả lỗi: {"message":"date range must be less than 1 month!","success":false}
+    // Do đó, ta chia nhỏ khoảng thời gian thành các đợt tối đa 14 ngày (14 * 86400s) để truy vấn an toàn tuyệt đối.
+    const MAX_CHUNK_SECONDS = 14 * 86400; // 14 ngày mỗi đợt
+    let overallSince: number;
+    let overallUntil: number;
+
+    if (filterRange) {
+      overallSince = Math.floor(filterRange.startMs / 1000) - 3600;
+      overallUntil = Math.min(Math.floor(Date.now() / 1000), Math.floor(filterRange.endMs / 1000) + 3600);
+      if (overallUntil <= overallSince) overallUntil = overallSince + 86400;
+    } else {
+      const safeDays = Math.min(queryDays, 28);
+      overallUntil = Math.floor(Date.now() / 1000);
+      overallSince = overallUntil - safeDays * 86400;
+    }
+
+    const timeChunks: { since: number; until: number }[] = [];
+    let curSince = overallSince;
+    while (curSince < overallUntil) {
+      const curUntil = Math.min(curSince + MAX_CHUNK_SECONDS, overallUntil);
+      timeChunks.push({ since: curSince, until: curUntil });
+      curSince = curUntil;
+    }
 
     const performPancakeFetch = async () => {
       const pageFetchPromises = targetPages.map(async (page, index) => {
         try {
-          // Trì hoãn nhẹ 120ms giữa các trang để không gây nghẽn socket/rate-limit Pancake
           if (index > 0) {
-            await new Promise((resolve) => setTimeout(resolve, index * 120));
+            await new Promise((resolve) => setTimeout(resolve, index * 80));
           }
 
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout hào phóng
-          const resp = await fetch(
-            `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${now}&page_number=${pageNumber}`,
-            {
-              headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-              signal: controller.signal,
-            }
-          );
-          clearTimeout(timeoutId);
+          let allPageConversations: any[] = [];
+          let pageTotal = 0;
 
-          if (!resp.ok) {
-            console.warn(`Pancake API for ${page.name} returned HTTP ${resp.status}`);
-            const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
-            return { page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length };
-          }
+          for (const chunk of timeChunks) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            try {
+              const resp = await fetch(
+                `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=1`,
+                {
+                  headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+                  signal: controller.signal,
+                }
+              );
+              clearTimeout(timeoutId);
 
-          const data: any = await resp.json();
-          let rawList: any[] = Array.isArray(data?.conversations) ? data.conversations : [];
-          const pageTotal = data?.total || rawList.length;
+              if (!resp.ok) {
+                console.warn(`Pancake API for ${page.name} (${page.id}) returned HTTP ${resp.status}`);
+                continue;
+              }
 
-          // Pancake API trả tối đa 200/lần. Chỉ gom thêm trang 2 nếu trang 1 đã đủ 200 bản ghi và không phải chế độ xem hôm nay
-          if (rawList.length >= 200 && pageTotal > 200 && pageNumber === 1 && !isToday) {
-            const totalPagesNeeded = Math.min(Math.ceil(pageTotal / 200), 3);
-            for (let p = 2; p <= totalPagesNeeded; p++) {
-              try {
-                const subController = new AbortController();
-                const subTimeout = setTimeout(() => subController.abort(), 15000);
-                const subResp = await fetch(
-                  `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${now}&page_number=${p}`,
-                  {
-                    headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-                    signal: subController.signal,
-                  }
-                );
-                clearTimeout(subTimeout);
-                if (subResp.ok) {
-                  const subData: any = await subResp.json();
-                  if (Array.isArray(subData.conversations)) {
-                    rawList = rawList.concat(subData.conversations);
+              const data: any = await resp.json();
+              if (data && data.success === false) {
+                console.warn(`Pancake API returned error for chunk on ${page.name}:`, data.message);
+                continue;
+              }
+
+              let chunkList: any[] = Array.isArray(data?.conversations) ? data.conversations : [];
+              const chunkTotal = data?.total || chunkList.length;
+              pageTotal += chunkTotal;
+
+              // Nếu đợt có nhiều hơn 200 bản ghi, kéo tiếp các trang phân trang (tối đa 5 trang / 1000 khách mỗi đợt)
+              if (chunkList.length >= 200 && chunkTotal > 200 && !isToday) {
+                const totalPagesNeeded = Math.min(Math.ceil(chunkTotal / 200), 5);
+                for (let p = 2; p <= totalPagesNeeded; p++) {
+                  await new Promise((resolve) => setTimeout(resolve, 150));
+                  try {
+                    const subController = new AbortController();
+                    const subTimeout = setTimeout(() => subController.abort(), 15000);
+                    const subResp = await fetch(
+                      `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=${p}`,
+                      {
+                        headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
+                        signal: subController.signal,
+                      }
+                    );
+                    clearTimeout(subTimeout);
+                    if (subResp.ok) {
+                      const subData: any = await subResp.json();
+                      if (Array.isArray(subData.conversations)) {
+                        chunkList = chunkList.concat(subData.conversations);
+                      }
+                    }
+                  } catch (pErr) {
+                    console.warn(`Error fetching subpage ${p} for ${page.name}:`, pErr);
                   }
                 }
-              } catch (_) {
-                // Tiếp tục với dữ liệu đã lấy được
               }
+
+              allPageConversations = allPageConversations.concat(chunkList);
+            } catch (chunkErr: any) {
+              clearTimeout(timeoutId);
+              console.warn(`Pancake chunk fetch error for ${page.name}:`, chunkErr.message);
             }
           }
 
-          const parsed = parsePancakeConversations(rawList, {
+          const parsed = parsePancakeConversations(allPageConversations, {
             id: page.id,
             name: page.name,
             type: page.type,
           });
 
-          return { page, conversations: rawList, leads: parsed.leads, total: pageTotal };
+          return { page, conversations: allPageConversations, leads: parsed.leads, total: Math.max(pageTotal, parsed.leads.length) };
         } catch (pageErr: any) {
           console.warn(`Pancake fetch fallback for ${page.name} (${page.id}):`, pageErr.message);
-          // Graceful fallback: Giữ lại toàn bộ data đã lưu trong cache cho trang này để không bị mất dữ liệu
           const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
           return { page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length };
         }
@@ -1199,8 +1287,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
 
       const allLeads = pancakeCacheStore.data?.leads || [];
 
-      // Lọc theo khoảng thời gian người dùng yêu cầu
-      let activeLeads = applyFilterRange(allLeads, filterRange);
+      // Lọc theo khoảng thời gian và tiêu chí người dùng yêu cầu (chuẩn theo insertedAt)
+      let activeLeads = applyFilterRange(allLeads, filterRange, filterBy);
       if (requestedPageId !== 'all') {
         activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
       }
@@ -1226,6 +1314,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
         success: true,
         fromCache: false,
         mode,
+        filterBy,
         selectedPageId: requestedPageId,
         filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
         totalInPancake: activeLeads.length,
@@ -1239,7 +1328,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
     } catch (fetchErr: any) {
       console.warn('Pancake fetch failed, attempting fallback to cache:', fetchErr.message);
       if (pancakeCacheStore.data && Array.isArray(pancakeCacheStore.data.leads) && pancakeCacheStore.data.leads.length > 0) {
-        let activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange);
+        let activeLeads = applyFilterRange(pancakeCacheStore.data.leads, filterRange, filterBy);
         if (requestedPageId !== 'all') {
           activeLeads = activeLeads.filter((l) => l.pageId === requestedPageId);
         }
@@ -1265,6 +1354,7 @@ app.get('/api/pancake/conversations', async (req, res) => {
           success: true,
           fromCache: true,
           mode,
+          filterBy,
           selectedPageId: requestedPageId,
           filterLabel: filterRange ? filterRange.label : 'Tất Cả Lịch Sử (Đã lưu)',
           fallbackNotice: `Đang hiển thị dữ liệu lưu đệm (${fetchErr.message})`,

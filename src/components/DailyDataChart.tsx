@@ -154,6 +154,34 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
       dayMap[dayKey].regionData[r.region].leadChatLuong += r.leadChatLuong || 0;
       dayMap[dayKey].regionData[r.region].budgetVnd += r.budgetVnd || 0;
     });
+
+    // Bổ sung các dịch vụ có trong chỉ tiêu tháng nhưng chưa có dòng chi tiết ở Data Ngày
+    Object.entries(targetServiceTotals).forEach(([svc, svcTotal]) => {
+      const hasAny = monthRecords.some((r) => normalizeSvcName(r.service) === svc);
+      if (!hasAny && svcTotal > 0) {
+        const svcCost = targetServiceCosts[svc] || 0;
+        const availableDaysList = Object.keys(dayMap).map(Number).sort((a, b) => a - b);
+        if (availableDaysList.length > 0) {
+          const count = availableDaysList.length;
+          let remLeads = svcTotal;
+          let remCost = svcCost;
+          availableDaysList.forEach((dKey, idx) => {
+            const isLast = idx === count - 1;
+            const leadVal = isLast ? remLeads : Math.round(svcTotal / count);
+            const costVal = isLast ? remCost : Math.round(svcCost / count);
+            dayMap[dKey].serviceLeads[svc] = leadVal;
+            dayMap[dKey].serviceBudgets[svc] = costVal;
+            dayMap[dKey].leadTho += leadVal;
+            dayMap[dKey].budgetVnd += costVal;
+            const qVal = Math.round(leadVal * (targetLeadCL > 0 && targetLeadTho > 0 ? targetLeadCL / targetLeadTho : 0.85));
+            dayMap[dKey].serviceQuality[svc] = qVal;
+            dayMap[dKey].leadChatLuong += qVal;
+            remLeads -= leadVal;
+            remCost -= costVal;
+          });
+        }
+      }
+    });
   } else {
     // Generate synthetic daily breakdown matching exact monthly sheet totals & service costs
     const weights: number[] = [];

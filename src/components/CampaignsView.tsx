@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Megaphone, Play, Pause, TrendingUp, DollarSign, Target, CheckCircle, 
   Zap, ShieldCheck, RefreshCw, Filter, Search, ExternalLink, Link2, 
-  Sparkles, Check, AlertCircle, ArrowUpRight, BarChart3, Eye, MousePointerClick,
+  Sparkles, Check, AlertCircle, AlertTriangle, ArrowUpRight, BarChart3, Eye, MousePointerClick,
   Calendar, Table, LineChart, ChevronLeft, ChevronRight, ChevronDown, Download, CalendarRange,
   Percent, CircleDot, ArrowUpDown, Sliders, Edit3, Save, X, SlidersHorizontal
 } from 'lucide-react';
@@ -251,6 +251,34 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
     return dateObj;
   };
 
+  // Tự động tìm ngày có số liệu mới nhất và cũ nhất trong hệ thống dữ liệu quảng cáo
+  const { latestAvailableIso, earliestAvailableIso, latestFormatted, earliestFormatted } = useMemo(() => {
+    if (!dailyRecords || dailyRecords.length === 0) {
+      return { latestAvailableIso: '', earliestAvailableIso: '', latestFormatted: '', earliestFormatted: '' };
+    }
+    let maxIso = '';
+    let minIso = '';
+    let maxFmt = '';
+    let minFmt = '';
+    dailyRecords.forEach((r) => {
+      const { dateIso, dateFormatted } = normalizeDate(r.date || r.dateFormatted);
+      if (!maxIso || dateIso > maxIso) {
+        maxIso = dateIso;
+        maxFmt = dateFormatted;
+      }
+      if (!minIso || dateIso < minIso) {
+        minIso = dateIso;
+        minFmt = dateFormatted;
+      }
+    });
+    return {
+      latestAvailableIso: maxIso,
+      earliestAvailableIso: minIso,
+      latestFormatted: maxFmt,
+      earliestFormatted: minFmt,
+    };
+  }, [dailyRecords]);
+
   // Apply preset quick filters
   const applyPreset = (preset: DatePreset) => {
     setDatePreset(preset);
@@ -258,48 +286,43 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
     setCurrentPage(1);
 
     const now = new Date();
+    // Mốc chuẩn: ưu tiên ngày mới nhất có số liệu thực tế trong dữ liệu
+    const refDate = latestAvailableIso ? new Date(latestAvailableIso) : now;
 
     if (preset === 'all') {
       setStartDate('');
       setEndDate('');
     } else if (preset === 'today') {
-      const s = toInputDateStr(now);
+      const s = toInputDateStr(refDate);
       setStartDate(s);
       setEndDate(s);
     } else if (preset === 'yesterday') {
-      const yd = new Date(now);
+      const yd = new Date(refDate);
       yd.setDate(yd.getDate() - 1);
       const s = toInputDateStr(yd);
       setStartDate(s);
       setEndDate(s);
     } else if (preset === 'last7days') {
-      // Standard Google Ads standard: Last 7 completed days ending yesterday
-      const endD = new Date(now);
-      endD.setDate(endD.getDate() - 1);
+      // 7 ngày gần nhất đến mốc số liệu mới nhất
+      const endD = new Date(refDate);
       const startD = new Date(endD);
       startD.setDate(startD.getDate() - 6);
       setStartDate(toInputDateStr(startD));
       setEndDate(toInputDateStr(endD));
     } else if (preset === 'last30days') {
-      // Standard Google Ads standard: Last 30 completed days ending yesterday
-      const endD = new Date(now);
-      endD.setDate(endD.getDate() - 1);
+      // 30 ngày gần nhất
+      const endD = new Date(refDate);
       const startD = new Date(endD);
       startD.setDate(startD.getDate() - 29);
       setStartDate(toInputDateStr(startD));
       setEndDate(toInputDateStr(endD));
     } else if (preset === 'thisMonth') {
-      // From 1st of this month up to yesterday (or today if 1st day of month)
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const endD = new Date(now);
-      if (now.getDate() > 1) {
-        endD.setDate(endD.getDate() - 1);
-      }
+      const firstDay = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
       setStartDate(toInputDateStr(firstDay));
-      setEndDate(toInputDateStr(endD));
+      setEndDate(toInputDateStr(refDate));
     } else if (preset === 'lastMonth') {
-      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+      const firstDay = new Date(refDate.getFullYear(), refDate.getMonth() - 1, 1);
+      const lastDay = new Date(refDate.getFullYear(), refDate.getMonth(), 0);
       setStartDate(toInputDateStr(firstDay));
       setEndDate(toInputDateStr(lastDay));
     }
@@ -680,13 +703,18 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
               <input
                 type="date"
                 value={startDate}
+                max={latestAvailableIso || toInputDateStr(new Date())}
                 onClick={(e) => {
                   try {
                     (e.target as HTMLInputElement).showPicker?.();
                   } catch {}
                 }}
                 onChange={(e) => {
-                  setStartDate(e.target.value);
+                  const val = e.target.value;
+                  setStartDate(val);
+                  if (endDate && val > endDate) {
+                    setEndDate(val);
+                  }
                   setDatePreset('custom');
                   setSelectedMonth('all');
                   setCurrentPage(1);
@@ -711,13 +739,18 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
               <input
                 type="date"
                 value={endDate}
+                max={latestAvailableIso || toInputDateStr(new Date())}
                 onClick={(e) => {
                   try {
                     (e.target as HTMLInputElement).showPicker?.();
                   } catch {}
                 }}
                 onChange={(e) => {
-                  setEndDate(e.target.value);
+                  const val = e.target.value;
+                  setEndDate(val);
+                  if (startDate && val < startDate) {
+                    setStartDate(val);
+                  }
                   setDatePreset('custom');
                   setSelectedMonth('all');
                   setCurrentPage(1);
@@ -727,10 +760,16 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
               <Calendar className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform cursor-pointer" />
             </div>
 
+            {latestFormatted && (
+              <span className="text-[10px] text-slate-400 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800 hidden sm:inline-block" title="Ngày chốt dữ liệu mới nhất từ Google Ads">
+                Dữ liệu đến: <strong className="text-cyan-400">{latestFormatted}</strong>
+              </span>
+            )}
+
             {(startDate || endDate || selectedMonth !== 'all') && (
               <button
                 onClick={() => applyPreset('all')}
-                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 border border-amber-500/30 transition-all hover:bg-amber-500/20"
+                className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 border border-amber-500/30 transition-all hover:bg-amber-500/20 cursor-pointer"
               >
                 ✕ Xóa bộ lọc ngày
               </button>
@@ -766,6 +805,46 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
             </div>
           </div>
         </div>
+
+        {/* Thông báo thông minh khi chọn khoảng ngày chưa có dữ liệu */}
+        {(startDate || endDate) && filteredDailyRecords.length === 0 && (
+          <div className="mt-3 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-amber-300">Không có dữ liệu quảng cáo trong khoảng thời gian đã chọn: </span>
+                <span className="text-slate-300">
+                  Dữ liệu chiến dịch Google Ads hiện tại được ghi nhận và đồng bộ đến hết ngày <strong className="text-emerald-400 font-bold">{latestFormatted || '27/09/2026'}</strong>.
+                  {startDate && latestAvailableIso && startDate > latestAvailableIso
+                    ? ' Các ngày sau thời điểm này chưa diễn ra hoặc đang chờ đợt đồng bộ tiếp theo từ Google Ads.'
+                    : ' Không có chiến dịch nào phát sinh chi phí trong các ngày đã chọn.'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              {latestAvailableIso && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartDate(latestAvailableIso);
+                    setEndDate(latestAvailableIso);
+                    setDatePreset('custom');
+                  }}
+                  className="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 font-bold transition text-[11px] cursor-pointer"
+                >
+                  Xem ngày mới nhất ({latestFormatted})
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => applyPreset('all')}
+                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition text-[11px] cursor-pointer"
+              >
+                Xem tất cả
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* KPI METRIC CARDS (Formatted like Google Ads Overview) */}
@@ -1157,7 +1236,29 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/80">
-                {paginatedDaily.map((row, idx) => (
+                {paginatedDaily.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-12 text-center text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Calendar className="w-8 h-8 text-slate-600 mb-1" />
+                        <span className="font-semibold text-slate-300">Không tìm thấy dữ liệu nhật ký ngày nào</span>
+                        <span className="text-xs text-slate-500 max-w-md">
+                          {startDate && latestAvailableIso && startDate > latestAvailableIso
+                            ? `Dữ liệu hiện tại được cập nhật đến ngày ${latestFormatted}. Các ngày sau thời điểm này chưa diễn ra hoặc đang chờ Google Ads đồng bộ số liệu.`
+                            : 'Vui lòng kiểm tra lại từ khóa tìm kiếm hoặc bấm Xóa bộ lọc ngày để xem lại.'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => applyPreset('all')}
+                          className="mt-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition cursor-pointer"
+                        >
+                          Xem tất cả ngày
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedDaily.map((row, idx) => (
                   <tr key={`daily-row-${row.dateFormatted}-${row.campaignName}-${idx}`} className="hover:bg-slate-800/50 transition-colors">
                     {/* Ngày */}
                     <td className="py-3.5 px-3">
@@ -1226,7 +1327,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
                       {row.convRate || '0.00%'}
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
