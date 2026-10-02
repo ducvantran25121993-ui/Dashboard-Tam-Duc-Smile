@@ -48,7 +48,7 @@ export const FormLeadsTable: React.FC<FormLeadsTableProps> = ({ userRole }) => {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>(() => getCurrentVietnamMonth());
+  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>(() => Math.min(getCurrentVietnamMonth(), 10));
   const [selectedMode, setSelectedMode] = useState<'all' | 'today' | 'yesterday'>('all');
   const [selectedService, setSelectedService] = useState('all');
   const [selectedBranch, setSelectedBranch] = useState('all');

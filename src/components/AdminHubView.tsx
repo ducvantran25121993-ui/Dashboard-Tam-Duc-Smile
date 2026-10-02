@@ -284,7 +284,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   const [isLoadingBudgetPlan, setIsLoadingBudgetPlan] = useState<boolean>(false);
   const [budgetScenario, setBudgetScenario] = useState<'standard' | 'vat' | 'reduced30' | 'reducedExtra30'>('standard');
   const [budgetViewMode, setBudgetViewMode] = useState<'cards' | 'table'>('cards');
-  const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<number>(() => activeMonth || getCurrentVietnamMonth());
+  const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<number>(() => activeMonth || Math.min(getCurrentVietnamMonth(), 10));
   const [budgetPlanSheetInput, setBudgetPlanSheetInput] = useState<string>(() => {
     return localStorage.getItem('tamduc_budget_plan_url') || DEFAULT_BUDGET_PLAN_SHEET_URL;
   });
@@ -777,7 +777,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
   // 3. AI Governance & Prompt Controls
   const [selectedTokenMonth, setSelectedTokenMonth] = useState<number>(() => {
-    return activeMonth && activeMonth >= 1 && activeMonth <= 12 ? activeMonth : getCurrentVietnamMonth();
+    return activeMonth && activeMonth >= 1 && activeMonth <= 10 ? activeMonth : Math.min(getCurrentVietnamMonth(), 10);
   });
   const [isEditTokenModalOpen, setIsEditTokenModalOpen] = useState(false);
   const [tokenEditCount, setTokenEditCount] = useState<number>(142850);

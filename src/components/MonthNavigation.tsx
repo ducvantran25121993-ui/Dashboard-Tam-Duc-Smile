@@ -31,14 +31,14 @@ interface QuarterGroup {
   label: string;
   shortLabel: string;
   rangeLabel: string;
-  months: (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)[];
+  months: (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10)[];
 }
 
 const QUARTERS: QuarterGroup[] = [
   { id: 'q1', label: 'Quý 1', shortLabel: 'Q1', rangeLabel: 'T1 - T3', months: [1, 2, 3] },
   { id: 'q2', label: 'Quý 2', shortLabel: 'Q2', rangeLabel: 'T4 - T6', months: [4, 5, 6] },
   { id: 'q3', label: 'Quý 3', shortLabel: 'Q3', rangeLabel: 'T7 - T9', months: [7, 8, 9] },
-  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10 - T12', months: [10, 11, 12] },
+  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10', months: [10] },
 ];
 
 export const MonthNavigation: React.FC<MonthNavigationProps> = ({
@@ -407,7 +407,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         onChange={(e) => setRangeStart(Number(e.target.value))}
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
                           <option key={m} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
@@ -423,7 +423,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         onChange={(e) => setRangeEnd(Number(e.target.value))}
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
                           <option key={m} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
@@ -534,24 +534,24 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                       </button>
                       <span className="text-slate-600">•</span>
                       <button
-                        onClick={() => setSelectedMonths([7, 8, 9, 10, 11, 12])}
+                        onClick={() => setSelectedMonths([7, 8, 9, 10])}
                         className="text-cyan-400 hover:underline cursor-pointer"
                       >
-                        T7-T12
+                        T7-T10
                       </button>
                       <span className="text-slate-600">•</span>
                       <button
-                        onClick={() => setSelectedMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])}
+                        onClick={() => setSelectedMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])}
                         className="text-cyan-400 hover:underline cursor-pointer"
                       >
-                        Cả năm (12T)
+                        Tất cả (10T)
                       </button>
                     </div>
                   </div>
 
-                  {/* 12 Month Chips */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-1.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => {
+                  {/* 10 Month Chips */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => {
                       const isSelected = selectedMonths.includes(m);
                       const isCurrentMonth = m === currentCalMonth;
                       return (

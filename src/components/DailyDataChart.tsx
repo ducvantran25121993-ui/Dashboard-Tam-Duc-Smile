@@ -93,7 +93,7 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
 
   const isQuarterOrRange = typeof activeMonth === 'string';
   const activeMonthsList = isQuarterOrRange
-    ? (parseCustomRange(activeMonth) || (activeMonth === 'q1' ? [1, 2, 3] : activeMonth === 'q2' ? [4, 5, 6] : activeMonth === 'q3' ? [7, 8, 9] : [10, 11, 12]))
+    ? (parseCustomRange(activeMonth) || (activeMonth === 'q1' ? [1, 2, 3] : activeMonth === 'q2' ? [4, 5, 6] : activeMonth === 'q3' ? [7, 8, 9] : [10]))
     : [activeMonth as number];
 
   const defaultActiveNum = isQuarterOrRange ? activeMonthsList[activeMonthsList.length - 1] : (activeMonth as number);

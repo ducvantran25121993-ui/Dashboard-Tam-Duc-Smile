@@ -63,7 +63,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
   const [datePreset, setDatePreset] = useState<DatePreset>('custom');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => String(getCurrentVietnamMonth()));
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => String(Math.min(getCurrentVietnamMonth(), 10)));
 
   const [campaigns, setCampaigns] = useState<CampaignItem[]>(DEFAULT_CAMPAIGNS);
   const [dailyRecords, setDailyRecords] = useState<DailyCampaignRecord[]>(generateMockDailyRecords());
@@ -347,7 +347,7 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
 
     if (map.size === 0) {
       const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth() + 1;
+      const currentMonth = Math.min(getCurrentVietnamMonth(), 10);
       const fallbackList: Array<{ month: number; year: number; label: string }> = [];
       for (let m = currentMonth; m >= 1; m--) {
         fallbackList.push({ month: m, year: currentYear, label: `Tháng ${m}/${currentYear}` });
