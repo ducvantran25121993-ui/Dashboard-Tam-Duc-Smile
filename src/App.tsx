@@ -64,6 +64,7 @@ import {
 } from './services/googleSheetsService';
 import { getStoredThemeMode, resolveEffectiveTheme } from './utils/themeManager';
 import { getActivePalette } from './utils/customThemePalettes';
+import { getCurrentVietnamMonth } from './utils/formatters';
 
 export default function App() {
   const [activeSidebarTab, setActiveSidebarTab] = useState<SidebarTab>(() => {
@@ -93,30 +94,31 @@ export default function App() {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
-  // Initialize month tab with current real-world month (or saved preference)
+  // Initialize month tab with current real-world month (đang tháng nào thì theo đúng tháng đó)
   const [activeTab, setActiveTab] = useState<MonthTab>(() => {
+    const currentCalMonth = getCurrentVietnamMonth();
     try {
+      const savedAnchor = localStorage.getItem('dashboard_active_month_cal_anchor');
       const saved = localStorage.getItem('dashboard_active_month_tab');
-      if (saved) {
-        if (saved === 'overview') return 'overview';
+      // Nếu cùng tháng hiện tại và người dùng đã chủ động chọn xem tab khác, tôn trọng lựa chọn;
+      // Nếu sang tháng mới hoặc chưa có lưu, tự động theo đúng tháng hiện tại!
+      if (saved && savedAnchor === String(currentCalMonth)) {
+        if (saved === 'overview' || saved === 'q1' || saved === 'q2' || saved === 'q3' || saved === 'q4') return saved as MonthTab;
         const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 9) {
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) {
           return parsed as MonthTab;
         }
       }
     } catch {}
 
-    const currentCalendarMonth = new Date().getMonth() + 1; // 1 to 12
-    if (currentCalendarMonth >= 1 && currentCalendarMonth <= 9) {
-      return currentCalendarMonth as MonthTab;
-    }
-    return 9;
+    return currentCalMonth as MonthTab;
   });
 
   const handleSelectMonthTab = (tab: MonthTab) => {
     setActiveTab(tab);
     try {
       localStorage.setItem('dashboard_active_month_tab', String(tab));
+      localStorage.setItem('dashboard_active_month_cal_anchor', String(getCurrentVietnamMonth()));
     } catch {}
   };
 
@@ -401,8 +403,8 @@ export default function App() {
   }, [autoRefreshEnabled, sheetUrl, loadSheetData]);
 
   // Find dataset for active month or consolidated quarter/range (defaults to current real calendar month)
-  const currentCalendarMonth = new Date().getMonth() + 1;
-  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 10 ? currentCalendarMonth : 10;
+  const currentCalendarMonth = getCurrentVietnamMonth();
+  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 12 ? currentCalendarMonth : 10;
   const isQuarter = isQuarterTab(activeTab);
   const isRange = isCustomRange(activeTab);
   const customMonths = useMemo(() => {
@@ -701,7 +703,7 @@ export default function App() {
               displayUnit={displayUnit}
               activeMonth={typeof activeTab === 'number' ? activeTab : defaultCurrentMonth}
               onSelectMonth={(m) => {
-                if (typeof m === 'number' && m >= 1 && m <= 9) {
+                if (typeof m === 'number' && m >= 1 && m <= 12) {
                   handleSelectMonthTab(m as MonthTab);
                 } else if (m === 'all') {
                   handleSelectMonthTab('overview');

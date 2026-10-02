@@ -7,6 +7,7 @@ import {
   Percent, CircleDot, ArrowUpDown, Sliders, Edit3, Save, X, SlidersHorizontal
 } from 'lucide-react';
 import { DisplayUnit } from '../types';
+import { getCurrentVietnamMonth } from '../utils/formatters';
 import { GoogleAdsConnectModal } from './GoogleAdsConnectModal';
 import { CampaignAiAnalystModal } from './CampaignAiAnalystModal';
 import { CampaignAi7DayAnalysis } from './CampaignAi7DayAnalysis';
@@ -59,10 +60,10 @@ export const CampaignsView: React.FC<CampaignsViewProps> = ({ displayUnit, userR
   const [viewMode, setViewMode] = useState<'campaigns' | 'daily'>('campaigns');
   
   // Date filter state
-  const [datePreset, setDatePreset] = useState<DatePreset>('all');
+  const [datePreset, setDatePreset] = useState<DatePreset>('custom');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => String(getCurrentVietnamMonth()));
 
   const [campaigns, setCampaigns] = useState<CampaignItem[]>(DEFAULT_CAMPAIGNS);
   const [dailyRecords, setDailyRecords] = useState<DailyCampaignRecord[]>(generateMockDailyRecords());

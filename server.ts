@@ -488,7 +488,7 @@ app.get('/api/pancake/status', async (req, res) => {
       pancakePagesStore.map(async (p) => {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
           const resp = await fetch(`https://pages.fm/api/public_api/v1/pages/${p.id}/tags?page_access_token=${p.token}`, {
             headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
             signal: controller.signal,
@@ -1035,6 +1035,61 @@ function applyFilterRange(
   });
 }
 
+/**
+ * Fetch helper cho Pancake Pages.fm API với cơ chế tự động thử lại khi gặp Timeout / Rate-limit (429)
+ * Tránh triệt để lỗi AbortError / This operation was aborted khi Pancake API bị nghẽn
+ */
+async function fetchPancakeApiSafe(
+  url: string,
+  timeoutMs = 35000,
+  retries = 2
+): Promise<any | null> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const resp = await fetch(url, {
+        headers: {
+          'User-Agent': 'TamDuc-Dental-Dashboard/1.0',
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (resp.status === 429) {
+        if (attempt < retries) {
+          await new Promise((r) => setTimeout(r, 1200 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      if (!resp.ok) {
+        if (resp.status >= 500 && attempt < retries) {
+          await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+          continue;
+        }
+        return null;
+      }
+
+      const data: any = await resp.json();
+      if (data && data.success === false) {
+        return null;
+      }
+      return data;
+    } catch (_err: any) {
+      clearTimeout(timeoutId);
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
 // Module-level deduplication lock to avoid spamming Pancake API with overlapping requests
 let activePancakeFetchPromise: Promise<void> | null = null;
 
@@ -1123,8 +1178,8 @@ app.get('/api/pancake/conversations', async (req, res) => {
 
     // Pancake API bắt buộc khoảng thời gian truy vấn 'since' và 'until' phải nhỏ hơn 1 tháng (< 30 ngày).
     // Nếu vượt quá, Pancake trả lỗi: {"message":"date range must be less than 1 month!","success":false}
-    // Do đó, ta chia nhỏ khoảng thời gian thành các đợt tối đa 14 ngày (14 * 86400s) để truy vấn an toàn tuyệt đối.
-    const MAX_CHUNK_SECONDS = 14 * 86400; // 14 ngày mỗi đợt
+    // Chia nhỏ thành các đợt tối đa 7 ngày (7 * 86400s) giúp truy vấn nhẹ nhàng, phản hồi nhanh chóng (< 1s) và không bị timeout.
+    const MAX_CHUNK_SECONDS = 7 * 86400; // 7 ngày mỗi đợt
     let overallSince: number;
     let overallUntil: number;
 
@@ -1147,93 +1202,79 @@ app.get('/api/pancake/conversations', async (req, res) => {
     }
 
     const performPancakeFetch = async () => {
-      const pageFetchPromises = targetPages.map(async (page, index) => {
-        try {
-          if (index > 0) {
-            await new Promise((resolve) => setTimeout(resolve, index * 80));
-          }
+      const pageResults: any[] = [];
 
+      // Truy vấn tuần tự từng trang với giãn cách 200ms để tránh rate-limit IP từ Pages.fm
+      for (let i = 0; i < targetPages.length; i++) {
+        const page = targetPages[i];
+        if (i > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        try {
           let allPageConversations: any[] = [];
           let pageTotal = 0;
 
-          for (const chunk of timeChunks) {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000);
-            try {
-              const resp = await fetch(
-                `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=1`,
-                {
-                  headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-                  signal: controller.signal,
-                }
-              );
-              clearTimeout(timeoutId);
-
-              if (!resp.ok) {
-                console.warn(`Pancake API for ${page.name} (${page.id}) returned HTTP ${resp.status}`);
-                continue;
-              }
-
-              const data: any = await resp.json();
-              if (data && data.success === false) {
-                console.warn(`Pancake API returned error for chunk on ${page.name}:`, data.message);
-                continue;
-              }
-
-              let chunkList: any[] = Array.isArray(data?.conversations) ? data.conversations : [];
-              const chunkTotal = data?.total || chunkList.length;
-              pageTotal += chunkTotal;
-
-              // Nếu đợt có nhiều hơn 200 bản ghi, kéo tiếp các trang phân trang (tối đa 5 trang / 1000 khách mỗi đợt)
-              if (chunkList.length >= 200 && chunkTotal > 200 && !isToday) {
-                const totalPagesNeeded = Math.min(Math.ceil(chunkTotal / 200), 5);
-                for (let p = 2; p <= totalPagesNeeded; p++) {
-                  await new Promise((resolve) => setTimeout(resolve, 150));
-                  try {
-                    const subController = new AbortController();
-                    const subTimeout = setTimeout(() => subController.abort(), 15000);
-                    const subResp = await fetch(
-                      `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=${p}`,
-                      {
-                        headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' },
-                        signal: subController.signal,
-                      }
-                    );
-                    clearTimeout(subTimeout);
-                    if (subResp.ok) {
-                      const subData: any = await subResp.json();
-                      if (Array.isArray(subData.conversations)) {
-                        chunkList = chunkList.concat(subData.conversations);
-                      }
-                    }
-                  } catch (pErr) {
-                    console.warn(`Error fetching subpage ${p} for ${page.name}:`, pErr);
-                  }
-                }
-              }
-
-              allPageConversations = allPageConversations.concat(chunkList);
-            } catch (chunkErr: any) {
-              clearTimeout(timeoutId);
-              console.warn(`Pancake chunk fetch error for ${page.name}:`, chunkErr.message);
+          for (let cIdx = 0; cIdx < timeChunks.length; cIdx++) {
+            const chunk = timeChunks[cIdx];
+            if (cIdx > 0) {
+              await new Promise((resolve) => setTimeout(resolve, 150));
             }
+
+            const chunkUrl = `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=1`;
+            const data = await fetchPancakeApiSafe(chunkUrl, 35000, 2);
+
+            if (!data) {
+              continue;
+            }
+
+            let chunkList: any[] = Array.isArray(data?.conversations) ? data.conversations : [];
+            const chunkTotal = data?.total || chunkList.length;
+            pageTotal += chunkTotal;
+
+            // Nếu đợt có nhiều hơn 200 bản ghi, kéo tiếp các trang phân trang (tối đa 5 trang / 1000 khách mỗi đợt)
+            if (chunkList.length >= 200 && chunkTotal > 200 && !isToday) {
+              const totalPagesNeeded = Math.min(Math.ceil(chunkTotal / 200), 5);
+              for (let p = 2; p <= totalPagesNeeded; p++) {
+                await new Promise((resolve) => setTimeout(resolve, 200));
+                const subUrl = `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${chunk.since}&until=${chunk.until}&page_number=${p}`;
+                const subData = await fetchPancakeApiSafe(subUrl, 25000, 1);
+                if (subData && Array.isArray(subData.conversations)) {
+                  chunkList = chunkList.concat(subData.conversations);
+                }
+              }
+            }
+
+            allPageConversations = allPageConversations.concat(chunkList);
           }
 
-          const parsed = parsePancakeConversations(allPageConversations, {
-            id: page.id,
-            name: page.name,
-            type: page.type,
-          });
-
-          return { page, conversations: allPageConversations, leads: parsed.leads, total: Math.max(pageTotal, parsed.leads.length) };
-        } catch (pageErr: any) {
-          console.warn(`Pancake fetch fallback for ${page.name} (${page.id}):`, pageErr.message);
+          if (allPageConversations.length > 0 || timeChunks.length === 0) {
+            const parsed = parsePancakeConversations(allPageConversations, {
+              id: page.id,
+              name: page.name,
+              type: page.type,
+            });
+            pageResults.push({
+              page,
+              conversations: allPageConversations,
+              leads: parsed.leads,
+              total: Math.max(pageTotal, parsed.leads.length),
+            });
+          } else {
+            // Giữ lại cache cũ cho trang này nếu lượt gọi mạng tạm thời không có dữ liệu
+            const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
+            pageResults.push({
+              page,
+              conversations: [],
+              leads: cachedPageLeads,
+              total: cachedPageLeads.length,
+            });
+          }
+        } catch (_pageErr: any) {
           const cachedPageLeads = (pancakeCacheStore.data?.leads || []).filter((l: any) => l.pageId === page.id);
-          return { page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length };
+          pageResults.push({ page, conversations: [], leads: cachedPageLeads, total: cachedPageLeads.length });
         }
-      });
-
-      const pageResults = await Promise.all(pageFetchPromises);
+      }
 
       // Gộp lũy tiến (Upsert) vào danh sách tổng để bảo lưu toàn bộ dữ liệu lịch sử
       const masterLeadsMap = new Map<string, any>();
@@ -1401,7 +1442,7 @@ app.get('/api/pancake/conversations/:pageId/:conversationId/messages', async (re
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     const apiUrl = `https://pages.fm/api/public_api/v1/pages/${targetPage.id}/conversations/${encodeURIComponent(conversationId)}/messages?page_access_token=${targetPage.token}`;
     const resp = await fetch(apiUrl, {
@@ -1530,13 +1571,10 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
           syncAllHistoryProgress.percent = Math.round((completedSteps / totalSteps) * 100);
 
           try {
-            const p1Res = await fetch(
-              `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=1`,
-              { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
-            );
+            const p1Url = `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=1`;
+            const p1Data = await fetchPancakeApiSafe(p1Url, 35000, 2);
 
-            if (p1Res.ok) {
-              const p1Data: any = await p1Res.json();
+            if (p1Data) {
               const windowTotal = p1Data.total || 0;
               let windowRaw: any[] = Array.isArray(p1Data.conversations) ? p1Data.conversations : [];
 
@@ -1544,18 +1582,11 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
               if (totalPagesNeeded > 1) {
                 for (let p = 2; p <= totalPagesNeeded; p++) {
                   await new Promise((resolve) => setTimeout(resolve, 300));
-                  try {
-                    const pRes = await fetch(
-                      `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=${p}`,
-                      { headers: { 'User-Agent': 'TamDuc-Dental-Dashboard/1.0' } }
-                    );
-                    if (pRes.ok) {
-                      const pData: any = await pRes.json();
-                      if (Array.isArray(pData.conversations)) {
-                        windowRaw = windowRaw.concat(pData.conversations);
-                      }
-                    }
-                  } catch (_) {}
+                  const pUrl = `https://pages.fm/api/public_api/v1/pages/${page.id}/conversations?page_access_token=${page.token}&since=${since}&until=${until}&page_number=${p}`;
+                  const pData = await fetchPancakeApiSafe(pUrl, 25000, 1);
+                  if (pData && Array.isArray(pData.conversations)) {
+                    windowRaw = windowRaw.concat(pData.conversations);
+                  }
                 }
               }
 
@@ -1568,9 +1599,7 @@ app.post('/api/pancake/sync-all-history', async (req, res) => {
                 allRawMap.set(lead.id, lead);
               }
             }
-          } catch (err: any) {
-            console.warn(`Window error for ${page.name}:`, err.message);
-          }
+          } catch (_err: any) {}
 
           completedSteps++;
           syncAllHistoryProgress.windowsCompleted = completedSteps;

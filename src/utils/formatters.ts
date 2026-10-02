@@ -99,3 +99,33 @@ export function exportToCSV(filename: string, rows: Record<string, string | numb
   link.click();
   document.body.removeChild(link);
 }
+
+/**
+ * Lấy tháng hiện tại theo múi giờ Việt Nam (Asia/Ho_Chi_Minh - UTC+7)
+ * Đảm bảo các tab tháng luôn theo đúng tháng thực tế (1 - 12)
+ */
+export function getCurrentVietnamMonth(): number {
+  try {
+    const vnDateStr = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const parts = vnDateStr.split('/');
+    const month = parseInt(parts[0], 10);
+    if (!isNaN(month) && month >= 1 && month <= 12) {
+      return month;
+    }
+  } catch {}
+  const localMonth = new Date().getMonth() + 1;
+  return localMonth >= 1 && localMonth <= 12 ? localMonth : 10;
+}
+
+/**
+ * Lấy năm hiện tại theo múi giờ Việt Nam
+ */
+export function getCurrentVietnamYear(): number {
+  try {
+    const vnDateStr = new Date().toLocaleDateString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const parts = vnDateStr.split('/');
+    const year = parseInt(parts[2], 10);
+    if (!isNaN(year) && year >= 2020) return year;
+  } catch {}
+  return new Date().getFullYear();
+}

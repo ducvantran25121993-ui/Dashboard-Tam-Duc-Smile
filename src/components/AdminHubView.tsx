@@ -57,6 +57,7 @@ import {
 import { SidebarTab } from '../types';
 import { ALL_WORKSPACE_TABS, TabConfig } from './TabPermissionsModal';
 import { MonthDataset } from '../data/revenueData';
+import { getCurrentVietnamMonth } from '../utils/formatters';
 import {
   DEFAULT_BUDGET_PLAN_SHEET_URL,
   BudgetPlanSummary,
@@ -283,7 +284,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
   const [isLoadingBudgetPlan, setIsLoadingBudgetPlan] = useState<boolean>(false);
   const [budgetScenario, setBudgetScenario] = useState<'standard' | 'vat' | 'reduced30' | 'reducedExtra30'>('standard');
   const [budgetViewMode, setBudgetViewMode] = useState<'cards' | 'table'>('cards');
-  const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<number>(() => activeMonth || 8);
+  const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<number>(() => activeMonth || getCurrentVietnamMonth());
   const [budgetPlanSheetInput, setBudgetPlanSheetInput] = useState<string>(() => {
     return localStorage.getItem('tamduc_budget_plan_url') || DEFAULT_BUDGET_PLAN_SHEET_URL;
   });
@@ -776,7 +777,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
   // 3. AI Governance & Prompt Controls
   const [selectedTokenMonth, setSelectedTokenMonth] = useState<number>(() => {
-    return activeMonth && activeMonth >= 1 && activeMonth <= 12 ? activeMonth : 9;
+    return activeMonth && activeMonth >= 1 && activeMonth <= 12 ? activeMonth : getCurrentVietnamMonth();
   });
   const [isEditTokenModalOpen, setIsEditTokenModalOpen] = useState(false);
   const [tokenEditCount, setTokenEditCount] = useState<number>(142850);

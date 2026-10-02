@@ -52,7 +52,7 @@ import {
 } from 'recharts';
 import { MonthDataset } from '../data/revenueData';
 import { DisplayUnit } from '../types';
-import { formatVND, formatPercent } from '../utils/formatters';
+import { formatVND, formatPercent, getCurrentVietnamMonth } from '../utils/formatters';
 import {
   DEFAULT_BUDGET_PLAN_SHEET_URL,
   BudgetPlanSummary,
@@ -152,6 +152,8 @@ const MONTH_TABS = [
   { id: 't8', monthNum: 8, label: 'Tháng 8', short: 'T8' },
   { id: 't9', monthNum: 9, label: 'Tháng 9', short: 'T9' },
   { id: 't10', monthNum: 10, label: 'Tháng 10', short: 'T10' },
+  { id: 't11', monthNum: 11, label: 'Tháng 11', short: 'T11' },
+  { id: 't12', monthNum: 12, label: 'Tháng 12', short: 'T12' },
 ];
 
 interface ForecastQuarterGroup {
@@ -166,7 +168,7 @@ const FORECAST_QUARTERS: ForecastQuarterGroup[] = [
   { id: 'q1', label: 'Quý 1', shortLabel: 'Q1', rangeLabel: 'T1 - T3', monthIds: ['t1', 't2', 't3'] },
   { id: 'q2', label: 'Quý 2', shortLabel: 'Q2', rangeLabel: 'T4 - T6', monthIds: ['t4', 't5', 't6'] },
   { id: 'q3', label: 'Quý 3', shortLabel: 'Q3', rangeLabel: 'T7 - T9', monthIds: ['t7', 't8', 't9'] },
-  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10', monthIds: ['t10'] },
+  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10 - T12', monthIds: ['t10', 't11', 't12'] },
 ];
 
 function normalizeBranchName(str: string): string {
@@ -289,20 +291,20 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [budgetScenario, setBudgetScenario] = useState<'base_100' | 'reduced_30' | 'reduced_extra_30' | 'custom'>('base_100');
   const [customReductionPct, setCustomReductionPct] = useState<number>(20); // % giảm tùy chỉnh
 
-  // Helper to resolve month tab key (e.g. 9 -> 't9', 't9' -> 't9')
+  // Helper to resolve month tab key (e.g. 10 -> 't10', 't10' -> 't10')
   const resolveMonthKey = (m?: number | string) => {
+    const currentCalendarMonth = getCurrentVietnamMonth();
     if (!m) {
-      const currentCalendarMonth = new Date().getMonth() + 1;
-      return currentCalendarMonth >= 1 && currentCalendarMonth <= 10 ? `t${currentCalendarMonth}` : 't9';
+      return `t${currentCalendarMonth}`;
     }
-    if (typeof m === 'number') return m >= 1 && m <= 10 ? `t${m}` : 't9';
+    if (typeof m === 'number') return m >= 1 && m <= 12 ? `t${m}` : `t${currentCalendarMonth}`;
     const lower = String(m).toLowerCase();
-    if (lower === 'all' || lower === '0') return 't9';
+    if (lower === 'all' || lower === '0') return 'all';
     if (lower.startsWith('t')) return lower;
     return `t${lower}`;
   };
 
-  // Selected Month for comparison (Synced with activeMonth, default T8)
+  // Selected Month for comparison (Synced with activeMonth, defaults to current month)
   const [selectedMonth, setSelectedMonth] = useState<string>(() => resolveMonthKey(activeMonth));
 
   // Sync with parent activeMonth prop if it changes
@@ -333,7 +335,10 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
   const [editSpent, setEditSpent] = useState<number>(0);
 
   // Simulation Planner State
-  const [targetPeriod, setTargetPeriod] = useState<'month_9' | 'month_10' | 'q4' | 'year_2027'>('month_9');
+  const [targetPeriod, setTargetPeriod] = useState<string>(() => {
+    const curMonth = getCurrentVietnamMonth();
+    return `month_${curMonth}`;
+  });
   const [totalBudget, setTotalBudget] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('forecast_total_budget');
@@ -470,6 +475,9 @@ export const BudgetForecastView: React.FC<BudgetForecastViewProps> = ({
     }
     if (selectedMonthNum === 9) {
       return multiMonthPlan.monthPlans[9]?.items || FALLBACK_PLAN_T9_ITEMS;
+    }
+    if (selectedMonthNum >= 10) {
+      return multiMonthPlan.monthPlans[selectedMonthNum]?.items || multiMonthPlan.monthPlans[9]?.items || FALLBACK_PLAN_T9_ITEMS;
     }
     // For months 1 to 5 (or any month without plan data), return empty items with 0s waiting for update
     return EMPTY_BRANCH_PLAN_ITEMS;

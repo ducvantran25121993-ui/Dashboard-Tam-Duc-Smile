@@ -29,6 +29,7 @@ import { fetchFormLeads, triggerSyncFormLeads, FormLeadsFilterParams } from '../
 import { fetchCachedVTTechTickets } from '../services/vttechService';
 import { VTTechTicket } from '../types/vttech';
 import { getVietnamTodayStr } from '../utils/dateHelpers';
+import { getCurrentVietnamMonth } from '../utils/formatters';
 
 interface FormLeadsTableProps {
   userRole?: 'admin' | 'staff' | null;
@@ -47,7 +48,7 @@ export const FormLeadsTable: React.FC<FormLeadsTableProps> = ({ userRole }) => {
 
   // Filters
   const [search, setSearch] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
+  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>(() => getCurrentVietnamMonth());
   const [selectedMode, setSelectedMode] = useState<'all' | 'today' | 'yesterday'>('all');
   const [selectedService, setSelectedService] = useState('all');
   const [selectedBranch, setSelectedBranch] = useState('all');
