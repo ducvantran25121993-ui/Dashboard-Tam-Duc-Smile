@@ -111,6 +111,43 @@ export interface LandingSkill {
 
 export const BUILTIN_LANDING_SKILLS: LandingSkill[] = [
   {
+    id: 'ui_ux_pro_max_v2',
+    name: 'UI/UX Pro Max 2.13 (Thiết Kế Thông Minh & 79 UI Styles)',
+    badge: '👑 UI/UX PRO MAX v2.13',
+    category: 'code',
+    description: 'Trình tạo hệ thống thiết kế thông minh từ NextLevelBuilder: 79 UI Styles, 192 quy tắc reasoning, 34 mẫu Landing Page CRO, Anti-AI Slop & WCAG 4.5:1.',
+    content: `[KỸ NĂNG: UI/UX PRO MAX 2.13 - AI DESIGN INTELLIGENCE & LANDING PAGE CRO]
+Nguồn: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill (Bản quyền MIT)
+
+1. TRÌNH TẠO HỆ THỐNG THIẾT KẾ THÔNG MINH (DESIGN SYSTEM REASONING):
+- Phân tích sâu sắc bối cảnh dự án (Y tế, Nha khoa, Thẩm mỹ răng sứ, Implant kỹ thuật số, Khách hàng kiều bào/VIP) để tự động sinh ra một Design System hoàn chỉnh, đồng nhất.
+- Bố cục phễu CRO 6 tầng chuyển đổi vững chắc:
+  1. Hero Section: Hook cảm xúc trong 3 giây đầu, giá trị cốt lõi (Value Proposition), cam kết bảo chứng, nút CTA chính nổi bật trong màn hình đầu tiên (Above the Fold).
+  2. Bằng chứng xã hội đa tầng (Social Proof): Huy hiệu giấy phép Bộ Y Tế, số ca thành công (>20,000 ca), ảnh khách hàng thực tế Trước/Sau (Before/After) có thanh trượt so sánh.
+  3. Dịch vụ & Công nghệ cốt lõi: Trình bày dạng thẻ (Card/Grid) với chiều sâu tinh tế, icon SVG sắc nét, minh bạch thông số kỹ thuật (CT ConeBeam 3D, iTero 5D, Piezotome không đau).
+  4. Bảng giá & Trợ giá minh bạch: Bảng so sánh vật liệu (Straumann Thụy Sĩ, Cercon HT Đức...), cam kết trọn gói không phát sinh, hỗ trợ trả góp 0% lãi suất.
+  5. Đánh giá khách hàng chân thực: Đánh giá 5 sao từ Google/Facebook, trích dẫn cảm nghĩ thực tế của kiều bào và bệnh nhân.
+  6. Form đăng ký 1-chạm tối ưu hóa chuyển đổi (Conversion-Optimized Form): Tối giản các trường nhập (Họ tên, SĐT, Nhu cầu), bảo mật thông tin, CTA to bản kích thích hành động.
+  7. Thanh hành động dính (Sticky Action Bar): Hotline 1900 8098 và Zalo nổi bật ở góc phải hoặc đáy màn hình điện thoại với hiệu ứng pulse/glow nhẹ nhàng.
+
+2. QUY TẮC PHỐI MÀU & TÂM LÝ HỌC (COLOR PSYCHOLOGY & ACCESSIBILITY):
+- Bảng màu chủ đạo:
+  + Màu chính (Primary): Xanh dương y tế Tâm Đức (#0284c7 / #0369a1) hoặc Xanh ngọc bích (#0d9488) tạo cảm giác an tâm, chuyên nghiệp, vô trùng.
+  + Màu phụ (Secondary): Xanh xô thơm dịu mát (#0f766e) hoặc Trắng ngọc (#f8fafc) làm nền dịu mắt.
+  + Màu nhấn hành động (Accent / CTA): Vàng kim hoàng gia (#f59e0b / #d97706) hoặc Cam ấm (#ea580c) tạo độ tương phản cực đại, thúc đẩy click.
+  + Độ tương phản văn bản: Tối thiểu 4.5:1 (WCAG AA) cho body text và 3:1 cho tiêu đề lớn. Tuyệt đối không để chữ xám mờ trên nền xám.
+
+3. NGHỆ THUẬT CHỮ & TYPOGRAPHY:
+- Bộ font khuyến nghị: Plus Jakarta Sans / Inter / Montserrat (kết hợp tiêu đề sang trọng và thân bài dễ đọc).
+- Căn chỉnh: Leading 1.6 cho đoạn văn, tracking tight cho tiêu đề lớn, phân cấp kích thước rõ ràng (H1: 36-48px mobile / 56-64px desktop; Body: 16px).
+
+4. QUY TẮC ANTI-AI SLOP (TRIỆT TIÊU LỖI THIẾT KẾ CẨU THẢ):
+- KHÔNG dùng emoji làm icon: Bắt buộc dùng biểu tượng SVG chuẩn hoặc thư viện Lucide Icons (ShieldCheck, Award, Phone, CheckCircle2, Clock, Sparkles).
+- KHÔNG tạo nút giả không bấm được: Mọi nút bấm và thẻ tương tác đều phải có cursor-pointer, hover:scale-[1.02], active:scale-[0.98] và transition mượt mà.
+- KHÔNG dùng gradient tím/hồng kiểu AI vô nghĩa: Màu sắc phải phục vụ niềm tin y khoa và thương hiệu Nha khoa Tâm Đức.
+- RESPONSIVE 100%: Hoạt động trơn tru từ Mobile 375px, Tablet 768px, đến Desktop 1440px. Không để tràn lề ngang (no horizontal overflow).`,
+  },
+  {
     id: 'cro_dental_master',
     name: 'Nha Khoa CRO Chuyển Đổi Vàng (AIDA + Hook 3s)',
     badge: '🏆 TỐI ƯU CONVERSION',
@@ -280,7 +317,7 @@ export default function LandingBuilderView() {
     } catch {}
     return [];
   });
-  const [selectedSkillId, setSelectedSkillId] = useState<string>('cro_dental_master');
+  const [selectedSkillId, setSelectedSkillId] = useState<string>('ui_ux_pro_max_v2');
   const [isSkillActive, setIsSkillActive] = useState<boolean>(true);
   const [showSkillManagerModal, setShowSkillManagerModal] = useState<boolean>(false);
   const [showSkillDetailDrawer, setShowSkillDetailDrawer] = useState<boolean>(false);
@@ -2521,19 +2558,66 @@ export default function LandingBuilderView() {
                 </p>
               </div>
 
-              {/* Template quick load button */}
-              <div className="p-3 rounded-xl bg-gradient-to-r from-amber-950/40 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-2">
-                <div className="text-xs text-amber-200">
-                  <span className="font-semibold">Hoặc dùng mẫu có sẵn:</span>
-                  <span className="text-[11px] text-slate-400 block">Bấm để nạp sẵn mẫu công thức Landing Page CRO nha khoa chuẩn quốc tế.</span>
+              {/* Template quick load buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-xl bg-gradient-to-r from-blue-950/50 to-slate-950 border border-blue-500/30 flex items-center justify-between gap-2">
+                  <div className="text-xs text-blue-200">
+                    <span className="font-semibold block flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> UI/UX Pro Max 2.13:
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">79 UI Styles &amp; Design Intelligence</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGithubSkillUrl('https://github.com/nextlevelbuilder/ui-ux-pro-max-skill');
+                      setSkillFormName('UI/UX Pro Max 2.13 (Design Intelligence)');
+                      setSkillFormDescription('Hệ thống thiết kế thông minh với 79 UI Styles, 192 reasoning rules, 34 mẫu Landing Page CRO, Anti-AI Slop & WCAG 4.5:1.');
+                      setSkillFormCategory('code');
+                      setIsFetchingGitHub(true);
+                      fetch('/api/landing/fetch-github-skill', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: 'https://github.com/nextlevelbuilder/ui-ux-pro-max-skill' }),
+                      })
+                        .then((r) => r.json())
+                        .then((d) => {
+                          if (d.success && d.content) {
+                            setSkillFormContent(d.content);
+                            showSkillToast('Đã nạp thành công UI/UX Pro Max từ GitHub!');
+                          } else {
+                            // Fallback to built-in content if GitHub rate-limited
+                            const found = BUILTIN_LANDING_SKILLS.find((s) => s.id === 'ui_ux_pro_max_v2');
+                            if (found) setSkillFormContent(found.content);
+                            showSkillToast('Đã nạp nội dung mẫu UI/UX Pro Max!');
+                          }
+                        })
+                        .catch(() => {
+                          const found = BUILTIN_LANDING_SKILLS.find((s) => s.id === 'ui_ux_pro_max_v2');
+                          if (found) setSkillFormContent(found.content);
+                          showSkillToast('Đã nạp nội dung mẫu UI/UX Pro Max!');
+                        })
+                        .finally(() => setIsFetchingGitHub(false));
+                    }}
+                    className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg transition-colors shrink-0 shadow-sm"
+                  >
+                    Nạp Pro Max
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleLoadSampleTemplate}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition-colors shrink-0 shadow-sm"
-                >
-                  Nạp Mẫu Chuẩn
-                </button>
+
+                <div className="p-3 rounded-xl bg-gradient-to-r from-amber-950/40 to-slate-950 border border-amber-500/30 flex items-center justify-between gap-2">
+                  <div className="text-xs text-amber-200">
+                    <span className="font-semibold block">Mẫu Nha Khoa CRO:</span>
+                    <span className="text-[10px] text-slate-400 block">Công thức Direct Response</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLoadSampleTemplate}
+                    className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition-colors shrink-0 shadow-sm"
+                  >
+                    Nạp Mẫu CRO
+                  </button>
+                </div>
               </div>
 
               {/* Skill Name & Category */}

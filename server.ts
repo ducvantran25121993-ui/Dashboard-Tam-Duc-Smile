@@ -4353,68 +4353,82 @@ app.post('/api/landing/fetch-github-skill', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Vui lòng cung cấp đường dẫn GitHub.' });
     }
 
-    let targetUrl = url.trim();
+    const inputUrl = url.trim();
+    const candidateUrls: string[] = [];
 
-    // Convert github.com blob URLs to raw.githubusercontent.com
-    // e.g. https://github.com/owner/repo/blob/main/skills/SKILL.md -> https://raw.githubusercontent.com/owner/repo/main/skills/SKILL.md
-    if (targetUrl.includes('github.com/') && targetUrl.includes('/blob/')) {
-      targetUrl = targetUrl
-        .replace('github.com/', 'raw.githubusercontent.com/')
-        .replace('/blob/', '/');
+    // 1. If it's already a raw.githubusercontent.com URL
+    if (inputUrl.includes('raw.githubusercontent.com/')) {
+      candidateUrls.push(inputUrl);
     }
-
-    // If it's a directory or repo root without file, try SKILL.md or README.md
-    if (!targetUrl.match(/\.(md|markdown|txt|json|yaml|yml)$/i)) {
-      if (targetUrl.endsWith('/')) {
-        targetUrl = `${targetUrl}SKILL.md`;
+    // 2. If it's a direct blob file URL: github.com/owner/repo/blob/branch/path
+    else if (inputUrl.includes('github.com/') && inputUrl.includes('/blob/')) {
+      candidateUrls.push(
+        inputUrl.replace('github.com/', 'raw.githubusercontent.com/').replace('/blob/', '/')
+      );
+    }
+    // 3. If it's a GitHub repository root or directory (e.g. https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)
+    else if (inputUrl.includes('github.com/')) {
+      const match = inputUrl.match(/github\.com\/([^\/]+)\/([^\/\?#]+)/);
+      if (match) {
+        const owner = match[1];
+        const repo = match[2].replace(/\.git$/i, '');
+        // Candidates in order of likelihood
+        candidateUrls.push(
+          `https://raw.githubusercontent.com/${owner}/${repo}/main/src/ui-ux-pro-max/templates/base/skill-content.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/main/README.vi.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/main/SKILL.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/main/skills/SKILL.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/master/SKILL.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/master/README.vi.md`,
+          `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
+        );
       } else {
-        targetUrl = `${targetUrl}/SKILL.md`;
+        candidateUrls.push(inputUrl);
       }
+    } else {
+      candidateUrls.push(inputUrl);
     }
 
-    const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'TamDucSmile-LandingBuilder/1.0',
-        'Accept': 'text/plain, text/markdown, text/x-markdown, application/json, */*',
-      },
-    });
+    let fetchedContent = '';
+    let resolvedUrl = '';
+    let fileName = 'SKILL.md';
 
-    if (!response.ok) {
-      // If 404 with SKILL.md, try README.md fallback
-      if (response.status === 404 && targetUrl.endsWith('/SKILL.md')) {
-        const readmeUrl = targetUrl.replace(/\/SKILL\.md$/, '/README.md');
-        const retryRes = await fetch(readmeUrl, {
+    for (const targetUrl of candidateUrls) {
+      try {
+        const response = await fetch(targetUrl, {
           headers: {
             'User-Agent': 'TamDucSmile-LandingBuilder/1.0',
-            'Accept': 'text/plain, text/markdown, text/x-markdown, */*',
+            'Accept': 'text/plain, text/markdown, text/x-markdown, application/json, */*',
           },
         });
-        if (retryRes.ok) {
-          const content = await retryRes.text();
-          const fileName = 'README.md';
-          return res.json({
-            success: true,
-            content,
-            resolvedUrl: readmeUrl,
-            fileName,
-          });
-        }
-      }
 
+        if (response.ok) {
+          const text = await response.text();
+          if (text && text.trim().length > 50) {
+            fetchedContent = text;
+            resolvedUrl = targetUrl;
+            const parts = targetUrl.split('/');
+            fileName = parts[parts.length - 1] || 'SKILL.md';
+            break;
+          }
+        }
+      } catch {
+        // try next candidate
+      }
+    }
+
+    if (!fetchedContent) {
       return res.status(400).json({
         success: false,
-        error: `Không thể tải file từ GitHub (${response.status}: ${response.statusText}). Vui lòng kiểm tra lại URL (đảm bảo repository công khai).`,
+        error: `Không thể tìm thấy file SKILL.md hoặc README từ GitHub repository này. Vui lòng kiểm tra lại link hoặc đảm bảo repository ở chế độ công khai (Public).`,
       });
     }
 
-    const content = await response.text();
-    const urlParts = targetUrl.split('/');
-    const fileName = urlParts[urlParts.length - 1] || 'SKILL.md';
-
     return res.json({
       success: true,
-      content,
-      resolvedUrl: targetUrl,
+      content: fetchedContent,
+      resolvedUrl,
       fileName,
     });
   } catch (err: any) {
