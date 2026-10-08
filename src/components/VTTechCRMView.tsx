@@ -152,10 +152,46 @@ export const VTTECH_SERVICES = [
 
 // Helper to detect dental service from VTTech ticket fields (ServiceCare IDs, Content, TypeName)
 export const getTicketService = (t: VTTechTicket): string => {
+  const text = `${t.Content || ''} ${t.ContentLast || ''} ${t.Campaign || ''} ${t.SourceDetailName || ''}`.toLowerCase();
+
+  // 1. ƯU TIÊN HÀNG ĐẦU: Nhận diện trực tiếp từ ghi chú tư vấn của nhân viên (khám tổng quát / kiểm tra)
+  // Tránh trường hợp nhân viên tạo ticket nhanh để mặc định dropdown ServiceCare = 1 (Răng Sứ)
+  if (
+    /\bktv\s*tq\b/.test(text) ||
+    /\btv\s*tq\b/.test(text) ||
+    /\bkh[aá]m\s*(t[ổo]ng\s*qu[aá]t|tq)\b/.test(text) ||
+    /\b(ktra|ki[ểe]m\s*tra)\s*r[aă]ng\b/.test(text) ||
+    /\bkham\s*(tong\s*quat|tq)\b/.test(text) ||
+    /\bkh[aá]m\s*t[ổo]ng\s*th[ểe]\b/.test(text)
+  ) {
+    return 'Khám Tổng Quát';
+  }
+
+  // Nhận diện từ khóa trong ghi chú
+  const isImplantNote = text.includes('implant') || /\bimp\b/.test(text) || text.includes('cấy ghép') || text.includes('all on') || text.includes('all-on');
+  const isRangSuNote = text.includes('răng sứ') || text.includes('bọc sứ') || text.includes('dán sứ') || text.includes('veneer') || /\bnrs\b/.test(text) || /\btv\s*sứ\b/.test(text) || /\bktv\s*sứ\b/.test(text) || /\bhàm duy trì\b/.test(text);
+  const isNiengRangNote = text.includes('niềng') || text.includes('chỉnh nha') || text.includes('mắc cài') || text.includes('invisalign') || /\btvcn\b/.test(text) || /\bktv\s*cn\b/.test(text);
+  const isTramRangNote = text.includes('trám') || /\btram\b/.test(text) || /\bktv\s*trám\b/.test(text);
+  const isNhoRangNote = text.includes('nhổ') || /\bnr\b/.test(text) || /\bnrk\b/.test(text) || text.includes('tiểu phẫu');
+  const isChuaTuyNote = text.includes('tủy') || /\bctuy\b/.test(text) || text.includes('nội nha');
+  const isThaoLapNote = text.includes('tháo lắp') || /\bktv\s*tl\b/.test(text);
+  const isTayTrangNote = text.includes('tẩy trắng') || /\bttr\b/.test(text);
+  const isCaoVoiNote = text.includes('cạo vôi') || /\bcvr\b/.test(text) || /\bktv\s*cvr\b/.test(text) || /\bktv\s*cv\b/.test(text);
+
+  // Nếu ServiceCare = 1, (Răng Sứ) nhưng ghi chú thực tế lại ghi rõ dịch vụ điều trị khác
   const sc = (t.ServiceCare || '').trim();
+  if (sc.includes('1,') || sc.includes('11,')) {
+    if (isCaoVoiNote && !isRangSuNote) return 'Cạo Vôi';
+    if (isTramRangNote && !isRangSuNote) return 'Trám Răng';
+    if (isNhoRangNote && !isRangSuNote) return 'Nhổ Răng';
+    if (isChuaTuyNote && !isRangSuNote) return 'Chữa Tủy';
+    if (isNiengRangNote && !isRangSuNote) return 'Niềng Răng';
+    if (isImplantNote && !isRangSuNote) return 'Implant';
+  }
+
   const services: string[] = [];
 
-  // Mapped from VTTech ServiceCare ID numbers to Dental Specialties
+  // 2. Mapped từ VTTech ServiceCare ID numbers sang nhóm chuyên môn
   if (sc.includes('8,')) services.push('Implant');
   if (sc.includes('1,') || sc.includes('11,')) {
     if (!services.includes('Răng Sứ')) services.push('Răng Sứ');
@@ -174,18 +210,16 @@ export const getTicketService = (t: VTTechTicket): string => {
 
   if (services.length > 0) return services.join(', ');
 
-  // Parse from Content / ContentLast / Campaign / SourceDetailName
-  const text = `${t.Content || ''} ${t.ContentLast || ''} ${t.Campaign || ''} ${t.SourceDetailName || ''}`.toLowerCase();
-  
-  if (text.includes('implant') || /\bimp\b/.test(text) || text.includes('cấy ghép') || text.includes('all on') || text.includes('all-on')) return 'Implant';
-  if (text.includes('răng sứ') || text.includes('bọc sứ') || text.includes('dán sứ') || text.includes('veneer') || /\bnrs\b/.test(text) || /\btv sứ\b/.test(text) || /\bktv sứ\b/.test(text)) return 'Răng Sứ';
-  if (text.includes('niềng') || text.includes('chỉnh nha') || text.includes('mắc cài') || text.includes('invisalign') || /\btvcn\b/.test(text) || /\bktv cn\b/.test(text)) return 'Niềng Răng';
-  if (text.includes('trám') || /\btram\b/.test(text) || /\bktv trám\b/.test(text)) return 'Trám Răng';
-  if (text.includes('nhổ') || /\bnr\b/.test(text) || /\bnrk\b/.test(text) || text.includes('tiểu phẫu')) return 'Nhổ Răng';
-  if (text.includes('tủy') || /\bctuy\b/.test(text) || text.includes('nội nha')) return 'Chữa Tủy';
-  if (text.includes('tháo lắp') || /\bktv tl\b/.test(text)) return 'Hàm Tháo Lắp';
-  if (text.includes('tẩy trắng') || /\bttr\b/.test(text)) return 'Tẩy Trắng';
-  if (text.includes('cạo vôi') || /\bcvr\b/.test(text)) return 'Cạo Vôi';
+  // 3. Fallback: Parse từ Content / ContentLast / Campaign / SourceDetailName
+  if (isImplantNote) return 'Implant';
+  if (isRangSuNote) return 'Răng Sứ';
+  if (isNiengRangNote) return 'Niềng Răng';
+  if (isTramRangNote) return 'Trám Răng';
+  if (isNhoRangNote) return 'Nhổ Răng';
+  if (isChuaTuyNote) return 'Chữa Tủy';
+  if (isThaoLapNote) return 'Hàm Tháo Lắp';
+  if (isTayTrangNote) return 'Tẩy Trắng';
+  if (isCaoVoiNote) return 'Cạo Vôi';
   if (text.includes('tổng quát') || text.includes('ktra răng') || text.includes('kiểm tra')) return 'Khám Tổng Quát';
 
   if (t.TypeName && t.TypeName.trim()) return t.TypeName.trim();
