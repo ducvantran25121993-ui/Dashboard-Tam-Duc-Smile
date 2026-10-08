@@ -139,6 +139,7 @@ export const VTTECH_SERVICES = [
   'Răng Sứ',
   'Implant',
   'Niềng Răng',
+  'Hàm Duy Trì',
   'Trám Răng',
   'Nhổ Răng',
   'Cạo Vôi',
@@ -154,22 +155,28 @@ export const VTTECH_SERVICES = [
 export const getTicketService = (t: VTTechTicket): string => {
   const text = `${t.Content || ''} ${t.ContentLast || ''} ${t.Campaign || ''} ${t.SourceDetailName || ''}`.toLowerCase();
 
-  // 1. ƯU TIÊN HÀNG ĐẦU: Nhận diện trực tiếp từ ghi chú tư vấn của nhân viên (khám tổng quát / kiểm tra)
-  // Tránh trường hợp nhân viên tạo ticket nhanh để mặc định dropdown ServiceCare = 1 (Răng Sứ)
-  if (
+  // Nhận diện dịch vụ đặc thù từ ghi chú tư vấn thực tế của nhân viên
+  const isHamDuyTriNote = text.includes('hàm duy trì') || text.includes('ham duy tri') || /\b(ktv|tv)?\s*hdt\b/.test(text);
+  const isKhamTongQuatNote =
     /\bktv\s*tq\b/.test(text) ||
     /\btv\s*tq\b/.test(text) ||
     /\bkh[aá]m\s*(t[ổo]ng\s*qu[aá]t|tq)\b/.test(text) ||
     /\b(ktra|ki[ểe]m\s*tra)\s*r[aă]ng\b/.test(text) ||
     /\bkham\s*(tong\s*quat|tq)\b/.test(text) ||
-    /\bkh[aá]m\s*t[ổo]ng\s*th[ểe]\b/.test(text)
-  ) {
+    /\bkh[aá]m\s*t[ổo]ng\s*th[ểe]\b/.test(text);
+
+  // 1. ƯU TIÊN HÀNG ĐẦU TỪ GHI CHÚ GÕ TAY CỦA TELESALE:
+  // Tránh trường hợp nhân viên tạo ticket nhanh để mặc định dropdown ServiceCare = 1 (Răng Sứ)
+  if (isHamDuyTriNote) {
+    return 'Hàm Duy Trì';
+  }
+  if (isKhamTongQuatNote) {
     return 'Khám Tổng Quát';
   }
 
-  // Nhận diện từ khóa trong ghi chú
+  // Nhận diện các từ khóa chuyên khoa trong ghi chú
   const isImplantNote = text.includes('implant') || /\bimp\b/.test(text) || text.includes('cấy ghép') || text.includes('all on') || text.includes('all-on');
-  const isRangSuNote = text.includes('răng sứ') || text.includes('bọc sứ') || text.includes('dán sứ') || text.includes('veneer') || /\bnrs\b/.test(text) || /\btv\s*sứ\b/.test(text) || /\bktv\s*sứ\b/.test(text) || /\bhàm duy trì\b/.test(text);
+  const isRangSuNote = text.includes('răng sứ') || text.includes('bọc sứ') || text.includes('dán sứ') || text.includes('veneer') || /\bnrs\b/.test(text) || /\btv\s*sứ\b/.test(text) || /\bktv\s*sứ\b/.test(text);
   const isNiengRangNote = text.includes('niềng') || text.includes('chỉnh nha') || text.includes('mắc cài') || text.includes('invisalign') || /\btvcn\b/.test(text) || /\bktv\s*cn\b/.test(text);
   const isTramRangNote = text.includes('trám') || /\btram\b/.test(text) || /\bktv\s*trám\b/.test(text);
   const isNhoRangNote = text.includes('nhổ') || /\bnr\b/.test(text) || /\bnrk\b/.test(text) || text.includes('tiểu phẫu');
@@ -220,7 +227,6 @@ export const getTicketService = (t: VTTechTicket): string => {
   if (isThaoLapNote) return 'Hàm Tháo Lắp';
   if (isTayTrangNote) return 'Tẩy Trắng';
   if (isCaoVoiNote) return 'Cạo Vôi';
-  if (text.includes('tổng quát') || text.includes('ktra răng') || text.includes('kiểm tra')) return 'Khám Tổng Quát';
 
   if (t.TypeName && t.TypeName.trim()) return t.TypeName.trim();
 
@@ -232,6 +238,7 @@ export const getServiceBadgeColor = (serviceName: string): string => {
   if (serviceName.includes('Implant')) return 'bg-purple-500/10 text-purple-300 border-purple-500/30';
   if (serviceName.includes('Răng Sứ')) return 'bg-sky-500/10 text-sky-300 border-sky-500/30';
   if (serviceName.includes('Niềng')) return 'bg-teal-500/10 text-teal-300 border-teal-500/30';
+  if (serviceName.includes('Hàm Duy Trì') || serviceName.includes('Duy Trì')) return 'bg-violet-500/10 text-violet-300 border-violet-500/30';
   if (serviceName.includes('Trám')) return 'bg-amber-500/10 text-amber-300 border-amber-500/30';
   if (serviceName.includes('Nhổ')) return 'bg-rose-500/10 text-rose-300 border-rose-500/30';
   if (serviceName.includes('Cạo Vôi')) return 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30';
