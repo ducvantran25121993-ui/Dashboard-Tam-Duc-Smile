@@ -822,7 +822,7 @@ export const Crawl4AISpyConsole: React.FC<{
           data = await response.json();
         }
       } catch (postErr) {
-        console.warn('POST /api/gemini-crawler gặp lỗi, thử chuyển sang /api/crawl4ai...', postErr);
+        console.info('POST /api/gemini-crawler chuyển hướng dự phòng...', postErr);
       }
 
       // 2. Dự phòng gọi /api/crawl4ai
@@ -841,7 +841,7 @@ export const Crawl4AISpyConsole: React.FC<{
             data = await fbResp.json();
           }
         } catch (fbErr) {
-          console.warn('POST /api/crawl4ai gặp lỗi:', fbErr);
+          console.info('POST /api/crawl4ai chuyển hướng dự phòng:', fbErr);
         }
       }
 
