@@ -467,10 +467,22 @@ Báo cáo cần có các phần rõ ràng:
     const isParkway = urlLower.includes('parkway');
     const isDrCare = urlLower.includes('drcare') || urlLower.includes('dr-care');
 
-    // 1. Phân tích bảng dữ liệu HTML (HTML Table rows) từ rawHtml nếu có
+    // 1. Phân tích bảng dữ liệu HTML (HTML Table rows) từ rawHtml nếu có - Lấy TOÀN BỘ các loại giá
     const tableServices: any[] = [];
     if (rawHtml) {
       try {
+        const isPrice = (s: string) => {
+          if (!s) return false;
+          const clean = s.trim();
+          if (/^(loại|stt|dịch vụ|bảng giá|chi phí|thời gian|bảo hành)/i.test(clean)) return false;
+          return (
+            /[0-9]{1,3}(?:[.,][0-9]{3})+\s*(?:đ|vnđ|d|đồng)?/i.test(clean) ||
+            /\d+\s*(?:triệu|tr|k)\b/i.test(clean) ||
+            /\b0\s*(?:đ|vnđ|đồng)\b/i.test(clean) ||
+            /\bmiễn phí\b/i.test(clean)
+          );
+        };
+
         const tableRows = [...rawHtml.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)];
         for (const tr of tableRows) {
           const cells = [...tr[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi)]
@@ -478,26 +490,39 @@ Báo cáo cần có các phần rõ ràng:
             .filter(Boolean);
 
           if (cells.length >= 2) {
-            const priceCellIdx = cells.findIndex(c => /[0-9]{1,3}(?:[.,][0-9]{3})+\s*(?:đ|vnđ|d)?/i.test(c) || /\b(?:triệu|tr|k)\b/i.test(c));
-            if (priceCellIdx >= 1) {
-              const rawName = cells[0].replace(/[|#*-]/g, '').trim();
-              const rawPrice = cells[priceCellIdx];
-              const isHeader = rawName.toLowerCase().includes('dịch vụ') || rawName.toLowerCase().includes('loại trụ') || rawName.toLowerCase().includes('bảng giá');
-              
-              if (!isHeader && rawName.length >= 4 && !tableServices.some(s => s.serviceName.toLowerCase() === rawName.toLowerCase())) {
-                const warrantyCell = cells.find(c => /năm|tháng|trọn đời/i.test(c));
-                tableServices.push({
-                  serviceName: rawName.substring(0, 70),
-                  originalPrice: cells.length > priceCellIdx + 1 && /[0-9.,]+/.test(cells[priceCellIdx + 1]) ? cells[priceCellIdx] : 'Giá niêm yết',
-                  discountedPrice: cells.length > priceCellIdx + 1 && /[0-9.,]+/.test(cells[priceCellIdx + 1]) ? cells[priceCellIdx + 1] : rawPrice,
-                  discountPercent: rawPrice.includes('-') || rawPrice.includes('%') ? 'Ưu đãi trên trang' : 'Giá chính hãng',
-                  warranty: warrantyCell ? `Bảo hành ${warrantyCell}` : 'Bảo hành chính hãng',
-                  gifts: ['Khám & Chụp phim CT 3D miễn phí', 'Tặng gói chăm sóc răng']
-                });
+            let nameIdx = 0;
+            if (/^\d+$/.test(cells[0]) && cells.length > 2) nameIdx = 1;
+            const rawName = cells[nameIdx].replace(/[|#*-]/g, '').trim();
+            if (!rawName || rawName.length < 3 || /^(stt|loại|dịch vụ|bảng giá|tên sản phẩm)/i.test(rawName)) continue;
+
+            const priceCells: string[] = [];
+            for (let i = nameIdx + 1; i < cells.length; i++) {
+              if (isPrice(cells[i])) {
+                priceCells.push(cells[i]);
               }
             }
+
+            if (priceCells.length > 0 && !tableServices.some(s => s.serviceName.toLowerCase() === rawName.toLowerCase())) {
+              const warrantyCell = cells.find(c => /\b(?:\d+\s*năm|\d+\s*tháng|trọn đời)\b/i.test(c));
+              const unitCell = cells.find(c => /\b(?:trụ|răng|hàm|liệu trình|gói|ca)\b/i.test(c));
+
+              let orig = 'Giá niêm yết';
+              let disc = priceCells[priceCells.length - 1];
+              if (priceCells.length > 1) {
+                orig = priceCells[0];
+                disc = priceCells[1];
+              }
+
+              tableServices.push({
+                serviceName: rawName.substring(0, 80),
+                originalPrice: orig,
+                discountedPrice: disc,
+                discountPercent: warrantyCell ? `Bảo hành ${warrantyCell}` : (unitCell ? `Đơn vị: ${unitCell}` : (orig !== 'Giá niêm yết' ? 'Ưu đãi trên trang' : 'Giá chính hãng')),
+                warranty: warrantyCell ? `Bảo hành ${warrantyCell}` : 'Bảo hành chính hãng',
+                gifts: ['Khám & Chụp phim CT 3D miễn phí', 'Tư vấn chuyên sâu bác sĩ chuyên khoa']
+              });
+            }
           }
-          if (tableServices.length >= 12) break;
         }
       } catch (_) {}
     }
@@ -880,8 +905,19 @@ Báo cáo cần có các phần rõ ràng:
       ];
     }
 
-    // Nếu tableServices từ HTML phong phú hơn (đối với Ident, Kim, Parkway), kết hợp thêm các dịch vụ từ HTML table
-    const finalServices = verifiedServices.length > 0 ? verifiedServices : tableServices;
+    // HỢP NHẤT TOÀN DIỆN: Lấy TẤT CẢ các loại giá trong bài (bảng tableServices + verifiedServices)
+    const combinedServicesMap = new Map<string, any>();
+    // 1. Đưa tableServices vào trước (lấy toàn bộ các hàng bảng giá thực tế cào từ HTML của trang)
+    for (const s of tableServices) {
+      combinedServicesMap.set(s.serviceName.toLowerCase(), s);
+    }
+    // 2. Bổ sung các gói ưu đãi/combo đặc biệt từ verifiedServices
+    for (const v of verifiedServices) {
+      if (!combinedServicesMap.has(v.serviceName.toLowerCase())) {
+        combinedServicesMap.set(v.serviceName.toLowerCase(), v);
+      }
+    }
+    const finalServices = Array.from(combinedServicesMap.values());
 
     extracted = {
       dentalName: dentalDisplayName,
