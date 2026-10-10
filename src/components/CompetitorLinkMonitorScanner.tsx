@@ -238,36 +238,56 @@ export const CompetitorBannerImage: React.FC<{
 const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   {
     id: 'link-viethan-1',
-    name: 'Nha Khoa Việt Hàn 04 - Bảng Giá & Ưu Đãi Cấy Ghép Implant Trọn Gói',
-    url: 'https://nhakhoaviethan04.com/bang-gia-implant',
+    name: 'Nha Khoa Việt Hàn 04 - Bảng Giá Cấy Ghép Implant & Răng Sứ Thẩm Mỹ',
+    url: 'https://nhakhoaviethan04.com.vn/bang-gia',
     category: 'implant',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Vừa quét (Live Alert)',
-    changeMessage: '⚡ Bảng giá trụ Implant Hàn Quốc hạ xuống 7.5 Triệu/trụ + Miễn phí Chụp CT ConeBeam 3D!',
-    newImagesCount: 4,
+    changeMessage: '⚡ Giảm 40% Trồng răng Implant chỉ 7.999.000 đ/trụ + Combo 16 răng bọc sứ Đức 12.960.000 đ!',
+    newImagesCount: 5,
     textChanged: true,
     lastData: {
-      text: 'Nha Khoa Quốc Tế Việt Hàn 04 - Hệ thống nha khoa cấy ghép Implant & phục hình răng uy tín. Trồng răng Implant Hàn Quốc trợ giá chỉ từ 7.500.000đ/trụ. Miễn phí chụp phim CT ConeBeam 3D, miễn phí khám và lên phác đồ điều trị cùng bác sĩ chuyên khoa.',
+      text: 'Nha Khoa Quốc Tế Việt Hàn 04 - Hệ thống nha khoa cấy ghép Implant không rạch nướu giảm 40% chỉ 7TR999/trụ chính hãng. Trồng răng toàn hàm All-on-4 chỉ 39 Triệu có răng ăn nhai sau 24h. Combo 16 răng bọc sứ Đức lên đến 70% chỉ 12TR960 (810k/răng). Niềng răng mắc cài Mỹ trọn gói 2 hàm chỉ 25 Triệu.',
       images: [
-        'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80'
+        'https://nhakhoaviethan04.com.vn/data/upload/banner-thang-6-1783910992-.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-implant.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-su.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-nieng.webp'
       ],
       promotions: [
         {
-          service: 'Trồng Răng Implant Trụ Hàn Quốc (Dentium / Osstem)',
-          oldPrice: '10.500.000đ/trụ',
-          newPrice: '7.500.000đ/trụ (Giảm -28%)',
+          service: 'Trồng Răng Implant Không Rạch Nướu - Thay Thế Răng Mất',
+          oldPrice: '13.500.000đ/trụ',
+          newPrice: '7.999.000đ/trụ (Giảm 40%)',
           oldDiscount: 'Bảng giá niêm yết phòng khám',
-          newDiscount: '🔥 Tặng 100% chi phí Chụp Phim CT ConeBeam 3D trị giá 1.2 Tr',
-          diffPercent: '-28%',
+          newDiscount: '🔥 Miễn phí 100% Chụp Phim CT ConeBeam 3D & Khám tư vấn bác sĩ CKI',
+          diffPercent: '-40%',
           gifts: [
             'Miễn phí Chụp phim CT ConeBeam 3D',
-            'Miễn phí xét nghiệm máu trước phẫu thuật',
-            'Bảo hành chính hãng 10 năm'
+            'Bảo hành chính hãng trụ Implant',
+            'Miễn phí kiểm tra vệ sinh răng trọn đời'
           ],
+          isNew: true
+        },
+        {
+          service: 'Trồng Răng Toàn Hàm All-on-4 (Ăn Nhai Sau 24H)',
+          oldPrice: '65.000.000đ/hàm',
+          newPrice: '39.000.000đ/hàm',
+          oldDiscount: 'Bảng giá niêm yết',
+          newDiscount: '⭐ Có răng ăn nhai tức thì sau 24 giờ',
+          diffPercent: 'Ưu đãi sốc',
+          gifts: ['Tặng hàm cố định', 'Theo dõi trọn đời'],
+          isNew: true
+        },
+        {
+          service: 'Ưu Đãi Combo 16 Răng Bọc Sứ Đức Thẩm Mỹ',
+          oldPrice: '43.200.000đ',
+          newPrice: '12.960.000đ (Chỉ 810k/răng)',
+          oldDiscount: 'Bảo hành 7 năm',
+          newDiscount: '⭐ Giảm 70% bọc răng sứ Đức chính hãng',
+          diffPercent: '-70%',
+          gifts: ['Thẻ bảo hành chính hãng 10 năm', 'Tặng gói vệ sinh răng'],
           isNew: true
         }
       ],
@@ -387,31 +407,41 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-2',
-    name: 'Nha Khoa Kim - Hệ Thống Nha Khoa Chuẩn ISO',
-    url: 'https://nhakhoakim.com/bang-gia-implant',
+    name: 'Nha Khoa Kim - Bảng Giá Khám & Điều Trị Răng 2026',
+    url: 'https://nhakhoakim.com/bang-gia-nha-khoa-nieng-rang-rang-su-implant.html',
     category: 'implant',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 08:30',
-    changeMessage: '⚡ Bảng giá trụ Biotem Hàn Quốc & Straumann Thụy Sĩ vừa giảm giá sâu!',
-    newImagesCount: 2,
+    changeMessage: '⚡ Bảng giá công khai: Khám 0đ, Cạo vôi 500k, Trụ Biotem 14.5Tr, Răng sứ Titan 2.5Tr!',
+    newImagesCount: 4,
     textChanged: true,
     lastData: {
-      text: 'Hệ thống Nha Khoa Kim - Tiêu chuẩn ISO 9001:2015 và chứng nhận quốc tế GCR Hoa Kỳ. Trồng răng Implant an toàn với phòng phẫu thuật vô trùng khép kín 1 chiều.',
+      text: 'Hệ thống Nha Khoa Kim - Tiêu chuẩn ISO 9001:2015 và chứng nhận quốc tế GCR Hoa Kỳ. Khám tổng quát 0đ, Cạo vôi răng & Đánh bóng 2 hàm 500.000 VNĐ, Trụ Implant Biotem Hàn Quốc 14.500.000 VNĐ, Răng sứ kim loại Titan 2.500.000 VNĐ, Răng toàn sứ Cercon 5.500.000 VNĐ.',
       images: [
-        'https://nhakhoakim.com/wp-content/uploads/2019/05/Banner_DichVu-01-2-1.jpg',
-        'https://nhakhoakim.com/wp-content/uploads/2017/12/12-1.jpg',
-        'https://nhakhoakim.com/wp-content/themes/kimdental-child/assets/images/bg-tet-2022-mobile.gif'
+        'https://nhakhoakim.com/wp-content/uploads/2024/01/banner-trong-rang-implant-nha-khoa-kim.jpg',
+        'https://nhakhoakim.com/wp-content/uploads/2024/01/he-thong-may-chup-phim-ct-conebeam-3d.jpg'
       ],
       promotions: [
         {
-          service: 'Trồng Răng Implant Trọn Gói Chuẩn ISO',
-          oldPrice: '14.500.000đ/trụ Biotem',
-          newPrice: '11.900.000đ/trụ (Giảm -18%)',
-          oldDiscount: 'Bảng giá phòng khám',
-          newDiscount: '🔥 Trả góp 0% lãi suất qua ngân hàng & thẻ tín dụng',
-          diffPercent: '-18%',
-          gifts: ['Miễn phí chụp phim CT 3D', 'Bảo hành trụ Implant chính hãng']
+          service: 'Cạo Vôi & Đánh Bóng 2 Hàm (Chuẩn Vô Trùng)',
+          oldPrice: 'Giá niêm yết',
+          newPrice: '500.000 VNĐ',
+          oldDiscount: 'Giá chuẩn',
+          newDiscount: '🔥 Khám tổng quát & tư vấn Miễn Phí',
+          diffPercent: 'Giá niêm yết',
+          gifts: ['Vệ sinh răng miệng bằng sóng siêu âm', 'Vô trùng dụng cụ 1 chiều'],
+          isNew: true
+        },
+        {
+          service: 'Trụ Implant Biotem Hàn Quốc (Chuẩn ISO)',
+          oldPrice: 'Giá niêm yết phòng khám',
+          newPrice: '14.500.000 VNĐ/trụ',
+          oldDiscount: 'Bảo hành 10 năm',
+          newDiscount: '⚡ Trả góp 0% lãi suất duyệt nhanh',
+          diffPercent: 'Chính hãng',
+          gifts: ['Phòng mổ áp lực dương vô trùng', 'Bác sĩ chuyên khoa thực hiện'],
+          isNew: true
         }
       ],
       scannedAt: new Date().toISOString()
@@ -419,31 +449,41 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-3',
-    name: 'Nha Khoa Paris - Niềng Răng & Chỉnh Nha Tiêu Chuẩn Pháp',
-    url: 'https://nhakhoaparis.vn/khuyen-mai-nieng-rang',
+    name: 'Nha Khoa Paris - Chuỗi Nha Khoa Tiêu Chuẩn Pháp',
+    url: 'https://nhakhoaparis.vn/',
     category: 'ortho',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 07:15',
-    changeMessage: '🎁 Xuất hiện Popup Ưu Đãi Trả Góp 0% duyệt hồ sơ trong 5 phút + Tặng Máy Tăm Nước',
+    changeMessage: '🎁 Trụ Implant Dentium 4S giảm còn 12.8Tr + Răng sứ Nano 5S từ 2.2Tr/răng',
     newImagesCount: 3,
     textChanged: true,
     lastData: {
-      text: 'Nha Khoa Paris - Tiêu chuẩn Pháp với công nghệ niềng răng 3D Speed giúp dịch chuyển răng nhanh và êm ái. Hệ thống máy quét hàm Itero 5D xem trước kết quả nụ cười.',
+      text: 'Nha Khoa Paris - Hệ thống chuỗi nha khoa tiêu chuẩn Pháp. Công nghệ cấy ghép Implant 4S với trụ Dentium giảm còn 12.800.000 đ (giá gốc 16.000.000 đ), bọc răng sứ thẩm mỹ Nano 5S từ 2.200.000 đ/răng, niềng răng 3D Speed từ 29.000.000 đ.',
       images: [
-        'https://nhakhoaparis.vn/wp-content/webp-express/webp-images/uploads/2026/06/ctkmt626-mb.jpg.webp',
-        'https://nhakhoaparis.vn/wp-content/webp-express/webp-images/themes/ParisBrand2024/Module/Home/outstanding_pr_2_0_0/images/outstanding-img1.jpg.webp',
-        'https://nhakhoaparis.vn/wp-content/webp-express/webp-images/themes/ParisBrand2024/Module/Home/outstanding_pr_2_0_0/images/outstanding-img2.jpg.webp'
+        'https://nhakhoaparis.vn/wp-content/uploads/2023/10/banner-implant-4s-tieu-chuan-phap.jpg',
+        'https://nhakhoaparis.vn/wp-content/uploads/2023/10/bang-gia-nha-khoa-paris-uu-dai.jpg'
       ],
       promotions: [
         {
-          service: 'Niềng Răng Mắc Cài & Khay Trong Suốt Tiêu Chuẩn Pháp',
-          oldPrice: 'Bảng giá niêm yết Paris Dental',
-          newPrice: 'Flash Sale Niềng Răng chỉ từ 18 Tr (Trả góp 1 Tr/tháng)',
-          oldDiscount: 'Tư vấn tiêu chuẩn',
-          newDiscount: '⚡ Quét dấu hàm 3D & Tặng máy tăm nước 1.8 Tr',
-          diffPercent: 'Ưu đãi mới',
-          gifts: ['Lập phác đồ điều trị cá nhân hóa', 'Tặng máy tăm nước 1.8 Triệu']
+          service: 'Trụ Implant Dentium Hàn Quốc 4S (Chuẩn Pháp)',
+          oldPrice: '16.000.000 đ',
+          newPrice: '12.800.000 đ (Giảm 20%)',
+          oldDiscount: 'Giá niêm yết',
+          newDiscount: '⚡ Giảm 20% + Chụp CT 3D miễn phí',
+          diffPercent: '-20%',
+          gifts: ['Lên phác đồ điều trị 3D', 'Bảo hành chính hãng 10 năm'],
+          isNew: true
+        },
+        {
+          service: 'Bọc Răng Sứ Thẩm Mỹ Nano 5S',
+          oldPrice: '3.500.000 đ/răng',
+          newPrice: '2.200.000 đ/răng',
+          oldDiscount: 'Bảo hành 5 năm',
+          newDiscount: '⭐ Thiết kế nụ cười DSD chuẩn tỷ lệ vàng',
+          diffPercent: '-35%',
+          gifts: ['Tặng thẻ bảo hành chính hãng', 'Vệ sinh răng miệng'],
+          isNew: true
         }
       ],
       scannedAt: new Date().toISOString()
@@ -451,30 +491,41 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-4',
-    name: 'Dr. Care Implant - Nha Khoa Trồng Răng Không Đau',
-    url: 'https://drcareimplant.com/uu-dai-implant',
+    name: 'Dr. Care Implant - Bảng Giá Cấy Ghép Chuẩn Y Khoa',
+    url: 'https://drcareimplant.com/bang-gia-implant',
     category: 'implant',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm qua, 18:00',
-    changeMessage: '🖼️ Đổi mới Banner Hero: Nhấn mạnh Liệu pháp trồng răng không đau 12 bước',
-    newImagesCount: 2,
+    changeMessage: '🖼️ Bảng giá niêm yết: Trụ Osstem 12Tr, Dentium Mỹ 14Tr, Neodent 20Tr (Bảo hành 10-20 năm)',
+    newImagesCount: 4,
     textChanged: true,
     lastData: {
-      text: 'Dr. Care Implant Clinic - Nha khoa chuyên sâu trồng răng Implant dành riêng cho người trung niên và cao tuổi tại Việt Nam. Liệu pháp trồng răng không đau với 12 bước nghiêm ngặt.',
+      text: 'Dr. Care Implant Clinic - Bảng giá cấy ghép Implant chuẩn y khoa cho người trung niên. Trụ Osstem Hàn Quốc 12.000.000 VNĐ, Trụ Dentium Mỹ 14.000.000 VNĐ, Trụ Neodent Thụy Sĩ 20.000.000 VNĐ, Trụ Straumann 23.500.000 VNĐ. Liệu pháp trồng răng không đau 12 bước.',
       images: [
-        'https://drcareimplant.com/upload/image/article/fb/2025/08/30/4dc4f7bb12521e86e2725b065e398804.jpg',
-        'https://drcareimplant.com/upload/image/article/content/CTV%20-%20Chi/trong-rang-su-co-dinh/trong-rang-su-co-dinh-la-gi.jpg'
+        'https://drcareimplant.com/wp-content/uploads/2023/08/banner-trong-rang-implant-khong-dau-drcare.jpg',
+        'https://drcareimplant.com/wp-content/uploads/2023/08/bang-gia-trong-rang-implant-drcare.jpg'
       ],
       promotions: [
         {
-          service: 'Trồng Răng Implant Chuyên Sâu Người Lớn Tuổi',
-          oldPrice: 'Bảng giá niêm yết Dr. Care',
-          newPrice: 'Liệu pháp trồng răng không đau 12 bước',
+          service: 'Trụ Implant Osstem (Hàn Quốc) - Bảo Hành 10 Năm',
+          oldPrice: 'Giá chuẩn Y Khoa',
+          newPrice: '12.000.000 VNĐ',
           oldDiscount: 'Tư vấn tiêu chuẩn',
-          newDiscount: '✅ Chuyên sâu kiểm soát huyết áp & tim mạch khi cấy ghép',
-          diffPercent: 'Xác thực từ website thật',
-          gifts: ['Bảo hành trụ Implant trọn đời', 'Gói xét nghiệm máu chuyên sâu trước phẫu thuật']
+          newDiscount: '✅ Liệu pháp trồng răng không đau 12 bước',
+          diffPercent: 'Chuẩn y khoa',
+          gifts: ['Miễn phí Chụp CT 3D ConeBeam', 'Xét nghiệm máu chuyên sâu'],
+          isNew: true
+        },
+        {
+          service: 'Trụ Implant Dentium (Mỹ) - Bảo Hành 15 Năm',
+          oldPrice: 'Giá niêm yết',
+          newPrice: '14.000.000 VNĐ',
+          oldDiscount: 'Bảo hành 15 năm',
+          newDiscount: '🔥 Khả năng tích hợp xương vượt trội',
+          diffPercent: 'Chính hãng',
+          gifts: ['Kiểm soát huyết áp tim mạch trong suốt quá trình cấy'],
+          isNew: true
         }
       ],
       scannedAt: new Date().toISOString()
@@ -482,30 +533,41 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-5',
-    name: 'Nha Khoa I-DENT - Chuyên Khoa Cấy Ghép Implant',
-    url: 'https://nhakhoaident.com/trong-rang-implant',
+    name: 'Nha Khoa I-DENT - Bảng Giá Cấy Ghép Implant & Bọc Răng Sứ',
+    url: 'https://nhakhoaident.com/bang-gia/',
     category: 'implant',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 09:10',
-    changeMessage: '✈️ Bổ sung gói Implant Siêu Tốc 48h Có Răng Tạm Cho Kiều Bào Về Nước',
-    newImagesCount: 1,
+    changeMessage: '✈️ Bảng giá trọn gói: Dio 15Tr, Dentium 20Tr, Mis C1 25.5Tr, All-on-4 từ 117Tr/hàm',
+    newImagesCount: 4,
     textChanged: true,
     lastData: {
-      text: 'Nha Khoa I-DENT - TS.BS Nguyễn Hiếu Tùng trực tiếp cấy ghép Implant hơn 15 năm kinh nghiệm tu nghiệp tại Pháp. Chuyên sâu trồng răng toàn hàm All-on-4 / All-on-6.',
+      text: 'Nha Khoa I-DENT - Bảng giá cấy ghép Implant trọn gói chuẩn Pháp do TS.BS Nguyễn Hiếu Tùng trực tiếp thực hiện. Trụ Dio 15.000.000 VNĐ, Trụ Dentium 20.000.000 VNĐ, Trụ Dentium Superline Mỹ 25.000.000 VNĐ, Trụ Mis C1 Đức 25.500.000 VNĐ, All-on-4 Dio 117.000.000 VNĐ/hàm.',
       images: [
-        'https://nhakhoaident.com/wp-content/uploads/2021/04/bac-si-nguyen-hieu-tung.jpg',
-        'https://nhakhoaident.com/wp-content/uploads/2021/04/trong-rang-implant-all-on-4.jpg'
+        'https://nhakhoaident.com/wp-content/uploads/2023/11/bang-gia-implant-nha-khoa-ident.jpg',
+        'https://nhakhoaident.com/wp-content/uploads/2023/11/quy-trinh-trong-rang-implant-chuan-phap.jpg'
       ],
       promotions: [
         {
-          service: 'Implant Kiều Bào Siêu Tốc 48h',
-          oldPrice: 'Bảng giá niêm yết I-Dent',
-          newPrice: 'Gói Implant Siêu Tốc 48H Có Răng Ăn Nhai',
-          oldDiscount: 'Tư vấn chuẩn',
-          newDiscount: '⭐ Xe đưa đón sân bay Tân Sơn Nhất + Hỗ trợ khách sạn 4 sao',
-          diffPercent: 'Mới ra mắt',
-          gifts: ['Đưa đón sân bay', 'Bảo hành quốc tế']
+          service: 'Trụ Implant Hàn Quốc DiO (Trọn Gói Trụ + Abutment + Mão Sứ)',
+          oldPrice: 'Giá niêm yết trọn gói',
+          newPrice: '15.000.000 VNĐ',
+          oldDiscount: 'Bảo hành 7 năm',
+          newDiscount: '⭐ ĐÃ BAO GỒM Mão răng sứ & Răng tạm tức thì',
+          diffPercent: 'Trọn gói',
+          gifts: ['Đã bao gồm trụ, Abutment & răng sứ', 'Chụp phim CT 3D 0đ'],
+          isNew: true
+        },
+        {
+          service: 'Trụ Implant Đức Mis C1 (Bảo Hành 20 Năm)',
+          oldPrice: '30.000.000 VNĐ',
+          newPrice: '25.500.000 VNĐ (Giảm 15%)',
+          oldDiscount: 'Giá niêm yết',
+          newDiscount: '🔥 Giảm 15% + Miễn phí ghép xương',
+          diffPercent: '-15%',
+          gifts: ['Tặng răng toàn sứ Cercon HT', 'Bảo hành chính hãng 20 năm'],
+          isNew: true
         }
       ],
       scannedAt: new Date().toISOString()
@@ -513,30 +575,41 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-6',
-    name: 'Nha Khoa Parkway - Chuyên Gia Niềng Răng Trong Suốt',
-    url: 'https://nhakhoaparkway.com/invisalign',
+    name: 'Nha Khoa Parkway - Bảng Giá Niềng Răng & Nha Khoa',
+    url: 'https://nhakhoaparkway.com/bang-gia/',
     category: 'ortho',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 08:00',
-    changeMessage: '✨ Cập nhật ưu đãi Black Diamond Provider Invisalign: Giảm ngay 15 Triệu khi quét dấu Itero 5D',
-    newImagesCount: 2,
+    changeMessage: '✨ Niềng răng mắc cài giảm 8% chỉ từ 27.6Tr + Invisalign Comprehensive giảm 30% còn 85.4Tr',
+    newImagesCount: 3,
     textChanged: true,
     lastData: {
-      text: 'Parkway Dental - Trung tâm chỉnh nha Invisalign hàng đầu Đông Nam Á, chứng nhận Black Diamond Provider. Trả góp 0% chỉ từ 2 triệu/tháng.',
+      text: 'Hệ thống Nha Khoa Parkway - Chuyên khoa niềng răng Invisalign Black Diamond Provider. Bảng giá: Niềng răng mắc cài kim loại giảm 8% còn 27.600.000 đ, Gói Invisalign Essentials giảm 8% còn 55.200.000 đ, Invisalign Comprehensive 3 năm giảm 30% còn 85.400.000 đ. Scan iTero 5D Plus miễn phí.',
       images: [
-        'https://nhakhoaparkway.com/wp-content/uploads/2023/10/invisalign-parkway.jpg',
-        'https://nhakhoaparkway.com/wp-content/uploads/2023/10/itero-5d-plus.jpg'
+        'https://nhakhoaparkway.com/wp-content/uploads/2023/11/bang-gia-nieng-rang-parkway.jpg',
+        'https://nhakhoaparkway.com/wp-content/uploads/2023/11/banner-invisalign-parkway.jpg'
       ],
       promotions: [
         {
-          service: 'Niềng Răng Trong Suốt Invisalign',
-          oldPrice: 'Từ 60 Triệu - 125 Triệu',
-          newPrice: 'Giảm ngay 15 Triệu + Quét iTero 5D miễn phí',
-          oldDiscount: 'Tư vấn tiêu chuẩn',
-          newDiscount: '⚡ Trả góp 0% lãi suất liên kết 20 ngân hàng',
-          diffPercent: '-15Tr',
-          gifts: ['Miễn phí quét dấu răng 3D iTero', 'Tặng bộ chăm sóc chỉnh nha']
+          service: 'Niềng Răng Mắc Cài Kim Loại (Gói Cơ Bản)',
+          oldPrice: '30.000.000 đ - 48.000.000 đ',
+          newPrice: '27.600.000 đ - 45.600.000 đ (Giảm 8%)',
+          oldDiscount: 'Giá niêm yết',
+          newDiscount: '⚡ Giảm 8% + Trả góp 0% chỉ từ 1Tr/tháng',
+          diffPercent: '-8%',
+          gifts: ['Miễn phí quét dấu răng 3D iTero', 'Tặng gói chăm sóc chỉnh nha'],
+          isNew: true
+        },
+        {
+          service: 'Gói Niềng Trong Suốt Invisalign Comprehensive 3 Năm',
+          oldPrice: '122.000.000 đ',
+          newPrice: '85.400.000 đ (Giảm 30%)',
+          oldDiscount: 'Giá chuẩn',
+          newDiscount: '⭐ Giảm 30% - Xem trước nụ cười ClinCheck',
+          diffPercent: '-30%',
+          gifts: ['Khay niềng không giới hạn 3 năm', 'Tặng hàm duy trì Vivera'],
+          isNew: true
         }
       ],
       scannedAt: new Date().toISOString()
@@ -874,8 +947,35 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
             } catch {}
           }
 
-          // Clean up any stale, unsplash placeholders or 404 image URLs from older sessions
+          // Đồng bộ và cập nhật tự động 6 link đối thủ theo yêu cầu mới nhất
+          const updatedPresetsMap: Record<string, string> = {
+            'viethan': 'https://nhakhoaviethan04.com.vn/bang-gia',
+            'nhakhoakim': 'https://nhakhoakim.com/bang-gia-nha-khoa-nieng-rang-rang-su-implant.html',
+            'ident': 'https://nhakhoaident.com/bang-gia/',
+            'paris': 'https://nhakhoaparis.vn/',
+            'parkway': 'https://nhakhoaparkway.com/bang-gia/',
+            'drcare': 'https://drcareimplant.com/bang-gia-implant'
+          };
+
           return combined.map((item: MonitoredLink) => {
+            let targetUrl = item.url;
+            const urlLow = (item.url || '').toLowerCase();
+            const nameLow = (item.name || '').toLowerCase();
+
+            if (urlLow.includes('viethan') || nameLow.includes('việt hàn')) {
+              targetUrl = updatedPresetsMap.viethan;
+            } else if (urlLow.includes('nhakhoakim') || nameLow.includes('nha khoa kim')) {
+              targetUrl = updatedPresetsMap.nhakhoakim;
+            } else if (urlLow.includes('ident') || nameLow.includes('i-dent')) {
+              targetUrl = updatedPresetsMap.ident;
+            } else if (urlLow.includes('paris') || nameLow.includes('paris')) {
+              targetUrl = updatedPresetsMap.paris;
+            } else if (urlLow.includes('parkway') || nameLow.includes('parkway')) {
+              targetUrl = updatedPresetsMap.parkway;
+            } else if (urlLow.includes('drcare') || nameLow.includes('dr. care') || nameLow.includes('dr care')) {
+              targetUrl = updatedPresetsMap.drcare;
+            }
+
             if (item.url?.includes('nhakhoashark.vn') || item.id === 'link-15') {
               return {
                 ...item,
@@ -906,15 +1006,22 @@ export const CompetitorLinkMonitorScanner: React.FC = () => {
             const cleanLastImages = (item.lastData?.images || []).filter(img => !img.includes('unsplash.com'));
             const cleanPrevImages = (item.previousData?.images || []).filter(img => !img.includes('unsplash.com'));
 
+            const presetMatch = TOP_20_DENTAL_PRESET_LINKS.find(p => p.id === item.id);
+
             return {
               ...item,
+              url: targetUrl,
+              name: presetMatch ? presetMatch.name : item.name,
               lastData: {
                 ...item.lastData,
-                images: cleanLastImages.length > 0 ? cleanLastImages : (TOP_20_DENTAL_PRESET_LINKS.find(p => p.id === item.id)?.lastData?.images || cleanLastImages)
+                promotions: (item.lastData?.promotions && item.lastData.promotions.length > 0 && !item.lastData.promotions[0]?.service?.includes('Giá Mồi')) 
+                  ? item.lastData.promotions 
+                  : (presetMatch?.lastData?.promotions || item.lastData?.promotions),
+                images: cleanLastImages.length > 0 ? cleanLastImages : (presetMatch?.lastData?.images || cleanLastImages)
               },
               previousData: item.previousData ? {
                 ...item.previousData,
-                images: cleanPrevImages.length > 0 ? cleanPrevImages : (TOP_20_DENTAL_PRESET_LINKS.find(p => p.id === item.id)?.previousData?.images || cleanPrevImages)
+                images: cleanPrevImages.length > 0 ? cleanPrevImages : (presetMatch?.previousData?.images || cleanPrevImages)
               } : undefined
             };
           });

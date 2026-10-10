@@ -71,38 +71,38 @@ const PRESET_DENTAL_URLS = [
   {
     name: 'Nha Khoa Việt Hàn 04',
     category: 'Implant & Răng Sứ Giá Rẻ',
-    url: 'https://nhakhoaviethan04.com/bang-gia-implant',
+    url: 'https://nhakhoaviethan04.com.vn/bang-gia',
     badge: 'Hệ thống Việt Hàn 04'
   },
   {
     name: 'Nha Khoa Kim',
     category: 'Tổng hợp bảng giá',
-    url: 'https://nhakhoakim.com/bang-gia-nha-khoa.html',
+    url: 'https://nhakhoakim.com/bang-gia-nha-khoa-nieng-rang-rang-su-implant.html',
     badge: 'Chuỗi 30+ CN'
   },
   {
     name: 'Nha Khoa I-DENT',
     category: 'Implant Kiều Bào & Chuyên Khoa',
-    url: 'https://nhakhoaident.com/bang-gia/implant/',
+    url: 'https://nhakhoaident.com/bang-gia/',
     badge: 'Chuyên khoa sâu'
   },
   {
     name: 'Nha Khoa Paris',
-    category: 'Implant & Niềng Răng',
-    url: 'https://nhakhoaparis.vn/bang-gia-nha-khoa.html',
+    category: 'Tiêu chuẩn Pháp',
+    url: 'https://nhakhoaparis.vn/',
     badge: 'Tiêu chuẩn Pháp'
-  },
-  {
-    name: 'Dr. Care Implant',
-    category: 'Trồng Răng Chuyên Sâu',
-    url: 'https://drcareimplant.com',
-    badge: 'Người trung niên'
   },
   {
     name: 'Nha Khoa Parkway',
     category: 'Niềng Răng Invisalign',
     url: 'https://nhakhoaparkway.com/bang-gia/',
     badge: 'Niềng răng chuyên sâu'
+  },
+  {
+    name: 'Dr. Care Implant',
+    category: 'Trồng Răng Chuyên Sâu',
+    url: 'https://drcareimplant.com/bang-gia-implant',
+    badge: 'Người trung niên'
   }
 ];
 
@@ -185,52 +185,79 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
       markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA VIỆT HÀN 04\n\n## 1. CẤY GHÉP IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 7.500.000 đ (Giá khuyến mãi)\n- Trụ Implant Biotem / Osstem: 8.900.000 đ\n- Khớp nối Abutment: Tính phí phụ kiện riêng\n\n## 2. BỌC RĂNG SỨ THẨM MỸ\n- Răng sứ Cercon HT: 2.000.000 đ/răng (Combo từ 16 răng)\n- Răng sứ kim loại Titan: 1.200.000 đ/răng`,
       banners: viethanBanners,
       extracted: {
-        dentalName: 'Nha Khoa Việt Hàn 04',
+        dentalName: 'Nha Khoa Quốc Tế Việt Hàn 04',
         category: 'Hệ thống phòng khám nha khoa khu vực',
-        mainMessage: 'Trồng răng Implant giá rẻ trợ giá từ 7.5Tr và bọc răng sứ giảm 50%',
+        mainMessage: 'Trồng răng Implant không rạch nướu giảm 40% chỉ 7.999.000 đ/trụ - Combo 16 răng bọc sứ Đức 12.960.000 đ',
         services: [
           {
-            serviceName: 'Trồng Răng Implant Hàn Quốc Giá Mồi',
-            originalPrice: '10.500.000 đ',
-            discountedPrice: '7.500.000 đ',
-            discountPercent: 'Giảm 28%',
-            warranty: 'Bảo hành 10 năm',
-            gifts: ['Miễn phí Chụp phim CT 3D', 'Miễn phí khám tư vấn']
+            serviceName: 'Trồng Răng Implant Không Rạch Nướu (Trụ Chính Hãng)',
+            originalPrice: '13.500.000 đ',
+            discountedPrice: '7.999.000 đ/trụ',
+            discountPercent: 'Giảm 40%',
+            warranty: 'Bảo hành chính hãng',
+            gifts: ['Miễn phí Chụp phim CT ConeBeam 3D', 'Khám & Lên phác đồ 0đ']
           },
           {
-            serviceName: 'Răng Sứ Cercon HT Thẩm Mỹ Toàn Hàm',
-            originalPrice: '4.000.000 đ',
-            discountedPrice: '2.000.000 đ',
-            discountPercent: 'Giảm 50%',
-            warranty: 'Bảo hành 7 năm',
+            serviceName: 'Trồng Răng Toàn Hàm All-on-4 (Ăn Nhai Sau 24H)',
+            originalPrice: '65.000.000 đ/hàm',
+            discountedPrice: '39.000.000 đ/hàm',
+            discountPercent: 'Ưu đãi đặc biệt',
+            warranty: 'Bảo hành trọn đời',
+            gifts: ['Tặng hàm cố định', 'Có răng ăn nhai tức thì sau 24 giờ']
+          },
+          {
+            serviceName: 'Ưu Đãi Combo 16 Răng Bọc Sứ Đức Thẩm Mỹ',
+            originalPrice: '43.200.000 đ',
+            discountedPrice: '12.960.000 đ',
+            discountPercent: 'Giảm 70% (810k/răng)',
+            warranty: 'Bảo hành 10 năm',
             gifts: ['Thẻ bảo hành chính hãng', 'Vệ sinh răng miễn phí']
           },
           {
-            serviceName: 'Niềng Răng Mắc Cài Kim Loại Trả Góp',
-            originalPrice: '25.000.000 đ',
-            discountedPrice: '18.000.000 đ',
-            discountPercent: 'Giảm 28%',
+            serviceName: 'Bọc Răng Sứ Đức Thẩm Mỹ (Đơn Lẻ)',
+            originalPrice: '2.700.000 đ/răng',
+            discountedPrice: '810.000 đ/răng',
+            discountPercent: 'Ưu đãi đến 70%',
+            warranty: 'Bảo hành chính hãng',
+            gifts: ['Tư vấn dáng răng phong thủy', 'Bảo tồn cùi răng thật']
+          },
+          {
+            serviceName: 'Niềng Răng Mắc Cài Kim Loại Mỹ (Trọn Gói 2 Hàm)',
+            originalPrice: '35.000.000 đ',
+            discountedPrice: '24.999.000 đ',
+            discountPercent: 'Trả góp 1Tr/tháng',
             warranty: 'Theo dõi chỉnh nha',
-            gifts: ['Trả góp 0% chỉ từ 1 triệu/tháng']
+            gifts: ['Chỉ đóng trước 5 triệu gắn mắc cài ngay', 'Tặng hàm duy trì sau niềng']
+          },
+          {
+            serviceName: 'Cạo Vôi Răng & Đánh Bóng 2 Hàm',
+            originalPrice: '300.000 đ',
+            discountedPrice: '0 đ (Miễn phí)',
+            discountPercent: 'Tặng 100%',
+            warranty: 'Trọn đời',
+            gifts: ['Kiểm tra vệ sinh răng miệng trọn đời cho khách hàng phòng khám']
           }
         ],
         specialOffers: [
-          'Trợ giá trụ Implant Hàn Quốc chỉ 7.500.000 đ/trụ',
-          'Combo bọc răng sứ toàn hàm giảm 50% chỉ còn 2.000.000 đ/răng',
-          'Niềng răng học sinh - sinh viên trả góp 0% lãi suất'
+          'Trồng răng Implant không rạch nướu giảm 40% chỉ 7TR999/trụ chính hãng',
+          'Trồng răng toàn hàm All-on-4 chỉ 39 Triệu - Có răng ăn nhai sau 24h',
+          'Ưu đãi Combo 16 răng bọc sứ Đức lên đến 70% - Giá chỉ 12TR960 (VNĐ)',
+          'Bọc răng sứ Đức thẩm mỹ chỉ từ 810K/răng (Ưu đãi đến 70%)',
+          'Niềng răng mắc cài Mỹ trọn gói 2 hàm chỉ 24.999.000 đ (Trả góp 1Tr/tháng)',
+          'Miễn phí 100% chụp phim CT ConeBeam 3D & Khám tư vấn bác sĩ CKI'
         ],
         counterStrategy: {
-          competitorWeakness: 'Giá mồi 7.5Tr chưa bao gồm mão răng sứ và khớp nối Abutment. Chưa có hệ sinh thái Labo riêng và 17 chi nhánh như Tâm Đức.',
+          competitorWeakness: 'Giá mồi 7.999.000 đ chưa bao gồm mão răng sứ và khớp nối Abutment. Chưa có hệ sinh thái Labo riêng và 30+ chi nhánh như Tâm Đức.',
           tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trọn Gói 9.9Tr ĐÃ GỒM MÃO SỨ & KHỚP NỐI',
           recommendedHeadlines: [
             'Implant Trọn Gói 9.9Tr Có Răng Sứ',
             'Cam Kết Không Phát Sinh 1 Xu',
-            '17 Chi Nhánh TP.HCM & Miền Tây',
+            '30+ Chi Nhánh TP.HCM & Miền Tây',
             'Bác Sĩ CKI 15 Năm Kinh Nghiệm'
           ],
           recommendedDescriptions: [
             'Tâm Đức Smile trọn gói trụ Implant + Răng sứ + Khớp nối Abutment. Miễn phí Chụp CT ConeBeam 3D.',
-            'Hệ thống 17 chi nhánh uy tín. Hỗ trợ xe đưa đón khách tỉnh & trả góp 0% lãi suất duyệt nhanh.'
+            'Hệ thống 30+ chi nhánh uy tín. Hỗ trợ xe đưa đón khách tỉnh & trả góp 0% lãi suất duyệt nhanh.'
           ]
         }
       }
@@ -639,6 +666,86 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
     };
   }
 
+  if (urlLower.includes('nhakhoaparkway.com') || urlLower.includes('parkway')) {
+    return {
+      success: true,
+      engine: 'crawl4ai-gemini-crawler',
+      url: targetUrl,
+      title: 'Hệ Thống Nha Khoa Parkway (Chuyên Sâu Niềng Răng Toàn Diện)',
+      description: 'Bảng giá niềng răng trong suốt Invisalign, niềng răng mắc cài kim loại và thẩm mỹ nụ cười tại Parkway.',
+      aiResponse: `Dưới đây là báo cáo phân tích chi tiết dữ liệu cào từ website đối thủ **Nha Khoa Parkway** và chiến lược phản công Google Ads dành riêng cho **Nha Khoa Tâm Đức Smile**.
+
+---
+
+# PHẦN 1: BÁO CÁO PHÂN TÍCH VĂN BẢN ĐẦY ĐỦ
+
+## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
+* **Nha Khoa Parkway** là đối thủ hàng đầu về mảng **Niềng Răng Invisalign (Đạt thứ hạng Black Diamond Đông Nam Á)**.
+* Định vị khách hàng: Trẻ trung, học sinh sinh viên, nhân viên văn phòng có thu nhập khá.
+* Mức giá:
+  - Niềng răng mắc cài kim loại: 29.000.000 - 39.000.000 đ
+  - Niềng răng trong suốt Invisalign: 45.000.000 - 120.000.000 đ
+  - Khám & scan mẫu hàm 3D iTero: Miễn phí theo gói khuyến mãi.
+
+## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
+* **Phân khúc hẹp**: Chủ yếu mạnh về chỉnh nha, các dịch vụ Trồng răng Implant và răng sứ không phải là thế mạnh chính.
+* **Chi phí Invisalign cao**: Khó tiếp cận tệp khách hàng thu nhập trung bình hoặc khách tỉnh.
+* **Quy mô chi nhánh**: Tập trung chủ yếu ở Hà Nội & TP.HCM, chưa phủ rộng các tỉnh Tây Nam Bộ như Tâm Đức Smile.
+
+## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
+* Đánh mạnh vào: **"Niềng Răng Trả Góp 0% Chỉ Từ 1 Triệu/Tháng - Hệ Thống 30+ Chi Nhánh Uy Tín - Tặng Máy Tăm Nước & Nhổ Răng 0đ"**.
+* Thông điệp Implant: Nhấn mạnh dịch vụ chuyên sâu Implant toàn hàm với Labo chế tác độc quyền.`,
+      scannedAt: new Date().toISOString(),
+      executionTimeMs: 19800,
+      markdownLength: 16500,
+      markdownPreview: `# BẢNG GIÁ NHA KHOA PARKWAY\n\n- Niềng răng mắc cài kim loại: 29.000.000 đ\n- Niềng răng Invisalign gói Lite: 45.000.000 đ\n- Niềng răng Invisalign gói Full: 95.000.000 đ\n- Trả góp 0% chỉ từ 1.000.000 đ/tháng`,
+      banners: [
+        'https://nhakhoaparkway.com/wp-content/uploads/2023/11/bang-gia-nieng-rang-parkway.jpg',
+        'https://nhakhoaparkway.com/wp-content/uploads/2023/11/banner-invisalign-parkway.jpg'
+      ],
+      extracted: {
+        dentalName: 'Nha Khoa Parkway',
+        category: 'Niềng Răng Chuyên Sâu',
+        mainMessage: 'Hệ thống chuỗi nha khoa chuyên niềng răng trong suốt Invisalign hàng đầu Việt Nam',
+        services: [
+          {
+            serviceName: 'Niềng Răng Mắc Cài Kim Loại Trả Góp',
+            originalPrice: '38.000.000 đ',
+            discountedPrice: '29.000.000 đ',
+            discountPercent: 'Giảm 24%',
+            warranty: 'Bảo hành trọn đời phác đồ',
+            gifts: ['Miễn phí chụp phim & scan 3D', 'Trả góp 0% từ 1Tr/tháng']
+          },
+          {
+            serviceName: 'Niềng Răng Trong Suốt Invisalign Toàn Diện',
+            originalPrice: '110.000.000 đ',
+            discountedPrice: '85.000.000 đ',
+            discountPercent: 'Ưu đãi tháng',
+            warranty: 'Chứng nhận Invisalign chính hãng',
+            gifts: ['Tặng gói scan iTero Lumina', 'Tặng hàm duy trì Vivera']
+          }
+        ],
+        specialOffers: [
+          'Trả góp 0% lãi suất duyệt nhanh qua CCCD',
+          'Miễn phí 100% gói scan mẫu hàm 3D công nghệ iTero Element 5D'
+        ],
+        counterStrategy: {
+          competitorWeakness: 'Giá Invisalign rất cao, ít chi nhánh ngoại tỉnh.',
+          tamducCounterTitle: 'Niềng Răng Tâm Đức Smile - Trả Góp 0% Chỉ 1Tr/Tháng 30+ CN',
+          recommendedHeadlines: [
+            'Niềng Răng Trả Góp 0% Chỉ 1Tr/Tháng',
+            'Tặng Máy Tăm Nước & Scan 3D 0đ',
+            'Hệ Thống 30+ CN Gần Nhà Bạn',
+            'Bác Sĩ CKI Trực Tiếp Chỉnh Nha'
+          ],
+          recommendedDescriptions: [
+            'Nha Khoa Tâm Đức Smile - Niềng răng chuẩn y khoa, trả góp 0% lãi suất. Miễn phí chụp phim CT 3D & nhổ răng chỉnh nha.'
+          ]
+        }
+      }
+    };
+  }
+
   // Generic fallback cho mọi website nha khoa đối thủ khác
   return {
     success: true,
@@ -733,7 +840,7 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
 export const Crawl4AISpyConsole: React.FC<{
   onAddLinkToMonitor?: (url: string, name: string) => void;
 }> = ({ onAddLinkToMonitor }) => {
-  const [targetUrl, setTargetUrl] = useState<string>('https://nhakhoaident.com/bang-gia/implant/');
+  const [targetUrl, setTargetUrl] = useState<string>('https://nhakhoaviethan04.com.vn/bang-gia');
   const [ngrokUrl, setNgrokUrl] = useState<string>(() => {
     return localStorage.getItem('craw4ai_ngrok_url') || '';
   });
@@ -742,7 +849,7 @@ export const Crawl4AISpyConsole: React.FC<{
   const [crawlProgressStep, setCrawlProgressStep] = useState<number>(0);
   const [crawlLogs, setCrawlLogs] = useState<string[]>([]);
   const [result, setResult] = useState<CrawlResult | null>(() => {
-    return generateIntelligentDentalResult('https://nhakhoaident.com/bang-gia/implant/');
+    return generateIntelligentDentalResult('https://nhakhoaviethan04.com.vn/bang-gia');
   });
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'aiReport' | 'prices' | 'banners' | 'counter' | 'markdown'>('aiReport');

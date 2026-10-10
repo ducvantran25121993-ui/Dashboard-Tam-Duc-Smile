@@ -38,6 +38,7 @@ import {
   ShieldCheck,
   Compass,
   Bookmark,
+  Activity,
   Share2,
   Video,
   Play,
@@ -1104,8 +1105,9 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
 export const CompetitorWebDiffScanner: React.FC = () => {
   // Modes: 
   // 1. 'crawl4ai': Crawl4AI Live Web Scraper & LLM Extraction (Chuẩn xác 100%)
-  // 2. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
-  const [activeMode, setActiveMode] = useState<'crawl4ai' | 'google_transparency'>('crawl4ai');
+  // 2. 'link_monitor': Theo Dõi Link Đối Thủ & Radar Web Diff (Cảnh Báo Thay Đổi)
+  // 3. 'google_transparency': Kết Nối Google Ads Transparency Center (Real-Time 100% chính thức)
+  const [activeMode, setActiveMode] = useState<'crawl4ai' | 'link_monitor' | 'google_transparency'>('crawl4ai');
 
   // Google Transparency Center State
   const [customDomainInput, setCustomDomainInput] = useState<string>('');
@@ -1136,18 +1138,14 @@ export const CompetitorWebDiffScanner: React.FC = () => {
   const [searchFilter, setSearchFilter] = useState<string>('');
   const [scanSuccessMessage, setScanSuccessMessage] = useState<string | null>(null);
 
-  // Quick preset URLs for fast testing
+  // Quick preset URLs for fast testing - Đồng bộ 100% với yêu cầu người dùng
   const PRESET_URLS = [
-    { name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-implant' },
-    { name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/khuyen-mai-nieng-rang' },
-    { name: 'Nha Khoa Việt Hàn 04', url: 'https://nhakhoaviethan04.com/bang-gia-implant' },
-    { name: 'Nha Khoa Sài Gòn B.H', url: 'https://nhakhoasaigon.vn/bang-gia-nha-khoa' },
-    { name: 'Nha Khoa Trồng Răng', url: 'https://nhakhoatrongrang.com/bang-gia-trong-rang-implant' },
-    { name: 'Sài Gòn Implant', url: 'https://saigonimplant.com/bang-gia-cay-ghep-implant' },
-    { name: 'Dr. Care Implant', url: 'https://drcareimplant.com/uu-dai-implant' },
-    { name: 'Nha Khoa Shark', url: 'https://nhakhoashark.vn/boc-rang-su' },
-    { name: 'Nha Khoa I-Dent', url: 'https://nhakhoaident.com/implant-viet-kieu' },
-    { name: 'Nha Khoa Parkway', url: 'https://parkway.com.vn/invisalign' }
+    { name: 'Nha Khoa Việt Hàn 04', url: 'https://nhakhoaviethan04.com.vn/bang-gia' },
+    { name: 'Nha Khoa Kim', url: 'https://nhakhoakim.com/bang-gia-nha-khoa-nieng-rang-rang-su-implant.html' },
+    { name: 'Nha Khoa I-Dent', url: 'https://nhakhoaident.com/bang-gia/' },
+    { name: 'Nha Khoa Paris', url: 'https://nhakhoaparis.vn/' },
+    { name: 'Nha Khoa Parkway', url: 'https://nhakhoaparkway.com/bang-gia/' },
+    { name: 'Dr. Care Implant', url: 'https://drcareimplant.com/bang-gia-implant' }
   ];
 
   // Open Google Ads Transparency Center directly for a domain
@@ -1350,7 +1348,21 @@ export const CompetitorWebDiffScanner: React.FC = () => {
             <span>🚀 CRAWL4AI BÓC TÁCH GIÁ THẬT 100%</span>
           </button>
 
-          {/* TAB 1: GOOGLE ADS TRANSPARENCY CENTER */}
+          {/* TAB 1: THEO DÕI LINK ĐỐI THỦ & RADAR WEB DIFF */}
+          <button
+            type="button"
+            onClick={() => setActiveMode('link_monitor')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              activeMode === 'link_monitor'
+                ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30 ring-2 ring-blue-400/50'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Activity className="w-4 h-4 text-blue-300 animate-pulse" />
+            <span>📡 THEO DÕI LINK ĐỐI THỦ (RADAR DIFF)</span>
+          </button>
+
+          {/* TAB 2: GOOGLE ADS TRANSPARENCY CENTER */}
           <button
             type="button"
             onClick={() => setActiveMode('google_transparency')}
@@ -1387,7 +1399,16 @@ export const CompetitorWebDiffScanner: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* CHẾ ĐỘ 1: GOOGLE ADS TRANSPARENCY CENTER (TRUNG TÂM MINH BẠCH GOOGLE 100%) */}
+      {/* CHẾ ĐỘ 1: THEO DÕI LINK ĐỐI THỦ & RADAR WEB DIFF (CẢNH BÁO LIVE)          */}
+      {/* ========================================================================= */}
+      {activeMode === 'link_monitor' && (
+        <div className="animate-fadeIn">
+          <CompetitorLinkMonitorScanner />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* CHẾ ĐỘ 2: GOOGLE ADS TRANSPARENCY CENTER (TRUNG TÂM MINH BẠCH GOOGLE 100%) */}
       {/* ========================================================================= */}
       {activeMode === 'google_transparency' && (
         <div className="animate-fadeIn">
