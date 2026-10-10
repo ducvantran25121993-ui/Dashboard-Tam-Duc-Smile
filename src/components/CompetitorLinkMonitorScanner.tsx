@@ -302,9 +302,9 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
         {
           service: 'Trồng Răng Implant Trụ Hàn Quốc',
           oldPrice: '10.500.000đ/trụ',
-          newPrice: '10.500.000đ/trụ',
+          newPrice: '13.500.000đ/trụ',
           oldDiscount: 'Tư vấn tiêu chuẩn',
-          newDiscount: 'Chưa có ưu đãi giá mồi 7.5Tr',
+          newDiscount: 'Bảng giá cũ',
           diffPercent: '0%',
           gifts: ['Khám tư vấn cơ bản']
         }
@@ -314,31 +314,39 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
   },
   {
     id: 'link-viethan-2',
-    name: 'Nha Khoa Việt Hàn 04 - Bọc Răng Sứ Thẩm Mỹ & Dán Sứ Veneer',
-    url: 'https://nhakhoaviethan04.com/boc-rang-su',
+    name: 'Nha Khoa Việt Hàn 04 - Bọc Răng Sứ Thẩm Mỹ & Niềng Răng Mắc Cài',
+    url: 'https://nhakhoaviethan04.com.vn/bang-gia',
     category: 'cosmetic',
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 07:30',
-    changeMessage: '🎁 Xuất hiện Popup ưu đãi bọc răng sứ Cercon HT trọn gói giảm 50% khi làm từ 16 răng!',
-    newImagesCount: 3,
+    changeMessage: '🎁 Bọc răng sứ Đức chỉ từ 810k/răng (giảm 70%) & Niềng răng mắc cài Mỹ 24.999.000 đ!',
+    newImagesCount: 4,
     textChanged: true,
     lastData: {
-      text: 'Nha Khoa Việt Hàn 04 - Bọc răng sứ thẩm mỹ Cercon HT, Lava Plus, Emax chính hãng. Khuyến mãi lên đến 50% cho combo toàn hàm 16 - 20 răng. Trả góp 0% lãi suất duyệt hồ sơ nhanh.',
+      text: 'Nha Khoa Quốc Tế Việt Hàn 04 - Bọc răng sứ Đức thẩm mỹ giảm đến 70% chỉ từ 810.000 đ/răng. Combo 16 răng bọc sứ Đức chỉ 12.960.000 đ. Niềng răng mắc cài kim loại Mỹ trọn gói 2 hàm chỉ 24.999.000 đ (hỗ trợ trả góp 1Tr/tháng). Miễn phí cạo vôi răng & đánh bóng 2 hàm.',
       images: [
-        'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800&auto=format&fit=crop&q=80',
-        'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&auto=format&fit=crop&q=80'
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-su.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-nieng.webp'
       ],
       promotions: [
         {
-          service: 'Răng Sứ Cao Cấp Cercon HT Đức Chính Hãng',
-          oldPrice: '4.000.000đ/răng',
-          newPrice: '2.000.000đ/răng (Combo 16 răng)',
-          oldDiscount: 'Bảo hành 7 năm',
-          newDiscount: '⭐ Giảm 50% khi làm từ 16 răng + Tặng gói chăm sóc răng trọn đời',
-          diffPercent: '-50%',
-          gifts: ['Thẻ bảo hành điện tử chính hãng', 'Tặng gói vệ sinh răng miệng định kỳ']
+          service: 'Bọc Răng Sứ Đức Thẩm Mỹ (Đơn Lẻ)',
+          oldPrice: '2.700.000đ/răng',
+          newPrice: '810.000đ/răng (Giảm 70%)',
+          oldDiscount: 'Bảo hành chính hãng',
+          newDiscount: '⭐ Giảm 70% bọc răng sứ Đức chính hãng',
+          diffPercent: '-70%',
+          gifts: ['Thẻ bảo hành chính hãng', 'Tư vấn dáng răng phong thủy', 'Bảo tồn cùi răng thật']
+        },
+        {
+          service: 'Niềng Răng Mắc Cài Kim Loại Mỹ (Trọn Gói 2 Hàm)',
+          oldPrice: '35.000.000đ',
+          newPrice: '24.999.000đ',
+          oldDiscount: 'Bảng giá niêm yết',
+          newDiscount: '🔥 Trả góp 1Tr/tháng không lãi suất',
+          diffPercent: '-29%',
+          gifts: ['Đóng trước 5 triệu gắn mắc cài ngay', 'Tặng hàm duy trì sau niềng']
         }
       ],
       scannedAt: new Date().toISOString()
@@ -413,11 +421,11 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
     scanFrequency: 'weekly',
     status: 'Changed',
     lastScanTime: 'Hôm nay, 08:30',
-    changeMessage: '⚡ Bảng giá công khai: Khám 0đ, Cạo vôi 500k, Trụ Biotem 14.5Tr, Răng sứ Titan 2.5Tr!',
+    changeMessage: '⚡ Bảng giá công khai: Khám 0đ, Cạo vôi 500k, Liệu trình Implant Biotem 21Tr, Mắc cài 40Tr!',
     newImagesCount: 4,
     textChanged: true,
     lastData: {
-      text: 'Hệ thống Nha Khoa Kim - Tiêu chuẩn ISO 9001:2015 và chứng nhận quốc tế GCR Hoa Kỳ. Khám tổng quát 0đ, Cạo vôi răng & Đánh bóng 2 hàm 500.000 VNĐ, Trụ Implant Biotem Hàn Quốc 14.500.000 VNĐ, Răng sứ kim loại Titan 2.500.000 VNĐ, Răng toàn sứ Cercon 5.500.000 VNĐ.',
+      text: 'Hệ thống Nha Khoa Kim - Tiêu chuẩn ISO 9001:2015 và chứng nhận quốc tế GCR Hoa Kỳ. Khám tổng quát 0đ, Cạo vôi răng & Đánh bóng 2 hàm 500.000 VNĐ, Liệu trình Implant + Abutment Biotem Hàn Quốc có máng 3D 21.000.000 VNĐ, Niềng răng mắc cài Kim loại 40.000.000 VNĐ, Răng toàn sứ Argen 7.000.000 VNĐ, Niềng răng Invisalign từ 65.000.000 VNĐ.',
       images: [
         'https://nhakhoakim.com/wp-content/uploads/2024/01/banner-trong-rang-implant-nha-khoa-kim.jpg',
         'https://nhakhoakim.com/wp-content/uploads/2024/01/he-thong-may-chup-phim-ct-conebeam-3d.jpg'
@@ -427,20 +435,30 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
           service: 'Cạo Vôi & Đánh Bóng 2 Hàm (Chuẩn Vô Trùng)',
           oldPrice: 'Giá niêm yết',
           newPrice: '500.000 VNĐ',
-          oldDiscount: 'Giá chuẩn',
-          newDiscount: '🔥 Khám tổng quát & tư vấn Miễn Phí',
+          oldDiscount: 'Vô trùng 1 chiều',
+          newDiscount: '🔥 Khám tổng quát & tư vấn Miễn Phí 100%',
           diffPercent: 'Giá niêm yết',
           gifts: ['Vệ sinh răng miệng bằng sóng siêu âm', 'Vô trùng dụng cụ 1 chiều'],
           isNew: true
         },
         {
-          service: 'Trụ Implant Biotem Hàn Quốc (Chuẩn ISO)',
+          service: 'Liệu Trình Implant + Abutment Biotem (Máng Định Vị 3D)',
           oldPrice: 'Giá niêm yết phòng khám',
-          newPrice: '14.500.000 VNĐ/trụ',
-          oldDiscount: 'Bảo hành 10 năm',
-          newDiscount: '⚡ Trả góp 0% lãi suất duyệt nhanh',
-          diffPercent: 'Chính hãng',
-          gifts: ['Phòng mổ áp lực dương vô trùng', 'Bác sĩ chuyên khoa thực hiện'],
+          newPrice: '21.000.000 VNĐ/trụ',
+          oldDiscount: 'Bảo hành chính hãng',
+          newDiscount: '⚡ Đã bao gồm trụ, khớp nối Abutment cá nhân hóa & máng định vị 3D',
+          diffPercent: 'Liệu trình trọn gói',
+          gifts: ['Phòng mổ áp lực dương vô trùng', 'Chụp phim CT ConeBeam 3D'],
+          isNew: true
+        },
+        {
+          service: 'Niềng Răng Mắc Cài Kim Loại (Đơn Giản)',
+          oldPrice: 'Giá niêm yết',
+          newPrice: '40.000.000 VNĐ',
+          oldDiscount: 'Liệu trình chuẩn',
+          newDiscount: '⭐ Trả góp 0% lãi suất',
+          diffPercent: 'Theo liệu trình',
+          gifts: ['Mô phỏng phác đồ di chuyển răng', 'Khám theo dõi định kỳ'],
           isNew: true
         }
       ],
@@ -929,8 +947,18 @@ const TOP_20_DENTAL_PRESET_LINKS: MonitoredLink[] = [
 const DEFAULT_MONITORED_LINKS = TOP_20_DENTAL_PRESET_LINKS;
 
 export const CompetitorLinkMonitorScanner: React.FC = () => {
-  // State for Monitored Links loaded from localStorage or default (auto-loads 21 links if previously stored was smaller)
+  // State for Monitored Links loaded from localStorage or default (tự động làm mới cache với giá thật 100%)
   const [monitoredLinks, setMonitoredLinks] = useState<MonitoredLink[]>(() => {
+    const currentSyncVersion = 'v5_real_prices_ground_truth_2026';
+    const lastSyncVersion = localStorage.getItem('tamduc_monitored_links_version');
+    if (lastSyncVersion !== currentSyncVersion) {
+      try {
+        localStorage.setItem('tamduc_monitored_links_version', currentSyncVersion);
+        localStorage.setItem('tamduc_monitored_links', JSON.stringify(TOP_20_DENTAL_PRESET_LINKS));
+      } catch {}
+      return TOP_20_DENTAL_PRESET_LINKS;
+    }
+
     const saved = localStorage.getItem('tamduc_monitored_links');
     if (saved) {
       try {

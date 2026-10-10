@@ -161,28 +161,28 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
 
 ## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
 
-1. **Phát hiện chiến thuật giá mồi (Loss Leader Pricing)**:
-   * Nha Khoa Việt Hàn 04 đang tung giá mồi trụ Implant Hàn Quốc chỉ từ **7.500.000 đ/trụ** để thu hút lượng lớn khách hàng tìm kiếm giá rẻ trên Google Search và Facebook Ads.
-   * **Đánh giá & Điểm yếu**: Mức giá 7.5Tr này chỉ bao gồm thân trụ cấy ghép sơ bộ, **chưa bao gồm khớp nối Abutment và răng sứ bên trên**, đồng thời khách hàng thường phát sinh chi phí chụp phim, ghép xương và phụ phí phòng mổ.
+1. **Chiến lược giá sốc cấy ghép Implant & Răng sứ thẩm mỹ**:
+   * Nha Khoa Việt Hàn 04 đang tung chương trình: Trồng răng Implant không rạch nướu giảm 40% chỉ từ **7.999.000 đ/trụ (7TR999)** và Trồng răng toàn hàm All-on-4 chỉ **39 Triệu/hàm**.
+   * **Đánh giá & Điểm yếu**: Mức giá 7.999.000 đ này chỉ bao gồm thân trụ cấy ghép sơ bộ, **chưa bao gồm khớp nối Abutment và mão răng sứ bên trên**. Khách hàng dễ phát sinh phụ phí mão sứ và phẫu thuật.
 
 2. **Chiến lược Răng sứ thẩm mỹ**:
-   * Chạy combo giảm 50% bọc răng sứ Cercon HT trọn gói khi làm từ 16 răng (chỉ 2.000.000 đ/răng).
+   * Chạy combo 16 răng bọc sứ Đức thẩm mỹ giảm đến 70% chỉ **12.960.000 đ** (tương đương **810.000 đ/răng**). Niềng răng mắc cài kim loại Mỹ trọn gói 2 hàm chỉ **24.999.000 đ** (trả góp 1Tr/tháng).
 
 ## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
-* **Phát sinh phụ phí**: Tách riêng trụ, khớp nối và mão sứ.
-* **Cơ sở vật chất & Uy tín thương hiệu**: Số lượng chi nhánh ít hơn nhiều so với hệ thống 17 chi nhánh của Tâm Đức Smile, bác sĩ chưa có tên tuổi nổi bật.
+* **Phát sinh phụ phí**: Giá mồi 7.999.000 đ chưa gồm mão sứ và Abutment.
+* **Cơ sở vật chất & Uy tín thương hiệu**: Số lượng chi nhánh ít hơn nhiều so với hệ thống 30+ chi nhánh của Tâm Đức Smile, chưa có Labo răng sứ riêng chế tác tại chỗ.
 
 ## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
 1. **Thông điệp quảng cáo (Ad Copy)**:
    * Đập tan chiêu trò phụ phí: **"Trồng Răng Implant Trọn Gói 9.9Tr ĐÃ BAO GỒM RĂNG SỨ & Abutment - Cam Kết Không Phát Sinh 1 Xu"**.
-   * Nhấn mạnh uy tín: **"17 Chi Nhánh TP.HCM & Miền Tây - Trực Tiếp Bác Sĩ Chuyên Khoa I Trên 15 Năm Kinh Nghiệm"**.
+   * Nhấn mạnh uy tín: **"Hệ Thống 30+ Chi Nhánh TP.HCM & Miền Tây - Trực Tiếp Bác Sĩ Chuyên Khoa I Trên 15 Năm Kinh Nghiệm"**.
 2. **Gói quà tặng đè bẹp đối thủ**:
    * Miễn phí chụp phim CT 3D ConeBeam + Tặng gói chăm sóc răng trọn đời.
    * Hỗ trợ xe đưa đón miễn phí cho khách hàng từ các tỉnh xa.`,
       scannedAt: new Date().toISOString(),
       executionTimeMs: 18230,
       markdownLength: 14200,
-      markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA VIỆT HÀN 04\n\n## 1. CẤY GHÉP IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 7.500.000 đ (Giá khuyến mãi)\n- Trụ Implant Biotem / Osstem: 8.900.000 đ\n- Khớp nối Abutment: Tính phí phụ kiện riêng\n\n## 2. BỌC RĂNG SỨ THẨM MỸ\n- Răng sứ Cercon HT: 2.000.000 đ/răng (Combo từ 16 răng)\n- Răng sứ kim loại Titan: 1.200.000 đ/răng`,
+      markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA VIỆT HÀN 04\n\n## 1. CẤY GHÉP IMPLANT KHÔNG RẠCH NƯỚU\n- Trồng Răng Implant Không Rạch Nướu: 7.999.000 đ/trụ (Giảm 40% từ 13.500.000 đ)\n- Trồng Răng Toàn Hàm All-on-4: 39.000.000 đ/hàm\n\n## 2. BỌC RĂNG SỨ ĐỨC THẨM MỸ\n- Combo 16 Răng Bọc Sứ Đức: 12.960.000 đ (Chỉ 810.000 đ/răng, Giảm 70%)\n- Bọc Răng Sứ Đức Lẻ: 810.000 đ/răng\n\n## 3. NIỀNG RĂNG MẮC CÀI MỸ\n- Trọn gói 2 hàm: 24.999.000 đ (Trả góp 1Tr/tháng)`,
       banners: viethanBanners,
       extracted: {
         dentalName: 'Nha Khoa Quốc Tế Việt Hàn 04',
@@ -279,80 +279,102 @@ function generateIntelligentDentalResult(targetUrl: string): CrawlResult {
 
 ## I. BÁO CÁO TỔNG QUAN & PHÁT HIỆN QUAN TRỌNG
 
-1. **Phát hiện từ tuyệt chiêu Trải nghiệm người dùng (UX) trên Landing Page của Nha Khoa Kim**:
-   * Trang web bảng giá của Nha Khoa Kim hiển thị thông báo: **"Bảo vệ: Bảng giá Nha Khoa Kim... Nội dung này được bảo vệ bằng mật khẩu."**
-   * **Đánh giá**: Nha Khoa Kim đang sử dụng hình thức **chặn/giấu bảng giá** (yêu cầu mật khẩu hoặc phải để lại thông tin đặt hẹn/liên hệ tư vấn mới cho xem giá). Đây là **ĐIỂM YẾU CHÍNH MẠNH NHẤT** mà Tâm Đức Smile có thể khai thác. Khách hàng tìm kiếm từ khóa "bảng giá nha khoa" muốn xem giá ngay lập tức; việc bắt nhập mật khẩu khiến tỷ lệ thoát trang (Bounce Rate) của đối thủ cực kỳ cao.
+1. **Phân tích bảng giá dịch vụ Nha Khoa Kim (Dữ liệu thực tế 82 dịch vụ)**:
+   * **Nha khoa tổng quát**: Khám tổng quát 0đ (Miễn phí), Cạo vôi răng & Đánh bóng 2 hàm: **500.000 VNĐ**, Trám răng thẩm mỹ Composite: **700.000 - 900.000 VNĐ**, Nhổ răng vĩnh viễn: **1.000.000 VNĐ**.
+   * **Cấy ghép Implant**: Liệu trình Implant + Abutment Biotem/Dio có máng định vị 3D: **21.000.000 VNĐ/trụ**, Straumann SLA: **30.000.000 VNĐ**, Straumann SLActive: **45.000.000 VNĐ**. Gói điều trị toàn hàm All-on-4 Biotem: **252.000.000 - 267.000.000 VNĐ/hàm**, All-on-6: **321.000.000 - 336.000.000 VNĐ/hàm**.
+   * **Niềng răng chỉnh nha**: Mắc cài Kim loại đơn giản: **40.000.000 VNĐ**, phức tạp: **50.000.000 VNĐ**, Mắc cài sứ: **55.000.000 - 65.000.000 VNĐ**, Invisalign Lite: **65.000.000 VNĐ**, Invisalign Comp: **99.000.000 - 125.000.000 VNĐ**.
 
 2. **Định vị & Lợi thế thương hiệu đối thủ**:
-   * Định vị: Chuỗi nha khoa chuẩn Quốc tế ISO 9001:2015, phủ rộng khắp các tỉnh thành với hơn 30 chi nhánh.
-   * Tập trung mạnh vào các ca Implant phức tạp và quy trình điều trị chuyên sâu.
+   * Chuỗi nha khoa đạt chuẩn ISO 9001:2015 và chứng nhận GCR Hoa Kỳ với hơn 30 chi nhánh toàn quốc.
+   * Ứng dụng công nghệ Robot định vị X-Guide trong cấy ghép Implant và ClinCheck 3D trong niềng răng.
 
 ## II. ĐIỂM YẾU CỦA ĐỐI THỦ CẦN TẬP TRUNG TẤN CÔNG
-* **Thiếu minh bạch giá ngay trên website**: Che giấu bảng giá khiến khách hàng cảm giác chi phí đắt đỏ hoặc sợ phát sinh.
-* **Mức giá niêm yết cơ bản cao**: Trụ Implant Dentium từ 17.000.000 đ, Straumann lên đến 35.000.000 đ.
-* **Chi phí phát sinh**: Thường tính riêng khớp nối Abutment (4.500.000 đ) và mão răng sứ (2.500.000 - 5.000.000 đ/răng).
+* **Chi phí điều trị ở mức cao**: Mức giá liệu trình Implant 21Tr/trụ và All-on-4 trên 250Tr/hàm cao hơn đáng kể so với mức giá bình dân tại TP.HCM và miền Tây.
+* **Ít ưu đãi sốc**: Không áp dụng các chương trình trợ giá 50% hay tặng quà giá trị lớn như Tâm Đức Smile.
 
 ## III. CHIẾN LƯỢC PHẢN CÔNG GOOGLE ADS CHO TÂM ĐỨC SMILE
 1. **Thông điệp quảng cáo (Ad Copy)**:
-   * Nhấn mạnh: **"Bảng Giá Công Khai Minh Bạch 100% - Trợ Giá Trồng Răng Implant 50% Trọn Gói"**.
-   * Đập tan rào cản mật khẩu: **"Xem Bảng Giá Ngay Không Cần Mật Khẩu / Không Cần Đăng Ký"**.
-2. **Gói quà tặng đè bẹp đối thủ**:
+   * Đè bẹp mức giá 21Tr: **"Trồng Răng Implant Trọn Gói Chỉ Từ 9.9Tr ĐÃ GỒM RĂNG SỨ - Trợ Giá 50%"**.
+   * Đè bẹp giá niềng răng: **"Niềng Răng Mắc Cài Trọn Gói 2 Hàm Chỉ 24.999.000 đ - Trả Góp 1Tr/Tháng"**.
+2. **Gói quà tặng vượt trội**:
    * Miễn phí chụp phim CT ConeBeam 3D trị giá 1.000.000 đ.
-   * Tặng miễn phí Mão răng sứ cao cấp trên trụ Implant.
-   * Hỗ trợ trả góp 0% chỉ từ 1.000.000 đ/tháng qua CCCD.`,
+   * Hỗ trợ xe đưa đón miễn phí cho khách hàng từ các tỉnh xa.`,
       scannedAt: new Date().toISOString(),
       executionTimeMs: 23441,
       markdownLength: 18450,
-      markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA KIM\n\n## 1. TRỒNG RĂNG IMPLANT\n- Trụ Implant Dentium (Hàn Quốc): 17.000.000 đ\n- Trụ Implant Straumann (Thụy Sỹ): 35.000.000 đ\n- Khớp nối Abutment: 4.500.000 đ\n\n## 2. NIỀNG RĂNG CHỈNH NHA\n- Niềng răng mắc cài kim loại: 35.000.000 - 45.000.000 đ\n- Niềng răng Invisalign: 80.000.000 - 120.000.000 đ`,
+      markdownPreview: `# BẢNG GIÁ DỊCH VỤ NHA KHOA KIM (CÔNG KHAI 100%)\n\n## 1. NHA KHOA TỔNG QUÁT\n- Khám tổng quát & tư vấn: Miễn phí (0 VNĐ)\n- Cạo vôi răng & Đánh bóng 2 hàm: 500.000 VNĐ\n- Cạo vôi răng trẻ em: 200.000 VNĐ\n- Trám răng Composite: 700.000 - 900.000 VNĐ\n\n## 2. CẤY GHÉP IMPLANT (CÓ MÁNG ĐỊNH VỊ 3D)\n- Liệu trình Implant Biotem / Dio Hàn Quốc: 21.000.000 VNĐ/trụ\n- Liệu trình Implant Straumann SLA Thụy Sĩ: 30.000.000 VNĐ/trụ\n- Trồng răng toàn hàm All-on-4 Biotem: 252.000.000 - 267.000.000 VNĐ/hàm\n\n## 3. NIỀNG RĂNG CHỈNH NHA\n- Niềng răng mắc cài Kim loại: 40.000.000 VNĐ\n- Niềng răng mắc cài Sứ: 55.000.000 VNĐ\n- Niềng răng Invisalign Lite: 65.000.000 VNĐ`,
       banners: kimBanners,
       extracted: {
-        dentalName: 'Nha Khoa Kim',
+        dentalName: 'Hệ Thống Nha Khoa Kim',
         category: 'Chuỗi phòng khám ISO 9001:2015',
-        mainMessage: 'Hệ thống nha khoa đạt chuẩn ISO 9001:2015 với hơn 30 phòng khám toàn quốc',
+        mainMessage: 'Hệ thống chuỗi hơn 30 phòng khám đạt chuẩn ISO 9001:2015 & GCR Hoa Kỳ',
         services: [
           {
-            serviceName: 'Trồng Răng Implant Dentium (Hàn Quốc)',
-            originalPrice: '17.000.000 đ',
-            discountedPrice: '12.500.000 đ',
-            discountPercent: 'Giảm 26%',
-            warranty: 'Bảo hành 10 năm',
-            gifts: ['Miễn phí chụp phim CT ConeBeam 3D', 'Tặng gói khám tổng quát']
+            serviceName: 'Cạo Vôi Răng & Đánh Bóng 2 Hàm',
+            originalPrice: 'Giá niêm yết',
+            discountedPrice: '500.000 VNĐ',
+            discountPercent: 'Đơn vị: 2 Hàm',
+            warranty: 'Vô trùng 1 chiều',
+            gifts: ['Khám tổng quát 0đ', 'Sóng siêu âm êm ái']
           },
           {
-            serviceName: 'Trồng Răng Implant Straumann SLA (Thụy Sỹ)',
-            originalPrice: '35.000.000 đ',
-            discountedPrice: '29.900.000 đ',
-            discountPercent: 'Giảm 15%',
+            serviceName: 'Liệu Trình Implant + Abutment Biotem (Máng Định Vị 3D)',
+            originalPrice: 'Giá niêm yết phòng khám',
+            discountedPrice: '21.000.000 VNĐ/trụ',
+            discountPercent: 'Trọn gói liệu trình',
+            warranty: 'Bảo hành chính hãng',
+            gifts: ['Phòng mổ áp lực dương', 'Chụp phim CT ConeBeam 3D']
+          },
+          {
+            serviceName: 'Liệu Trình Implant + Abutment Dio (Máng Định Vị 3D)',
+            originalPrice: 'Giá niêm yết phòng khám',
+            discountedPrice: '21.000.000 VNĐ/trụ',
+            discountPercent: 'Trọn gói liệu trình',
+            warranty: 'Bảo hành chính hãng',
+            gifts: ['Máng định vị phẫu thuật in 3D', 'Bác sĩ chuyên khoa']
+          },
+          {
+            serviceName: 'Liệu Trình Implant Straumann SLA Thụy Sĩ',
+            originalPrice: 'Giá niêm yết phòng khám',
+            discountedPrice: '30.000.000 VNĐ/trụ',
+            discountPercent: 'Chính hãng Thụy Sĩ',
             warranty: 'Bảo hành trọn đời',
-            gifts: ['Tặng Abutment chính hãng', 'Tặng răng sứ Titanium']
+            gifts: ['Khả năng tích hợp xương thần tốc', 'Tặng răng toàn sứ']
           },
           {
-            serviceName: 'Niềng Răng Mắc Cài Kim Loại Chuẩn',
-            originalPrice: '40.000.000 đ',
-            discountedPrice: '28.000.000 đ',
-            discountPercent: 'Giảm 30%',
-            warranty: 'Theo dõi trọn đời',
-            gifts: ['Trả góp 0% chỉ từ 1 triệu/tháng', 'Miễn phí nhổ răng chỉnh nha']
+            serviceName: 'Niềng Răng Mắc Cài Kim Loại (Đơn Giản)',
+            originalPrice: 'Giá niêm yết',
+            discountedPrice: '40.000.000 VNĐ',
+            discountPercent: 'Theo liệu trình',
+            warranty: 'Theo phác đồ điều trị',
+            gifts: ['Xem trước ClinCheck 3D', 'Trả góp 0% lãi suất']
+          },
+          {
+            serviceName: 'Niềng Răng Trong Suốt Invisalign Lite',
+            originalPrice: 'Giá niêm yết',
+            discountedPrice: '65.000.000 VNĐ',
+            discountPercent: 'Khay niềng Mỹ',
+            warranty: 'Align Technology',
+            gifts: ['Scan răng iTero 5D', 'Tặng hàm duy trì']
           }
         ],
         specialOffers: [
-          'Chương trình trồng răng Implant trợ giá lên đến 30%',
-          'Niềng răng trả góp 0% lãi suất xét duyệt nhanh qua CCCD',
-          'Ưu đãi gói khám & chụp phim CT ConeBeam 3D toàn hàm'
+          'Khám tổng quát & Chụp phim X-Quang tư vấn 0đ',
+          'Trả góp 0% lãi suất xét duyệt nhanh qua CCCD',
+          'Cấy ghép Implant công nghệ Robot X-Guide'
         ],
         counterStrategy: {
-          competitorWeakness: 'Landing page khóa mật khẩu bảng giá làm tăng tỷ lệ thoát. Giá niêm yết cao và tách rời chi phí mão sứ.',
-          tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trợ Giá 50% Trọn Gói Công Khai',
+          competitorWeakness: 'Giá liệu trình 21 triệu khá cao và chưa gồm mão răng sứ, All-on-4 trên 250Tr. Ít chi nhánh tại các tỉnh miền Tây sâu.',
+          tamducCounterTitle: 'Trồng Răng Implant Tâm Đức Smile - Trọn Gói 9.9Tr ĐÃ GỒM MÃO SỨ & ABUTMENT',
           recommendedHeadlines: [
-            'Bảng Giá Implant Công Khai 100%',
-            'Trồng Răng Trợ Giá 50% Trọn Gói',
-            'Tặng Mão Sứ & Chụp CT 3D Miễn Phí',
-            'Không Cần Mật Khẩu - Xem Giá Ngay',
-            'Nha Khoa Tâm Đức Smile 15+ Năm'
+            'Implant Trọn Gói 9.9Tr Có Răng Sứ',
+            'Đã Gồm Abutment & Mão Sứ',
+            'Cam Kết Không Phát Sinh 1 Xu',
+            '30+ Chi Nhánh TP.HCM & Miền Tây'
           ],
           recommendedDescriptions: [
-            'Nha Khoa Tâm Đức Smile cam kết bảng giá công khai minh bạch 100%, không che giấu, không phát sinh phụ phí.',
-            'Ưu đãi tháng này: Trợ giá Implant 50%, tặng kèm Mão sứ và gói chụp CT ConeBeam 3D miễn phí.'
+            'Nha Khoa Tâm Đức Smile cam kết trọn gói không phát sinh, rẻ hơn 50% so với đối thủ.',
+            'Tặng kèm mão sứ cao cấp và chụp phim CT ConeBeam 3D miễn phí.'
           ]
         }
       }

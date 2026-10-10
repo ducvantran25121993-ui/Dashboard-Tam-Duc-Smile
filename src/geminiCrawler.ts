@@ -242,44 +242,45 @@ export async function handleDashboardChat(userPromptOrUrl: string, customNgrokUr
     if (urlLower.includes('nhakhoaviethan04.com') || urlLower.includes('viethan04') || urlLower.includes('viet-han') || urlLower.includes('viethan')) {
       pageTitle = "Nha Khoa Quốc Tế Việt Hàn 04 - Bảng Giá Cấy Ghép Implant & Răng Sứ Thẩm Mỹ";
       realBanners = [
-        'https://nhakhoaviethan04.com/wp-content/uploads/2023/10/banner-implant-viet-han.jpg',
-        'https://nhakhoaviethan04.com/wp-content/uploads/2023/10/bang-gia-implant-gia-re.jpg',
-        'https://nhakhoaviethan04.com/wp-content/uploads/2023/10/bac-si-viet-han-04.jpg'
+        'https://nhakhoaviethan04.com.vn/data/upload/banner-thang-6-1783910992-.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-implant.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-su.webp',
+        'https://nhakhoaviethan04.com.vn/data/upload/files/uu-dai-nieng.webp'
       ];
-      markdown = `# Bảng Giá Trồng Răng Implant Nha Khoa Việt Hàn 04\n\n- Trụ Implant Hàn Quốc giá chỉ từ 7.500.000 đ/trụ (Giá mồi chưa gồm mão sứ)\n- Trụ Implant Dentium Mỹ: 11.500.000 đ (Giá niêm yết 16.000.000 đ)\n- Bọc răng sứ Cercon HT combo 16 răng: 2.000.000 đ/răng (Giảm 55%)\n- Ưu đãi: Khám tổng quát 0đ, Trả góp 0%`;
+      markdown = `# Bảng Giá Dịch Vụ Nha Khoa Việt Hàn 04 (Website Chính Thức)\n\n## 1. CẤY GHÉP IMPLANT KHÔNG RẠCH NƯỚU\n- Trồng Răng Implant Không Rạch Nướu: 7.999.000 đ/trụ (Giảm 40% từ 13.500.000 đ)\n- Trồng Răng Toàn Hàm All-on-4: 39.000.000 đ/hàm (Giá gốc 65.000.000 đ)\n- Miễn phí 100% Chụp phim CT ConeBeam 3D & Khám tư vấn bác sĩ CKI\n\n## 2. BỌC RĂNG SỨ ĐỨC THẨM MỸ\n- Combo 16 Răng Bọc Sứ Đức Thẩm Mỹ: 12.960.000 đ (Chỉ 810.000 đ/răng, Giảm 70% từ 43.200.000 đ)\n- Bọc Răng Sứ Đức Thẩm Mỹ Đơn Lẻ: 810.000 đ/răng (Giảm 70% từ 2.700.000 đ)\n- Thẻ bảo hành chính hãng 10 năm & Tặng gói cạo vôi răng trọn đời\n\n## 3. NIỀNG RĂNG MẮC CÀI\n- Niềng Răng Mắc Cài Kim Loại Mỹ: 24.999.000 đ trọn gói 2 hàm (Hỗ trợ trả góp 1Tr/tháng)\n\n## 4. NHA KHOA TỔNG QUÁT\n- Cạo Vôi Răng & Đánh Bóng 2 Hàm: 0 đ (Miễn phí 100% cho khách hàng)`;
     } else if (urlLower.includes('nhakhoaident.com') || urlLower.includes('ident')) {
-      pageTitle = "Nha Khoa Trồng Răng I-DENT - Bảng Giá Cấy Ghép Implant Chuẩn Pháp";
+      pageTitle = "Nha Khoa Trồng Răng I-DENT - Bảng Giá Cấy Ghép Implant & Răng Sứ Chuẩn Pháp";
       realBanners = [
         'https://nhakhoaident.com/wp-content/uploads/2023/11/bang-gia-implant-nha-khoa-ident.jpg',
         'https://nhakhoaident.com/wp-content/uploads/2023/11/quy-trinh-trong-rang-implant-chuan-phap.jpg'
       ];
-      markdown = `# Bảng Giá Trồng Răng Implant Nha Khoa I-DENT\n\n- Trụ Implant Dentium Hàn Quốc: 13.000.000 đ (Trọn gói gồm Abutment)\n- Trụ Implant Straumann Thụy Sĩ: 30.000.000 đ (Bảo hành 20 năm)\n- Trồng răng toàn hàm All-on-4: 120.000.000 đ/hàm\n- Ưu đãi: Chụp phim CT ConeBeam 3D 0đ, Đưa đón sân bay`;
+      markdown = `# Bảng Giá Trồng Răng Implant Nha Khoa I-DENT (Trọn Gói Khớp Nối Abutment & Mão Sứ)\n\n- Trụ Implant Hàn Quốc DiO: 15.000.000 VNĐ (Bảo hành 7 năm)\n- Trụ Implant Hàn Quốc Dentium: 20.000.000 VNĐ (Bảo hành 10 năm)\n- Trụ Implant Mỹ Dentium Superline: 25.000.000 VNĐ (Bảo hành 15 năm)\n- Trụ Implant Đức Mis C1: 25.500.000 VNĐ (Giá gốc 30.000.000 VNĐ, Giảm 15%, Bảo hành 20 năm)\n- Trụ Implant Pháp ETK: 26.400.000 VNĐ (Giá gốc 33.000.000 VNĐ, Giảm 20%)\n- Trụ Implant Thụy Điển Nobel Biocare: 29.750.000 VNĐ (Giá gốc 35.000.000 VNĐ, Giảm 15%)\n- Trụ Implant Thụy Sĩ Straumann SLActive: 37.800.000 VNĐ (Giá gốc 42.000.000 VNĐ, Giảm 10%)\n- Phục hình All-on-4 Dio: 117.000.000 VNĐ/hàm (Giá gốc 130.000.000 VNĐ)\n- Phục hình All-on-4 Mis C1 Đức: 171.000.000 VNĐ/hàm (Giá gốc 190.000.000 VNĐ)\n- Phục hình All-on-6 Dio: 153.000.000 VNĐ/hàm (Giá gốc 170.000.000 VNĐ)\n- Ưu đãi: Chụp phim CT ConeBeam 3D 0đ, Đưa đón sân bay Tân Sơn Nhất`;
     } else if (urlLower.includes('nhakhoakim.com') || urlLower.includes('kim')) {
-      pageTitle = "Hệ Thống Nha Khoa Kim - Bảng Giá Khám & Điều Trị Răng Toàn Quốc";
+      pageTitle = "Hệ Thống Nha Khoa Kim - Bảng Giá Khám & Điều Trị Răng Toàn Quốc (Chuẩn ISO)";
       realBanners = [
         'https://nhakhoakim.com/wp-content/uploads/2024/01/banner-trong-rang-implant-nha-khoa-kim.jpg',
         'https://nhakhoakim.com/wp-content/uploads/2024/01/he-thong-may-chup-phim-ct-conebeam-3d.jpg'
       ];
-      markdown = `# Bảng Giá Nha Khoa Kim\n\n- Trụ Implant Biotem Hàn Quốc: 14.500.000 đ/trụ\n- Trụ Straumann Thụy Sĩ SLA: 34.000.000 đ\n- Răng sứ kim loại Titan: 2.500.000 đ/răng\n- Răng toàn sứ Cercon: 5.500.000 đ/răng`;
+      markdown = `# Bảng Giá Dịch Vụ Nha Khoa Kim (Công Khai 100%)\n\n## 1. NHA KHOA TỔNG QUÁT\n- Khám tổng quát & tư vấn: Miễn phí (0 VNĐ)\n- Cạo Vôi Răng & Đánh Bóng 2 Hàm: 500.000 VNĐ (Chuẩn vô trùng 1 chiều)\n- Cạo vôi răng trẻ em: 200.000 VNĐ\n- Trám răng thẩm mỹ Composite: 700.000 VNĐ - 900.000 VNĐ/răng\n- Nhổ răng vĩnh viễn đơn giản: 1.000.000 VNĐ/răng\n\n## 2. CẤY GHÉP IMPLANT (LIỆU TRÌNH ĐÃ GỒM TRỤ + ABUTMENT + MÁNG ĐỊNH VỊ 3D)\n- Liệu trình Implant Biotem Hàn Quốc: 21.000.000 VNĐ/trụ\n- Liệu trình Implant Dio Hàn Quốc: 21.000.000 VNĐ/trụ\n- Liệu trình Implant Megagen Anyridge: 21.000.000 VNĐ/trụ\n- Liệu trình Implant Swiss/Adin: 30.000.000 VNĐ/trụ\n- Liệu trình Implant Straumann SLA Thụy Sĩ: 30.000.000 VNĐ/trụ\n- Liệu trình Implant Straumann SLActive: 45.000.000 VNĐ/trụ\n- Liệu trình Implant Nobel TiUltra Mỹ: 45.000.000 VNĐ/trụ\n- Trồng răng toàn hàm All-on-4 Biotem: 252.000.000 - 267.000.000 VNĐ/hàm\n- Trồng răng toàn hàm All-on-6 Biotem: 321.000.000 - 336.000.000 VNĐ/hàm\n\n## 3. NIỀNG RĂNG CHỈNH NHA\n- Niềng răng mắc cài Kim loại (Đơn giản): 40.000.000 VNĐ/liệu trình\n- Niềng răng mắc cài Kim loại (Phức tạp): 50.000.000 VNĐ/liệu trình\n- Niềng răng mắc cài Sứ: 55.000.000 - 65.000.000 VNĐ\n- Niềng răng trong suốt Invisalign Lite: 65.000.000 VNĐ\n- Niềng răng trong suốt Invisalign Moderate: 85.000.000 VNĐ\n- Niềng răng trong suốt Invisalign Comprehensive (3 năm): 99.000.000 VNĐ\n- Niềng răng trong suốt Invisalign Comprehensive (5 năm): 125.000.000 VNĐ`;
     } else if (urlLower.includes('nhakhoaparis.vn') || urlLower.includes('paris')) {
-      pageTitle = "Nha Khoa Paris - Bảng Giá Cấy Ghép Răng Implant Tiêu Chuẩn Pháp";
+      pageTitle = "Nha Khoa Paris - Bảng Giá Cấy Ghép Răng Implant & Răng Sứ Tiêu Chuẩn Pháp";
       realBanners = [
         'https://nhakhoaparis.vn/wp-content/uploads/2023/10/banner-implant-4s-tieu-chuan-phap.jpg'
       ];
-      markdown = `# Bảng Giá Nha Khoa Paris\n\n- Trụ Dentium Hàn Quốc: 16.000.000 đ giảm còn 12.800.000 đ\n- Trụ Nobel Biocare Hoa Kỳ: 32.000.000 đ\n- Ưu đãi: Miễn phí thăm khám & lên phác đồ điều trị 3D`;
+      markdown = `# Bảng Giá Dịch Vụ Nha Khoa Paris (Tiêu Chuẩn Pháp)\n\n- Trụ Implant Dentium Hàn Quốc 4S: 12.800.000 đ (Giá gốc 16.000.000 đ, Giảm 20%)\n- Trụ Implant Nobel Biocare Hoa Kỳ: 32.000.000 đ (Giá gốc 35.000.000 đ)\n- Trụ Implant Straumann SLA Thụy Sĩ: 34.000.000 đ (Giá gốc 38.000.000 đ)\n- Bọc Răng Sứ Thẩm Mỹ Nano 5S: 2.200.000 đ/răng (Giá gốc 3.500.000 đ/răng, Giảm 35%)\n- Niềng Răng Mắc Cài 3D Speed: 29.000.000 đ (Giá gốc 38.000.000 đ, Giảm 24%)\n- Ưu đãi: Chụp CT 3D ConeBeam miễn phí & Trả góp 0% chỉ từ 1Tr/tháng`;
     } else if (urlLower.includes('drcareimplant.com') || urlLower.includes('drcare')) {
-      pageTitle = "Nha Khoa Dr. Care Implant - Trồng Răng Không Đau Cho Người Trung Niên";
+      pageTitle = "Nha Khoa Dr. Care Implant - Bảng Giá Cấy Ghép Chuẩn Y Khoa Cho Người Trung Niên";
       realBanners = [
         'https://drcareimplant.com/wp-content/uploads/2023/08/banner-trong-rang-implant-khong-dau-drcare.jpg'
       ];
-      markdown = `# Bảng Giá Dr. Care Implant\n\n- Trụ Implant Hàn Quốc trọn gói: 14.000.000 đ\n- Trụ Neodent Thụy Sĩ: 25.000.000 đ\n- Liệu pháp trồng răng không đau 12 bước`;
+      markdown = `# Bảng Giá Cấy Ghép Implant Tại Dr. Care Clinic (Chuẩn Y Khoa)\n\n- Trụ Implant Osstem (Hàn Quốc): 12.000.000 VNĐ (Bảo hành 10 năm)\n- Trụ Implant Dentium (Mỹ): 14.000.000 VNĐ (Bảo hành 15 năm)\n- Trụ Implant Neodent (Thụy Sĩ): 20.000.000 VNĐ (Bảo hành 20 năm)\n- Trụ Implant JD Dental Care (Ý): 23.500.000 VNĐ (Bảo hành 25 năm)\n- Trụ Implant Straumann (Thụy Sĩ): 23.500.000 VNĐ (Bảo hành 25 năm)\n- Trụ Implant Nobel Active (Mỹ): 26.500.000 VNĐ (Bảo hành 30 năm)\n- Trụ Implant Straumann SLActive (Thụy Sĩ): 26.500.000 VNĐ (Bảo hành 30 năm)\n- Khớp nối Abutment cá nhân hóa: 3.000.000 - 10.000.000 VNĐ\n- Răng sứ trên Implant: 5.000.000 - 8.000.000 VNĐ\n- Trọn gói 1 răng hoàn chỉnh (Trụ + Abutment + Mão sứ): Osstem 20.000.000 VNĐ, Dentium 23.000.000 VNĐ, Neodent 31.000.000 VNĐ\n- Liệu pháp trồng răng không đau 12 bước chuyên biệt`;
     } else if (urlLower.includes('nhakhoaparkway.com') || urlLower.includes('parkway')) {
-      pageTitle = "Hệ Thống Nha Khoa Parkway - Bảng Giá Niềng Răng Toàn Diện";
+      pageTitle = "Hệ Thống Nha Khoa Parkway - Bảng Giá Niềng Răng & Dịch Vụ Nha Khoa Toàn Diện";
       realBanners = [
         'https://nhakhoaparkway.com/wp-content/uploads/2023/11/bang-gia-nieng-rang-parkway.jpg',
         'https://nhakhoaparkway.com/wp-content/uploads/2023/11/banner-invisalign-parkway.jpg'
       ];
-      markdown = `# Bảng Giá Nha Khoa Parkway\n\n- Niềng răng mắc cài kim loại: 29.000.000 đ - 39.000.000 đ\n- Niềng răng trong suốt Invisalign: 45.000.000 đ - 120.000.000 đ\n- Bọc răng sứ thẩm mỹ: 3.500.000 đ/răng\n- Ưu đãi: Trả góp 0% chỉ từ 1Tr/tháng, Scan iTero 5D miễn phí`;
+      markdown = `# Bảng Giá Dịch Vụ Nha Khoa Parkway (Black Diamond Provider)\n\n- Hàm duy trì Vivera by Invisalign: 4.130.000 đ - 5.300.000 đ\n- Niềng răng mắc cài kim loại: 27.600.000 đ - 45.600.000 đ (Giảm 8% từ 30-48Tr)\n- Niềng răng mắc cài kim loại tự động: 37.720.000 đ - 55.100.000 đ (Giảm 8% từ 41-58Tr)\n- Gói niềng trong suốt Essentials by Invisalign: 55.200.000 đ - 71.000.000 đ (Giảm 8%)\n- Gói niềng trong suốt Invisalign Comprehensive (3 năm): 85.400.000 đ (Giảm 30% từ 122Tr)\n- Gói niềng trong suốt Invisalign Comprehensive (5 năm): 102.410.000 đ - 106.400.000 đ (Giảm 23% từ 133Tr)\n- Gói niềng trong suốt Invisalign Moderate: 62.370.000 đ - 70.700.000 đ (Giảm 30% từ 81-101Tr)\n- Gói niềng trong suốt Invisalign Lite: 46.970.000 đ - 65.450.000 đ (Giảm 23% từ 61-77Tr)\n- Trụ Implant Straumann BLT SLActive: 39.000.000 đ\n- Trụ Implant Straumann BLT SLA: 34.000.000 đ\n- Trụ Implant Neodent Acqua: 27.000.000 đ\n- Trụ Implant Dentium Super Line: 17.000.000 đ\n- Cấy ghép implant trọn gói: Silver 24.000.000 đ, Gold 34.000.000 đ, Platinum 60.000.000 đ\n- Lấy cao răng: 400.000 đ\n- Răng sứ Emax: 8.000.000 đ, Cercon HT: 9.000.000 đ`;
     }
   }
 
