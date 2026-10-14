@@ -25,6 +25,19 @@ export interface SheetFetchResult {
 
 export const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1P5TRZCUnGjQEb1pg4pBhzTqOZZ3_M104v2N7C5AHx5w/edit?gid=918582651#gid=918582651';
 
+export const MONTH_GIDS: Record<number, string> = {
+  1: '2039429667',
+  2: '1488133635',
+  3: '14244206',
+  4: '1999028731',
+  5: '1362634461',
+  6: '616723934',
+  7: '783507146',
+  8: '232446189',
+  9: '1189243661',
+  10: '1397851424',
+};
+
 // Helper to extract Spreadsheet ID from Google Sheet URL
 export function extractSpreadsheetId(url: string): string {
   const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -142,22 +155,39 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
         continue;
       }
 
-      if (!regName && currentRegion && currentRegion.services.length >= 4 && (svcDataCount > 0 || rowDataCL > 0 || vat > 0 || rev > 0)) {
-        regName = 'Không Địa Chỉ';
+      // Strip leading numbers if present (e.g., "51 Đà Nẵng")
+      const cleanRegName = regName.replace(/^\d+\s+/, '').trim();
+
+      if (!cleanRegName && currentRegion && currentRegion.services.length >= 4 && (svcDataCount > 0 || rowDataCL > 0 || vat > 0 || rev > 0)) {
+        // Fallback for unnamed extra block
+      } else if (cleanRegName) {
+        if (!currentRegion || (currentRegion.name !== cleanRegName && currentRegion.services.length >= 4)) {
+          const existing = regions.find((r) => r.name === cleanRegName);
+          if (existing) {
+            currentRegion = existing;
+          } else {
+            currentRegion = {
+              name: cleanRegName,
+              costVAT: vat || 0,
+              revenue: rev || 0,
+              cpDichVu: 0,
+              cpTong: cfg.cpTongCol >= 0 ? parseNumber(getCell(row, cfg.cpTongCol)) : (vat || 0),
+              totalData: 0,
+              dataChatLuong: rowDataCL || 0,
+              services: [],
+            };
+            regions.push(currentRegion);
+          }
+        }
       }
 
-      if (regName) {
-        currentRegion = {
-          name: regName,
-          costVAT: vat,
-          revenue: rev,
-          cpDichVu: 0,
-          cpTong: cfg.cpTongCol >= 0 ? parseNumber(getCell(row, cfg.cpTongCol)) : vat,
-          totalData: 0,
-          dataChatLuong: rowDataCL || 0,
-          services: [],
-        };
-        regions.push(currentRegion);
+      // Update currentRegion totals if present on this row (handles merged cell values appearing on 4th service row in Google Sheet exports)
+      if (currentRegion) {
+        if (!currentRegion.costVAT && vat > 0) currentRegion.costVAT = vat;
+        if (!currentRegion.revenue && rev > 0) currentRegion.revenue = rev;
+        const cpTongVal = cfg.cpTongCol >= 0 ? parseNumber(getCell(row, cfg.cpTongCol)) : vat;
+        if (!currentRegion.cpTong && cpTongVal > 0) currentRegion.cpTong = cpTongVal;
+        if (!currentRegion.dataChatLuong && rowDataCL > 0) currentRegion.dataChatLuong = rowDataCL;
       }
 
       if (currentRegion && !svcName && (svcDataCount > 0 || rowDataCL > 0 || svcCp > 0)) {
@@ -166,9 +196,6 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
       }
 
       if (currentRegion && svcName) {
-        if (!currentRegion.dataChatLuong && rowDataCL) {
-          currentRegion.dataChatLuong = rowDataCL;
-        }
         currentRegion.services.push({
           name: normalizeServiceName(svcName),
           cp: svcCp,
@@ -184,17 +211,32 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
       if (!reg.cpDichVu && reg.costVAT) reg.cpDichVu = reg.costVAT;
       if (!reg.cpTong) reg.cpTong = reg.cpDichVu;
 
+      // Sum Data Dịch Vụ from all 4 service rows of the region
       const totalDataDV = reg.services.reduce((acc, s) => acc + (s.dataCount || 0), 0);
       reg.totalData = totalDataDV;
 
-      const regCL = reg.dataChatLuong || 0;
-      reg.services.forEach((s) => {
-        if (totalDataDV > 0 && regCL > 0) {
+      // Calculate total Data CL for the region
+      const sumSvcCL = reg.services.reduce((acc, s) => acc + (s.dataChatLuong || 0), 0);
+      const regCL = reg.dataChatLuong > 0 ? reg.dataChatLuong : sumSvcCL;
+      reg.dataChatLuong = regCL;
+
+      // Handle Data CL per service vs merged region total
+      const nonZeroClServices = reg.services.filter((s) => (s.dataChatLuong || 0) > 0);
+
+      if (nonZeroClServices.length > 1) {
+        // Individual service rows in sheet contain specific Data CL values
+        // Keep each service's explicit dataChatLuong
+      } else if (regCL > 0 && totalDataDV > 0) {
+        // Sheet has a single merged cell or total region value for Data CL
+        // Distribute proportionally across services based on Data Dịch Vụ
+        reg.services.forEach((s) => {
           s.dataChatLuong = Math.round((s.dataCount / totalDataDV) * regCL);
-        } else {
-          s.dataChatLuong = s.dataCount || 0;
-        }
-      });
+        });
+      } else {
+        reg.services.forEach((s) => {
+          if (!s.dataChatLuong) s.dataChatLuong = s.dataCount || 0;
+        });
+      }
     });
 
     if (regions.length > 0) {
@@ -207,6 +249,146 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
   });
 
   return datasets.length > 0 ? datasets : MONTHLY_DATA;
+}
+
+// Parse individual month sheets like 'Data T10/2026', 'Data T9/2026', etc.
+export function parseSingleMonthTab(csvText: string, monthNum: number): MonthDataset | null {
+  const rows = parseCSV(csvText);
+  if (rows.length < 3) return null;
+
+  let headerIdx = -1;
+  let colRegion = -1;
+  let colService = -1;
+  let colCpSvc = -1;
+  let colVat = -1;
+  let colRev = -1;
+  let colDataDV = -1;
+  let colDataCL = -1;
+
+  for (let r = 0; r < Math.min(6, rows.length); r++) {
+    const row = rows[r];
+    if (!row) continue;
+
+    row.forEach((cell, idx) => {
+      const c = cell.toLowerCase().trim();
+      if (c.includes('khu vực') || c.includes('chi nhánh') || c.includes('cơ sở') || c === 'miền') {
+        if (colRegion === -1) colRegion = idx;
+      } else if (c.includes('dịch vụ') && !c.includes('cp') && !c.includes('data')) {
+        if (colService === -1) colService = idx;
+      } else if (c.includes('cp dịch vụ') || c === 'cp dv') {
+        if (colCpSvc === -1) colCpSvc = idx;
+      } else if (c.includes('cp (vat)') || c.includes('chi (vat)') || c === 'cp vat') {
+        if (colVat === -1) colVat = idx;
+      } else if (c.includes('doanh thu')) {
+        if (colRev === -1) colRev = idx;
+      } else if (c === 'data dv cl' || (c.includes('data') && c.includes('dv') && c.includes('cl'))) {
+        if (colDataCL === -1) colDataCL = idx;
+      } else if (c === 'data dv' || (c.includes('data') && c.includes('dv') && !c.includes('cl'))) {
+        if (colDataDV === -1) colDataDV = idx;
+      }
+    });
+
+    if (colDataDV !== -1 || colDataCL !== -1) {
+      headerIdx = r;
+      break;
+    }
+  }
+
+  // Fallback default column indices based on standard layout (e.g. Data T10/2026)
+  if (colRegion === -1) colRegion = 0;
+  if (colService === -1) colService = 1;
+  if (colCpSvc === -1) colCpSvc = 5; // Column F (CP Dịch Vụ VAT)
+  if (colVat === -1) colVat = 3;     // Column D (CP VAT)
+  if (colRev === -1) colRev = 6;     // Column G (Doanh Thu)
+  if (colDataDV === -1) colDataDV = 13; // Column N (Data DV)
+  if (colDataCL === -1) colDataCL = 16; // Column Q (Data DV CL)
+
+  const getCell = (row: string[], colIdx: number) =>
+    colIdx >= 0 && colIdx < row.length ? row[colIdx] : '';
+
+  const regions: RegionData[] = [];
+  let currentRegion: RegionData | null = null;
+  const defaultSvcNames = ['Implant', 'Niềng', 'Sứ', 'TH'];
+
+  const startRow = headerIdx !== -1 ? headerIdx + 1 : 2;
+
+  for (let r = startRow; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.length === 0) continue;
+
+    let regName = getCell(row, colRegion).trim();
+    let svcName = getCell(row, colService).trim();
+
+    const isHeaderOrTotal = (name: string) => {
+      const lower = name.toLowerCase().trim();
+      return (
+        lower === 'tổng' ||
+        lower.startsWith('tổng tất cả') ||
+        lower.startsWith('tháng') ||
+        lower.startsWith('khu vực') ||
+        lower === 'dịch vụ'
+      );
+    };
+
+    if (isHeaderOrTotal(regName) || isHeaderOrTotal(svcName)) continue;
+
+    const cleanRegName = regName.replace(/^\d+\s+/, '').trim();
+    const vat = parseNumber(getCell(row, colVat));
+    const rev = parseNumber(getCell(row, colRev));
+    const cpSvc = parseNumber(getCell(row, colCpSvc));
+    const dataDV = parseNumber(getCell(row, colDataDV));
+    const dataCL = parseNumber(getCell(row, colDataCL));
+
+    if (cleanRegName) {
+      if (!currentRegion || currentRegion.name !== cleanRegName) {
+        currentRegion = {
+          name: cleanRegName,
+          costVAT: vat || 0,
+          revenue: rev || 0,
+          cpDichVu: 0,
+          cpTong: vat || 0,
+          totalData: 0,
+          dataChatLuong: 0,
+          services: [],
+        };
+        regions.push(currentRegion);
+      }
+    }
+
+    if (currentRegion) {
+      if (!currentRegion.costVAT && vat > 0) currentRegion.costVAT = vat;
+      if (!currentRegion.revenue && rev > 0) currentRegion.revenue = rev;
+
+      if (!svcName) {
+        const idx = currentRegion.services.length % 4;
+        svcName = defaultSvcNames[idx] || 'TH';
+      }
+
+      currentRegion.services.push({
+        name: normalizeServiceName(svcName),
+        cp: cpSvc,
+        dataCount: dataDV,
+        dataChatLuong: dataCL,
+      });
+    }
+  }
+
+  // Recalculate region totals
+  regions.forEach((reg) => {
+    reg.cpDichVu = reg.services.reduce((sum, s) => sum + (s.cp || 0), 0);
+    if (!reg.cpDichVu) reg.cpDichVu = reg.costVAT;
+    reg.cpTong = reg.cpDichVu;
+    reg.totalData = reg.services.reduce((sum, s) => sum + (s.dataCount || 0), 0);
+    reg.dataChatLuong = reg.services.reduce((sum, s) => sum + (s.dataChatLuong || 0), 0);
+  });
+
+  if (regions.length === 0) return null;
+
+  return {
+    month: monthNum,
+    label: `Tháng ${monthNum}`,
+    regions,
+  };
 }
 
 export interface CheckinRecord {
@@ -674,6 +856,42 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
         monthlyData = parsed;
         isLive = true;
       }
+    }
+
+    // Fetch individual month tabs for Month 1 through Month 10 directly using their exact tab GIDs
+    const individualMonthPromises = Object.entries(MONTH_GIDS).map(async ([mStr, gid]) => {
+      const m = parseInt(mStr, 10);
+      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}&_t=${cacheBust}`;
+      try {
+        const res = await fetch(url, fetchOptions);
+        if (res.ok) {
+          const text = await res.text();
+          if (text && !text.includes('<!DOCTYPE html>') && !text.includes('Error') && text.length > 50) {
+            return parseSingleMonthTab(text, m);
+          }
+        }
+      } catch {
+        // Fallback silently if individual tab does not exist
+      }
+      return null;
+    });
+
+    try {
+      const singleResults = await Promise.all(individualMonthPromises);
+      singleResults.forEach((singleSet) => {
+        if (singleSet && singleSet.regions.length > 0) {
+          const existingIdx = monthlyData.findIndex((m) => m.month === singleSet.month);
+          if (existingIdx !== -1) {
+            monthlyData[existingIdx] = singleSet;
+          } else {
+            monthlyData.push(singleSet);
+          }
+          isLive = true;
+        }
+      });
+      monthlyData.sort((a, b) => a.month - b.month);
+    } catch {
+      // Ignore errors for individual tab fetching
     }
 
     if (checkinText) {
