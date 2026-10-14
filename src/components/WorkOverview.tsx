@@ -1327,9 +1327,9 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <div className="overflow-x-auto max-h-[70vh] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
             <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-800 text-slate-400 uppercase tracking-wider font-semibold whitespace-nowrap">
+              <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 uppercase tracking-wider font-semibold whitespace-nowrap shadow-md">
                 <tr>
                   <th className="py-3.5 px-4 whitespace-nowrap">Tháng</th>
                   <th className="py-3.5 px-4 text-right whitespace-nowrap">Data Dịch Vụ</th>
@@ -1422,7 +1422,7 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
                   );
                 })}
               </tbody>
-              <tfoot className="bg-slate-800 font-bold text-white border-t-2 border-slate-700 whitespace-nowrap">
+              <tfoot className="sticky bottom-0 z-20 bg-slate-800 backdrop-blur font-bold text-white border-t-2 border-rose-500 shadow-xl whitespace-nowrap">
                 <tr>
                   <td className="py-3.5 px-4 text-sm whitespace-nowrap">TỔNG QUAN</td>
                   <td className="py-3.5 px-4 text-right text-cyan-400 text-base whitespace-nowrap">

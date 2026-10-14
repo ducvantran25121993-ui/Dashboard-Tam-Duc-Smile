@@ -932,9 +932,9 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
           </span>
         </h3>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-800/90 text-slate-400 font-semibold uppercase text-[11px] border-b border-slate-700 whitespace-nowrap">
+            <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 font-semibold uppercase text-[11px] border-b border-slate-700 whitespace-nowrap shadow-md">
               <tr>
                 <th className="py-2.5 px-3">Dịch Vụ</th>
                 <th className="py-2.5 px-3 text-right">Lead Thô (Data)</th>

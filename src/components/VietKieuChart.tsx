@@ -365,9 +365,9 @@ export const VietKieuChart: React.FC<VietKieuChartProps> = ({
           </span>
         </h3>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <div className="overflow-x-auto max-h-[500px] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-800/80 text-slate-400 uppercase tracking-wider font-semibold whitespace-nowrap">
+            <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 uppercase tracking-wider font-semibold whitespace-nowrap shadow-md">
               <tr>
                 <th className="py-2.5 px-3">Tháng</th>
                 <th className="py-2.5 px-3 text-right">Doanh Thu</th>
@@ -430,7 +430,7 @@ export const VietKieuChart: React.FC<VietKieuChartProps> = ({
                 );
               })}
             </tbody>
-            <tfoot className="bg-slate-800/90 font-bold text-white border-t border-slate-700 whitespace-nowrap">
+            <tfoot className="sticky bottom-0 z-20 bg-slate-800 backdrop-blur font-bold text-white border-t-2 border-rose-500 shadow-xl whitespace-nowrap">
               <tr>
                 <td className="py-2.5 px-3 whitespace-nowrap">TỔNG QUAN</td>
                 <td className="py-2.5 px-3 text-right text-emerald-400 font-bold whitespace-nowrap">

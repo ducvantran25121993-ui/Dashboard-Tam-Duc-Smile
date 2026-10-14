@@ -274,9 +274,9 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
       )}
 
       {/* Table View */}
-      <div className="overflow-x-auto rounded-xl border border-slate-800">
+      <div className="overflow-x-auto max-h-[70vh] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
         <table className="w-full text-left text-xs text-slate-300">
-          <thead className="bg-slate-800/80 text-slate-300 uppercase tracking-wider font-semibold border-b border-slate-800 text-[11px] sm:text-xs">
+          <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 uppercase tracking-wider font-semibold border-b border-slate-700 text-[11px] sm:text-xs shadow-md">
             <tr>
               <th className="py-3 px-3 w-10 whitespace-nowrap"></th>
               <th
@@ -584,7 +584,7 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
 
           {/* Table Footer with Summary */}
           {processedRegions.length > 0 && (
-            <tfoot className="bg-slate-800/90 font-bold text-white border-t-2 border-slate-700 whitespace-nowrap">
+            <tfoot className="sticky bottom-0 z-20 bg-slate-800 backdrop-blur font-bold text-white border-t-2 border-rose-500 shadow-xl whitespace-nowrap">
               <tr>
                 <td className="py-3 px-3 whitespace-nowrap"></td>
                 <td className="py-3.5 px-3 text-sm font-extrabold uppercase text-slate-200 whitespace-nowrap">
