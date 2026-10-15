@@ -322,11 +322,12 @@ export function parseSingleMonthTab(csvText: string, monthNum: number): MonthDat
     const isHeaderOrTotal = (name: string) => {
       const lower = name.toLowerCase().trim();
       return (
-        lower === 'tổng' ||
-        lower.startsWith('tổng tất cả') ||
+        lower.startsWith('tổng') ||
         lower.startsWith('tháng') ||
         lower.startsWith('khu vực') ||
-        lower === 'dịch vụ'
+        lower === 'dịch vụ' ||
+        lower.includes('cp dịch vụ') ||
+        lower.includes('doanh thu')
       );
     };
 
@@ -882,7 +883,28 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
         if (singleSet && singleSet.regions.length > 0) {
           const existingIdx = monthlyData.findIndex((m) => m.month === singleSet.month);
           if (existingIdx !== -1) {
-            monthlyData[existingIdx] = singleSet;
+            // ONLY update Data DV (dataCount) and Data CL (dataChatLuong) from individual month tabs!
+            // Do NOT overwrite revenue, costVAT, cpDichVu, cpTong, or checkin data!
+            const targetMonth = monthlyData[existingIdx];
+            singleSet.regions.forEach((sReg) => {
+              if (sReg.name.toLowerCase().includes('tổng')) return;
+              const targetReg = targetMonth.regions.find(
+                (r) => r.name.toLowerCase().trim() === sReg.name.toLowerCase().trim()
+              );
+              if (targetReg) {
+                sReg.services.forEach((sSvc) => {
+                  const targetSvc = targetReg.services.find(
+                    (s) => s.name.toLowerCase().trim() === sSvc.name.toLowerCase().trim()
+                  );
+                  if (targetSvc) {
+                    targetSvc.dataCount = sSvc.dataCount;
+                    targetSvc.dataChatLuong = sSvc.dataChatLuong;
+                  }
+                });
+                targetReg.totalData = targetReg.services.reduce((sum, sv) => sum + (sv.dataCount || 0), 0);
+                targetReg.dataChatLuong = targetReg.services.reduce((sum, sv) => sum + (sv.dataChatLuong || 0), 0);
+              }
+            });
           } else {
             monthlyData.push(singleSet);
           }
