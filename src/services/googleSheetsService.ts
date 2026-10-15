@@ -327,11 +327,16 @@ export function parseSingleMonthTab(csvText: string, monthNum: number): MonthDat
         lower.startsWith('khu vực') ||
         lower === 'dịch vụ' ||
         lower.includes('cp dịch vụ') ||
-        lower.includes('doanh thu')
+        lower.includes('doanh thu') ||
+        lower === '0' ||
+        lower === 'đã xong'
       );
     };
 
     if (isHeaderOrTotal(regName) || isHeaderOrTotal(svcName)) continue;
+    // CRITICAL: A valid service data row MUST have a valid service name!
+    // Empty svcName signifies summary/total rows or separator rows (e.g. Row 71 in Month 1, 2, 4, 5).
+    if (!svcName) continue;
 
     const cleanRegName = regName.replace(/^\d+\s+/, '').trim();
     const vat = parseNumber(getCell(row, colVat));
@@ -341,7 +346,12 @@ export function parseSingleMonthTab(csvText: string, monthNum: number): MonthDat
     const dataCL = parseNumber(getCell(row, colDataCL));
 
     if (cleanRegName) {
-      if (!currentRegion || currentRegion.name !== cleanRegName) {
+      let existingReg = regions.find(
+        (reg) => reg.name.toLowerCase().trim() === cleanRegName.toLowerCase().trim()
+      );
+      if (existingReg) {
+        currentRegion = existingReg;
+      } else {
         currentRegion = {
           name: cleanRegName,
           costVAT: vat || 0,
@@ -360,17 +370,22 @@ export function parseSingleMonthTab(csvText: string, monthNum: number): MonthDat
       if (!currentRegion.costVAT && vat > 0) currentRegion.costVAT = vat;
       if (!currentRegion.revenue && rev > 0) currentRegion.revenue = rev;
 
-      if (!svcName) {
-        const idx = currentRegion.services.length % 4;
-        svcName = defaultSvcNames[idx] || 'TH';
+      const normSvcName = normalizeServiceName(svcName);
+      let existingSvc = currentRegion.services.find(
+        (s) => s.name.toLowerCase().trim() === normSvcName.toLowerCase().trim()
+      );
+      if (existingSvc) {
+        existingSvc.dataCount = (existingSvc.dataCount || 0) + dataDV;
+        existingSvc.dataChatLuong = (existingSvc.dataChatLuong || 0) + dataCL;
+        if (cpSvc > 0) existingSvc.cp = (existingSvc.cp || 0) + cpSvc;
+      } else {
+        currentRegion.services.push({
+          name: normSvcName,
+          cp: cpSvc,
+          dataCount: dataDV,
+          dataChatLuong: dataCL,
+        });
       }
-
-      currentRegion.services.push({
-        name: normalizeServiceName(svcName),
-        cp: cpSvc,
-        dataCount: dataDV,
-        dataChatLuong: dataCL,
-      });
     }
   }
 
@@ -886,24 +901,46 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
             // ONLY update Data DV (dataCount) and Data CL (dataChatLuong) from individual month tabs!
             // Do NOT overwrite revenue, costVAT, cpDichVu, cpTong, or checkin data!
             const targetMonth = monthlyData[existingIdx];
+
+            // Reset existing service data counts and region totals to 0 before accumulating from individual month tab
+            targetMonth.regions.forEach((r) => {
+              r.services.forEach((s) => {
+                s.dataCount = 0;
+                s.dataChatLuong = 0;
+              });
+              r.totalData = 0;
+              r.dataChatLuong = 0;
+            });
+
             singleSet.regions.forEach((sReg) => {
               if (sReg.name.toLowerCase().includes('tổng')) return;
-              const targetReg = targetMonth.regions.find(
+              let targetReg = targetMonth.regions.find(
                 (r) => r.name.toLowerCase().trim() === sReg.name.toLowerCase().trim()
               );
-              if (targetReg) {
-                sReg.services.forEach((sSvc) => {
-                  const targetSvc = targetReg.services.find(
-                    (s) => s.name.toLowerCase().trim() === sSvc.name.toLowerCase().trim()
-                  );
-                  if (targetSvc) {
-                    targetSvc.dataCount = sSvc.dataCount;
-                    targetSvc.dataChatLuong = sSvc.dataChatLuong;
-                  }
+              if (!targetReg) {
+                targetReg = { ...sReg, services: [] };
+                targetMonth.regions.push(targetReg);
+                targetReg.services.forEach((s) => {
+                  s.dataCount = 0;
+                  s.dataChatLuong = 0;
                 });
-                targetReg.totalData = targetReg.services.reduce((sum, sv) => sum + (sv.dataCount || 0), 0);
-                targetReg.dataChatLuong = targetReg.services.reduce((sum, sv) => sum + (sv.dataChatLuong || 0), 0);
               }
+
+              sReg.services.forEach((sSvc) => {
+                let targetSvc = targetReg!.services.find(
+                  (s) => s.name.toLowerCase().trim() === sSvc.name.toLowerCase().trim()
+                );
+                if (!targetSvc) {
+                  targetSvc = { ...sSvc };
+                  targetReg!.services.push(targetSvc);
+                } else {
+                  targetSvc.dataCount = (targetSvc.dataCount || 0) + (sSvc.dataCount || 0);
+                  targetSvc.dataChatLuong = (targetSvc.dataChatLuong || 0) + (sSvc.dataChatLuong || 0);
+                }
+              });
+
+              targetReg.totalData = targetReg.services.reduce((sum, sv) => sum + (sv.dataCount || 0), 0);
+              targetReg.dataChatLuong = targetReg.services.reduce((sum, sv) => sum + (sv.dataChatLuong || 0), 0);
             });
           } else {
             monthlyData.push(singleSet);

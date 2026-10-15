@@ -353,7 +353,8 @@ export default function App() {
       localStorage.removeItem('monthly_sheet_datasets_v4');
       localStorage.removeItem('monthly_sheet_datasets_v5');
       localStorage.removeItem('monthly_sheet_datasets_v6');
-      const cached = localStorage.getItem('monthly_sheet_datasets_v7');
+      localStorage.removeItem('monthly_sheet_datasets_v7');
+      const cached = localStorage.getItem('monthly_sheet_datasets_v8');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -376,7 +377,7 @@ export default function App() {
     if (result.monthlyData && result.monthlyData.length > 0) {
       setMonthlyDatasets(result.monthlyData);
       try {
-        localStorage.setItem('monthly_sheet_datasets_v7', JSON.stringify(result.monthlyData));
+        localStorage.setItem('monthly_sheet_datasets_v8', JSON.stringify(result.monthlyData));
       } catch {
         // ignore storage error
       }
