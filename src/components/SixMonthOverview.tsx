@@ -1107,8 +1107,8 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 bg-slate-900/50">
-              {monthlySummary.map((m) => (
-                <tr key={m.monthNum} className="hover:bg-slate-800/50 transition-colors">
+              {monthlySummary.map((m, idx) => (
+                <tr key={`six-month-row-${m.monthNum}-${idx}`} className="hover:bg-slate-800/50 transition-colors">
                   <td className="py-3 px-4 font-bold text-white text-sm whitespace-nowrap">{m.monthLabel}</td>
                   <td className="py-3 px-4 text-right font-bold text-cyan-400 text-sm whitespace-nowrap">
                     {m.dataTong.toLocaleString('vi-VN')}

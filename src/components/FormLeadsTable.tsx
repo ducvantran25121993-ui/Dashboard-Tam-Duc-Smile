@@ -354,11 +354,11 @@ export const FormLeadsTable: React.FC<FormLeadsTableProps> = ({ userRole }) => {
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-9 gap-2">
-            {stats.monthly.map((m) => {
+            {stats.monthly.map((m, idx) => {
               const isSelected = selectedMonth === m.month && selectedMode === 'all';
               return (
                 <button
-                  key={m.month}
+                  key={`form-lead-m-${m.month}-${idx}`}
                   onClick={() => {
                     if (isSelected) {
                       setSelectedMonth('all');

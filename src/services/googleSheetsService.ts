@@ -862,7 +862,7 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
   }
 
   try {
-    let monthlyData = MONTHLY_DATA;
+    let monthlyData: MonthDataset[] = JSON.parse(JSON.stringify(MONTHLY_DATA));
     let dailyData: DailyRecord[] = [];
     let isLive = false;
 
@@ -948,7 +948,13 @@ export async function fetchGoogleSheetData(sheetUrl: string = DEFAULT_SHEET_URL)
           isLive = true;
         }
       });
-      monthlyData.sort((a, b) => a.month - b.month);
+
+      // Strict de-duplication by month number
+      const uniqueMonthMap = new Map<number, MonthDataset>();
+      monthlyData.forEach((m) => {
+        uniqueMonthMap.set(m.month, m);
+      });
+      monthlyData = Array.from(uniqueMonthMap.values()).sort((a, b) => a.month - b.month);
     } catch {
       // Ignore errors for individual tab fetching
     }

@@ -2586,7 +2586,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                   const hasData = getTokensForMonth(m) > 0;
                   return (
                     <button
-                      key={m}
+                      key={`admin-token-m-btn-${m}`}
                       type="button"
                       onClick={() => setSelectedTokenMonth(m)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer relative ${
@@ -2787,7 +2787,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
 
                       return (
                         <tr
-                          key={m}
+                          key={`admin-token-row-${m}`}
                           className={`transition-colors cursor-pointer ${
                             isSel
                               ? 'bg-indigo-950/50 hover:bg-indigo-950/70 font-semibold'
@@ -3664,7 +3664,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                   <div className="grid grid-cols-5 gap-1.5">
                     {[2, 3, 4, 5, 6].map(num => (
                       <button
-                        key={num}
+                        key={`admin-thresh-score-${num}`}
                         type="button"
                         onClick={() => setThresholds({ ...thresholds, minQualityScore: num })}
                         className={`py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
@@ -4256,7 +4256,7 @@ export const AdminHubView: React.FC<AdminHubViewProps> = ({
                 <div className="grid grid-cols-6 gap-1.5">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
                     <button
-                      key={m}
+                      key={`admin-cfg-token-m-${m}`}
                       type="button"
                       onClick={() => {
                         setSelectedTokenMonth(m);

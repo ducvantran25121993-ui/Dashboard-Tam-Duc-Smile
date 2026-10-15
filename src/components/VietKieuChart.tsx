@@ -381,11 +381,11 @@ export const VietKieuChart: React.FC<VietKieuChartProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
-              {vietKieuMonthly.map((m) => {
+              {vietKieuMonthly.map((m, idx) => {
                 const isCurrentActive = activeMonth === m.monthNum;
                 return (
                   <tr
-                    key={m.monthNum}
+                    key={`vk-month-row-${m.monthNum}-${idx}`}
                     className={`hover:bg-slate-800/50 transition-colors ${
                       isCurrentActive ? 'bg-amber-500/10 font-medium' : ''
                     }`}

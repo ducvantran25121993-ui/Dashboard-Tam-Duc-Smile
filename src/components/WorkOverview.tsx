@@ -531,9 +531,9 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
               Quý 2 (T4 - T6)
             </button>
 
-            {monthlyDatasets.map((m) => (
+            {monthlyDatasets.map((m, idx) => (
               <button
-                key={m.month}
+                key={`btn-month-filter-${m.month}-${idx}`}
                 onClick={() => setSelectedPeriod(`month_${m.month}` as PeriodFilter)}
                 className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                   selectedPeriod === `month_${m.month}`
@@ -1343,10 +1343,10 @@ Xuất từ Dashboard Quản Trị Marketing Tâm Đức Smile`;
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 bg-slate-900/50">
-                {monthlyAggregateList.map((m) => {
+                {monthlyAggregateList.map((m, idx) => {
                   const isTopRevenue = m.hasData && m.revenue === maxRevenue && maxRevenue > 0;
                   return (
-                    <tr key={m.monthNum} className="hover:bg-slate-800/50 transition-colors">
+                    <tr key={`agg-row-${m.monthNum}-${idx}`} className="hover:bg-slate-800/50 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-white text-sm whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <span>{m.monthLabel}</span>

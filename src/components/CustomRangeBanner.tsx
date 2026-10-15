@@ -136,7 +136,7 @@ export const CustomRangeBanner: React.FC<CustomRangeBannerProps> = ({
 
             return (
               <div
-                key={m.monthNum}
+                key={`crb-bar-${m.monthNum}-${idx}`}
                 style={{ width: `${widthPct}%`, backgroundColor: palette.bar }}
                 className="h-full rounded-full transition-all duration-500 relative group cursor-pointer"
                 title={`${m.label}: ${formatVND(m.revenue, displayUnit)} (${formatPercent(m.revenueShare)})`}
@@ -155,7 +155,7 @@ export const CustomRangeBanner: React.FC<CustomRangeBannerProps> = ({
 
           return (
             <div
-              key={m.monthNum}
+              key={`crb-card-${m.monthNum}-${idx}`}
               className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
                 isTop
                   ? 'bg-gradient-to-b from-blue-950/40 to-slate-900 border-blue-500/50 ring-1 ring-blue-400/30'

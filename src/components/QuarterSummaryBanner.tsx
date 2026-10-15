@@ -115,7 +115,7 @@ export const QuarterSummaryBanner: React.FC<QuarterSummaryBannerProps> = ({
 
             return (
               <div
-                key={m.monthNum}
+                key={`qsb-card-${m.monthNum}-${idx}`}
                 className="bg-slate-950/80 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 flex flex-col justify-between transition-all group quarter-month-card"
               >
                 {/* Header of month card */}
@@ -231,7 +231,7 @@ export const QuarterSummaryBanner: React.FC<QuarterSummaryBannerProps> = ({
                 const color = MONTH_COLORS[idx % MONTH_COLORS.length];
                 return (
                   <div
-                    key={m.monthNum}
+                    key={`qsb-bar-${m.monthNum}-${idx}`}
                     style={{ width: `${m.revenueShare}%`, backgroundColor: color.bar }}
                     className="h-full relative group transition-all"
                     title={`${m.label}: ${m.revenueShare.toFixed(1)}% (${formatVND(
@@ -246,7 +246,7 @@ export const QuarterSummaryBanner: React.FC<QuarterSummaryBannerProps> = ({
               {months.map((m, idx) => {
                 const color = MONTH_COLORS[idx % MONTH_COLORS.length];
                 return (
-                  <div key={m.monthNum} className="flex items-center gap-1.5">
+                  <div key={`qsb-legend-${m.monthNum}-${idx}`} className="flex items-center gap-1.5">
                     <span
                       className="w-2.5 h-2.5 rounded-sm shrink-0"
                       style={{ backgroundColor: color.bar }}

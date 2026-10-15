@@ -331,7 +331,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
 
                         return (
                           <button
-                            key={mNum}
+                            key={`quarter-${q.id}-m-${mNum}`}
                             onClick={() => {
                               onSelectTab(mNum);
                               setIsDropdownOpen(false);
@@ -408,7 +408,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
-                          <option key={m} value={m}>
+                          <option key={`opt-range-start-${m}`} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
                         ))}
@@ -424,7 +424,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
-                          <option key={m} value={m}>
+                          <option key={`opt-range-end-${m}`} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
                         ))}
@@ -556,7 +556,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                       const isCurrentMonth = m === currentCalMonth;
                       return (
                         <button
-                          key={m}
+                          key={`month-chip-select-${m}`}
                           onClick={() => toggleMonthChip(m)}
                           className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer ${
                             isSelected
