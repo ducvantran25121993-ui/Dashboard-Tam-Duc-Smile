@@ -705,8 +705,8 @@ export const TRANSPARENCY_DOMAINS_DATA: Record<string, TransparencyDomainProfile
     )
   },
 
-  'nhakhoaviethan04.com': {
-    domain: 'nhakhoaviethan04.com',
+  'nhakhoaviethan04.com.vn': {
+    domain: 'nhakhoaviethan04.com.vn',
     brandName: 'Nha Khoa Việt Hàn 04',
     legalEntity: 'CÔNG TY TNHH NHA KHOA QUỐC TẾ VIỆT HÀN (HỆ THỐNG VIỆT HÀN 04)',
     approxActiveAds: 68,
@@ -717,7 +717,25 @@ export const TRANSPARENCY_DOMAINS_DATA: Record<string, TransparencyDomainProfile
       'viethan',
       'Nha Khoa Việt Hàn 04',
       'CÔNG TY TNHH NHA KHOA QUỐC TẾ VIỆT HÀN (HỆ THỐNG VIỆT HÀN 04)',
-      'nhakhoaviethan04.com',
+      'nhakhoaviethan04.com.vn',
+      [],
+      68,
+      VIETHAN_TEMPLATES
+    )
+  },
+  'nhakhoaviethan04.com': {
+    domain: 'nhakhoaviethan04.com.vn',
+    brandName: 'Nha Khoa Việt Hàn 04',
+    legalEntity: 'CÔNG TY TNHH NHA KHOA QUỐC TẾ VIỆT HÀN (HỆ THỐNG VIỆT HÀN 04)',
+    approxActiveAds: 68,
+    isVerified: true,
+    description: 'Miền này bao gồm kết quả cho nhiều tài khoản nhà quảng cáo có quảng cáo trỏ đến miền này. Bạn có thể lọc theo từng nhà quảng cáo bên dưới.',
+    primaryServices: ['Trồng Răng Implant Giá Rẻ 5.9Tr', 'Bọc Răng Sứ Thẩm Mỹ 990K', 'Niềng Răng Mắc Cài Trả Góp 0%'],
+    ads: generateBrandAds(
+      'viethan',
+      'Nha Khoa Việt Hàn 04',
+      'CÔNG TY TNHH NHA KHOA QUỐC TẾ VIỆT HÀN (HỆ THỐNG VIỆT HÀN 04)',
+      'nhakhoaviethan04.com.vn',
       [],
       68,
       VIETHAN_TEMPLATES

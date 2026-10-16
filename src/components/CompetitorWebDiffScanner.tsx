@@ -86,7 +86,7 @@ const VERIFIED_DENTAL_ADVERTISERS: VerifiedAdvertiser[] = [
   {
     id: 'viethan04',
     name: 'Nha Khoa Việt Hàn 04',
-    domain: 'nhakhoaviethan04.com',
+    domain: 'nhakhoaviethan04.com.vn',
     legalEntity: 'CÔNG TY TNHH NHA KHOA QUỐC TẾ VIỆT HÀN (HỆ THỐNG VIỆT HÀN 04)',
     primaryServices: ['Trồng Răng Implant Giá Rẻ', 'Bọc Răng Sứ', 'Niềng Răng Trả Góp'],
     activeAdFormats: ['Văn bản Search (RSA)', 'Performance Max', 'Facebook Ads'],
@@ -651,7 +651,7 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
   },
   {
     competitorName: 'Nha Khoa Việt Hàn 04',
-    domain: 'nhakhoaviethan04.com',
+    domain: 'nhakhoaviethan04.com.vn',
     adPlatform: 'Google Search Ads & Performance Max',
     category: 'implant',
     campaignTitle: 'Trồng Răng Implant Việt Hàn 04 - Trợ Giá Trụ Chỉ Từ 7.5 Triệu',
@@ -659,7 +659,7 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
     adCopy: {
       headline: 'Trồng Răng Implant Việt Hàn 04 - Trợ Giá Trụ Chỉ Từ 7.5 Triệu',
       description: 'Cấy ghép không đau với công nghệ từ Hàn Quốc. Tặng mão răng sứ Titan cao cấp. Bảo hành trọn đời bằng văn bản.',
-      displayedUrl: 'https://nhakhoaviethan04.com/uu-dai-implant',
+      displayedUrl: 'https://nhakhoaviethan04.com.vn/uu-dai-implant',
       sitelinks: ['Bảng Giá Trụ Hàn Quốc', 'Khuyến Mãi Răng Sứ', 'Đăng Ký Khám 0đ', 'Bác Sĩ CKI Khám'],
       callouts: ['Trợ Giá 50%', 'Không Đau Không Sưng', 'Hỗ Trợ Trả Góp 0%']
     },
@@ -697,7 +697,7 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
   },
   {
     competitorName: 'Nha Khoa Việt Hàn 04',
-    domain: 'nhakhoaviethan04.com',
+    domain: 'nhakhoaviethan04.com.vn',
     adPlatform: 'Google Search Ads & Facebook Ads',
     category: 'porcelain',
     campaignTitle: 'Bọc Răng Sứ Cercon HT & Dán Sứ Veneer - Giảm 50% Combo Toàn Hàm',
@@ -705,7 +705,7 @@ const INITIAL_DISCOVERED_ADS: DiscoveredAd[] = [
     adCopy: {
       headline: 'Bọc Răng Sứ Cercon HT Việt Hàn 04 - Giảm 50% Chỉ 2Tr/Răng',
       description: 'Công nghệ răng sứ thẩm mỹ chuẩn Hàn. Không mài nhỏ răng, không đau buốt. Trả góp 0% chỉ từ 500k/tháng qua CCCD.',
-      displayedUrl: 'https://nhakhoaviethan04.com/boc-rang-su',
+      displayedUrl: 'https://nhakhoaviethan04.com.vn/boc-rang-su',
       sitelinks: ['Bảng Giá Răng Sứ Cercon', 'Ưu Đãi Combo 16 Răng', 'Xem Hình Ảnh Khách Hàng', 'Đặt Lịch Thăm Khám'],
       callouts: ['Giảm 50% Toàn Hàm', 'Bảo Hành 7 Năm', 'Labo Riêng']
     },

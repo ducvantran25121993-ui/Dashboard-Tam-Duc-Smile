@@ -1091,7 +1091,7 @@ export const SixMonthOverview: React.FC<SixMonthOverviewProps> = ({
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[70vh] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
+        <div className="overflow-x-auto rounded-xl border border-slate-800 relative shadow-inner">
           <table className="w-full text-left text-xs text-slate-300">
             <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 uppercase tracking-wider font-semibold whitespace-nowrap shadow-md">
               <tr>

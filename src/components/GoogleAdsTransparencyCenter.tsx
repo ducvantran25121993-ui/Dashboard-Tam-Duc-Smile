@@ -61,7 +61,7 @@ export const GoogleAdsTransparencyCenter: React.FC<GoogleAdsTransparencyCenterPr
     },
     {
       id: 'alert-3',
-      domain: 'nhakhoaviethan04.com',
+      domain: 'nhakhoaviethan04.com.vn',
       advertiserName: 'Nha Khoa Việt Hàn 04',
       legalEntity: 'NHA KHOA QUỐC TẾ VIỆT HÀN',
       detectedTime: '2 giờ trước',
@@ -195,7 +195,7 @@ export const GoogleAdsTransparencyCenter: React.FC<GoogleAdsTransparencyCenterPr
   const competitorPresets = [
     { domain: 'nhakhoakim.com', label: 'Nha Khoa Kim' },
     { domain: 'nhakhoaparis.vn', label: 'Nha Khoa Paris' },
-    { domain: 'nhakhoaviethan04.com', label: 'Nha Khoa Việt Hàn 04' },
+    { domain: 'nhakhoaviethan04.com.vn', label: 'Nha Khoa Việt Hàn 04' },
     { domain: 'nhakhoasaigonbh.com', label: 'Nha Khoa Sài Gòn B.H' },
     { domain: 'nhakhoatrongrang.com', label: 'Nha Khoa Trồng Răng' },
     { domain: 'saigonimplant.com', label: 'Sài Gòn Implant' },

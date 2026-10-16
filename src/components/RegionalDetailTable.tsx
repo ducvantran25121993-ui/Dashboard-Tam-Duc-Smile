@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   X,
   Sparkles,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { RegionData } from '../data/revenueData';
 import { DisplayUnit } from '../types';
@@ -42,6 +44,7 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
   const [expandedRegions, setExpandedRegions] = useState<Record<string, boolean>>({});
   const [sortField, setSortField] = useState<'revenue' | 'costVAT' | 'profit' | 'ratio' | 'name' | 'dataTong' | 'dataChatLuong' | 'checkin' | 'dau' | 'rot'>('revenue');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [isFullHeight, setIsFullHeight] = useState<boolean>(true);
 
   // Auto-expand region when selected via Command Palette or Chart click
   useEffect(() => {
@@ -233,10 +236,29 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
             />
           </div>
 
+          {/* Height Toggle Button */}
+          <button
+            onClick={() => setIsFullHeight(!isFullHeight)}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition-all cursor-pointer shadow-sm"
+            title={isFullHeight ? "Thu gọn về dạng khung cuộn 70vh" : "Mở rộng full chiều cao (hiển thị hết không cần cuộn)"}
+          >
+            {isFullHeight ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>Thu gọn</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Nới rộng</span>
+              </>
+            )}
+          </button>
+
           {/* CSV Export */}
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition-all"
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 transition-all cursor-pointer"
           >
             <Download className="w-4 h-4 text-emerald-400" />
             <span>Xuất CSV</span>
@@ -274,7 +296,9 @@ export const RegionalDetailTable: React.FC<RegionalDetailTableProps> = ({
       )}
 
       {/* Table View */}
-      <div className="overflow-x-auto max-h-[70vh] overflow-y-auto rounded-xl border border-slate-800 relative shadow-inner">
+      <div className={`overflow-x-auto rounded-xl border border-slate-800 relative shadow-inner transition-all duration-300 ${
+        isFullHeight ? 'max-h-none overflow-y-visible' : 'max-h-[70vh] overflow-y-auto'
+      }`}>
         <table className="w-full text-left text-xs text-slate-300">
           <thead className="sticky top-0 z-20 bg-slate-800 text-slate-300 uppercase tracking-wider font-semibold border-b border-slate-700 text-[11px] sm:text-xs shadow-md">
             <tr>
