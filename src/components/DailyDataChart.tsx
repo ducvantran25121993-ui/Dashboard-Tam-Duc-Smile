@@ -97,6 +97,7 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
     : [activeMonth as number];
 
   const defaultActiveNum = isQuarterOrRange ? activeMonthsList[activeMonthsList.length - 1] : (activeMonth as number);
+  const isMultiMonth = activeMonthsList.length > 1;
 
   // Days in active month
   const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][defaultActiveNum] || 31;
@@ -109,6 +110,8 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
   // Build daily data map for the month
   interface DayData {
     day: number;
+    dayNum: number;
+    monthNum: number;
     dateStr: string;
     leadTho: number;
     leadChatLuong: number;
@@ -125,11 +128,15 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
     // Process existing daily records from sheet
     monthRecords.forEach((r) => {
       const normSvc = normalizeSvcName(r.service);
-      const dayKey = isQuarterOrRange ? r.monthNum * 100 + r.dayNum : r.dayNum;
+      const rawDay = r.dayNum;
+      const rawMonth = r.monthNum;
+      const dayKey = isMultiMonth ? rawMonth * 100 + rawDay : rawDay;
       if (!dayMap[dayKey]) {
         dayMap[dayKey] = {
           day: dayKey,
-          dateStr: `${r.dayNum}/${r.monthNum}`,
+          dayNum: rawDay,
+          monthNum: rawMonth,
+          dateStr: isMultiMonth ? `${rawDay}/${rawMonth}` : `${rawDay}/${defaultActiveNum}`,
           leadTho: 0,
           leadChatLuong: 0,
           budgetVnd: 0,
@@ -195,7 +202,9 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
     for (let d = 1; d <= daysInMonth; d++) {
       dayMap[d] = {
         day: d,
-        dateStr: `${d}/${activeMonth}`,
+        dayNum: d,
+        monthNum: defaultActiveNum,
+        dateStr: isMultiMonth ? `${d}/${defaultActiveNum}` : `${d}/${defaultActiveNum}`,
         leadTho: 0,
         leadChatLuong: 0,
         budgetVnd: 0,
@@ -263,29 +272,65 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
     (d) => d.day >= effectiveStartDay && d.day <= effectiveEndDay
   );
 
+  const formatDayOptionLabel = (dayVal: number) => {
+    if (dayMap[dayVal]) {
+      const dm = dayMap[dayVal];
+      const dNum = dm.dayNum !== undefined ? dm.dayNum : (dm.day > 100 ? dm.day % 100 : dm.day);
+      const mNum = dm.monthNum !== undefined ? dm.monthNum : (dm.day > 100 ? Math.floor(dm.day / 100) : defaultActiveNum);
+      if (isMultiMonth) {
+        return `Ngày ${dNum}/${mNum}`;
+      }
+      return `Ngày ${dNum}`;
+    }
+    const dNum = dayVal > 100 ? (dayVal % 100) : dayVal;
+    const mNum = dayVal > 100 ? Math.floor(dayVal / 100) : defaultActiveNum;
+    if (isMultiMonth) {
+      return `Ngày ${dNum}/${mNum}`;
+    }
+    return `Ngày ${dNum}`;
+  };
+
   const handlePresetChange = (preset: string) => {
     setDatePreset(preset);
     if (preset === 'all') {
       setStartDay(minDayInMap);
       setEndDay(maxDayInMap);
-    } else if (preset === 'w1') {
-      setStartDay(1);
-      setEndDay(Math.min(7, maxDayInMap));
-    } else if (preset === 'w2') {
-      setStartDay(8);
-      setEndDay(Math.min(14, maxDayInMap));
-    } else if (preset === 'w3') {
-      setStartDay(15);
-      setEndDay(Math.min(21, maxDayInMap));
-    } else if (preset === 'w4') {
-      setStartDay(22);
-      setEndDay(maxDayInMap);
-    } else if (preset === 'h1') {
-      setStartDay(1);
-      setEndDay(Math.min(15, maxDayInMap));
-    } else if (preset === 'h2') {
-      setStartDay(16);
-      setEndDay(maxDayInMap);
+    } else if (!isMultiMonth) {
+      if (preset === 'w1') {
+        setStartDay(1);
+        setEndDay(Math.min(7, maxDayInMap));
+      } else if (preset === 'w2') {
+        setStartDay(8);
+        setEndDay(Math.min(14, maxDayInMap));
+      } else if (preset === 'w3') {
+        setStartDay(15);
+        setEndDay(Math.min(21, maxDayInMap));
+      } else if (preset === 'w4') {
+        setStartDay(22);
+        setEndDay(maxDayInMap);
+      } else if (preset === 'h1') {
+        setStartDay(1);
+        setEndDay(Math.min(15, maxDayInMap));
+      } else if (preset === 'h2') {
+        setStartDay(16);
+        setEndDay(maxDayInMap);
+      }
+    } else {
+      const totalDays = availableDays.length;
+      if (preset === 'h1') {
+        setStartDay(availableDays[0]);
+        setEndDay(availableDays[Math.floor(totalDays / 2) - 1] || maxDayInMap);
+      } else if (preset === 'h2') {
+        setStartDay(availableDays[Math.floor(totalDays / 2)] || minDayInMap);
+        setEndDay(availableDays[totalDays - 1] || maxDayInMap);
+      } else if (preset.startsWith('w')) {
+        const qIdx = parseInt(preset.replace('w', ''), 10) - 1;
+        const chunkSize = Math.ceil(totalDays / 4);
+        const sIdx = Math.min(qIdx * chunkSize, totalDays - 1);
+        const eIdx = Math.min((qIdx + 1) * chunkSize - 1, totalDays - 1);
+        setStartDay(availableDays[sIdx]);
+        setEndDay(availableDays[eIdx]);
+      }
     }
   };
 
@@ -450,7 +495,7 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
           <p className="text-xs text-slate-400 mt-1">
             Chi tiết biến động Data ngày &amp; Chi phí Marketing từng Dịch vụ từ sheet <strong className="text-teal-400">Data Ngày</strong> • {chartData.length} ngày
             {datePreset !== 'all' || effectiveStartDay > minDayInMap || effectiveEndDay < maxDayInMap
-              ? ` (Từ ngày ${effectiveStartDay}/${activeMonth} đến ${effectiveEndDay}/${activeMonth})`
+              ? ` (${formatDayOptionLabel(effectiveStartDay)} đến ${formatDayOptionLabel(effectiveEndDay)})`
               : ` trong ${monthLabel}`}
           </p>
         </div>
@@ -643,7 +688,7 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
             >
               {availableDays.map((d) => (
                 <option key={d} value={d} className="bg-slate-900 text-white">
-                  Ngày {d}/{activeMonth}
+                  {formatDayOptionLabel(d)}
                 </option>
               ))}
             </select>
@@ -660,7 +705,7 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
             >
               {availableDays.map((d) => (
                 <option key={d} value={d} className="bg-slate-900 text-white">
-                  Ngày {d}/{activeMonth}
+                  {formatDayOptionLabel(d)}
                 </option>
               ))}
             </select>
