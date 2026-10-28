@@ -5630,8 +5630,8 @@ export const MONTHLY_DATA: MonthDataset[] = [
     })),
   },
   {
-    "month": 10,
-    "label": "Tháng 10",
+    "month": 11,
+    "label": "Tháng 11",
     "regions": [
       'Bình Dương',
       'Bình Phước',

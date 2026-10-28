@@ -237,17 +237,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     });
 
     // 3. MONTHS & QUARTERS
-    for (let m = 1; m <= 9; m++) {
+    for (let m = 1; m <= 11; m++) {
+      const mStr = m < 10 ? `0${m}` : `${m}`;
       items.push({
         id: `month_${m}`,
-        title: `Tháng ${m} (0${m}/2026)`,
+        title: `Tháng ${m} (${mStr}/2026)`,
         subtitle: `Xem báo cáo chi tiết doanh thu & chi phí VAT Tháng ${m}`,
         category: 'month',
         categoryLabel: 'Thời Gian',
         icon: Calendar,
         iconColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
-        badge: m === 9 ? 'Tháng Hiện Tại' : undefined,
-        keywords: [`thang ${m}`, `t${m}`, `thang ${m}/2026`, `thang0${m}`],
+        badge: m === 10 ? 'Tháng Hiện Tại' : undefined,
+        keywords: [`thang ${m}`, `t${m}`, `thang ${m}/2026`, `thang${mStr}`],
         action: () => {
           saveRecent(`Tháng ${m}`);
           onSelectSidebarTab('google_ads');
@@ -262,7 +263,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       { id: 'q1', label: 'Quý 1 (T1 - T3)', sub: 'Báo cáo hợp nhất Quý 1' },
       { id: 'q2', label: 'Quý 2 (T4 - T6)', sub: 'Báo cáo hợp nhất Quý 2' },
       { id: 'q3', label: 'Quý 3 (T7 - T9)', sub: 'Báo cáo hợp nhất Quý 3' },
-      { id: 'q4', label: 'Quý 4 (T10)', sub: 'Báo cáo hợp nhất Quý 4' },
+      { id: 'q4', label: 'Quý 4 (T10 - T11)', sub: 'Báo cáo hợp nhất Quý 4' },
     ];
     quarters.forEach((q) => {
       items.push({

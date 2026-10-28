@@ -93,19 +93,22 @@ export const DailyDataChart: React.FC<DailyDataChartProps> = ({
 
   const isQuarterOrRange = typeof activeMonth === 'string';
   const activeMonthsList = isQuarterOrRange
-    ? (parseCustomRange(activeMonth) || (activeMonth === 'q1' ? [1, 2, 3] : activeMonth === 'q2' ? [4, 5, 6] : activeMonth === 'q3' ? [7, 8, 9] : [10]))
+    ? (parseCustomRange(activeMonth) || (activeMonth === 'q1' ? [1, 2, 3] : activeMonth === 'q2' ? [4, 5, 6] : activeMonth === 'q3' ? [7, 8, 9] : [10, 11]))
     : [activeMonth as number];
-
-  const defaultActiveNum = isQuarterOrRange ? activeMonthsList[activeMonthsList.length - 1] : (activeMonth as number);
-  const isMultiMonth = activeMonthsList.length > 1;
-
-  // Days in active month
-  const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][defaultActiveNum] || 31;
 
   // Filter existing daily records for active month, quarter, or custom range
   const monthRecords = isQuarterOrRange
     ? dailyRecords.filter((r) => activeMonthsList.includes(r.monthNum))
     : dailyRecords.filter((r) => r.monthNum === activeMonth);
+
+  const distinctRecordMonths = Array.from(new Set(monthRecords.map((r) => r.monthNum))).sort((a, b) => a - b);
+  const defaultActiveNum = isQuarterOrRange
+    ? (distinctRecordMonths.length > 0 ? distinctRecordMonths[distinctRecordMonths.length - 1] : activeMonthsList[0])
+    : (activeMonth as number);
+  const isMultiMonth = distinctRecordMonths.length > 1;
+
+  // Days in active month
+  const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][defaultActiveNum] || 31;
 
   // Build daily data map for the month
   interface DayData {

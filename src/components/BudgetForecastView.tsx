@@ -152,6 +152,7 @@ const MONTH_TABS = [
   { id: 't8', monthNum: 8, label: 'Tháng 8', short: 'T8' },
   { id: 't9', monthNum: 9, label: 'Tháng 9', short: 'T9' },
   { id: 't10', monthNum: 10, label: 'Tháng 10', short: 'T10' },
+  { id: 't11', monthNum: 11, label: 'Tháng 11', short: 'T11' },
 ];
 
 interface ForecastQuarterGroup {
@@ -166,7 +167,7 @@ const FORECAST_QUARTERS: ForecastQuarterGroup[] = [
   { id: 'q1', label: 'Quý 1', shortLabel: 'Q1', rangeLabel: 'T1 - T3', monthIds: ['t1', 't2', 't3'] },
   { id: 'q2', label: 'Quý 2', shortLabel: 'Q2', rangeLabel: 'T4 - T6', monthIds: ['t4', 't5', 't6'] },
   { id: 'q3', label: 'Quý 3', shortLabel: 'Q3', rangeLabel: 'T7 - T9', monthIds: ['t7', 't8', 't9'] },
-  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10', monthIds: ['t10'] },
+  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10 - T11', monthIds: ['t10', 't11'] },
 ];
 
 function normalizeBranchName(str: string): string {

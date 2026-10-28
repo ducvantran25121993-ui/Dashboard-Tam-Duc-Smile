@@ -96,7 +96,7 @@ export default function App() {
 
   // Initialize month tab with current real-world month (đang tháng nào thì theo đúng tháng đó, tối đa theo dữ liệu Sheet thực tế)
   const [activeTab, setActiveTab] = useState<MonthTab>(() => {
-    const currentCalMonth = Math.min(getCurrentVietnamMonth(), 10);
+    const currentCalMonth = Math.min(getCurrentVietnamMonth(), 11);
     try {
       const savedAnchor = localStorage.getItem('dashboard_active_month_cal_anchor');
       const saved = localStorage.getItem('dashboard_active_month_tab');
@@ -105,7 +105,7 @@ export default function App() {
       if (saved && savedAnchor === String(currentCalMonth)) {
         if (saved === 'overview' || saved === 'q1' || saved === 'q2' || saved === 'q3' || saved === 'q4') return saved as MonthTab;
         const parsed = parseInt(saved, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 10) {
+        if (!isNaN(parsed) && parsed >= 1 && parsed <= 11) {
           return parsed as MonthTab;
         }
       }
@@ -118,7 +118,7 @@ export default function App() {
     setActiveTab(tab);
     try {
       localStorage.setItem('dashboard_active_month_tab', String(tab));
-      localStorage.setItem('dashboard_active_month_cal_anchor', String(Math.min(getCurrentVietnamMonth(), 10)));
+      localStorage.setItem('dashboard_active_month_cal_anchor', String(Math.min(getCurrentVietnamMonth(), 11)));
     } catch {}
   };
 
@@ -354,7 +354,8 @@ export default function App() {
       localStorage.removeItem('monthly_sheet_datasets_v5');
       localStorage.removeItem('monthly_sheet_datasets_v6');
       localStorage.removeItem('monthly_sheet_datasets_v7');
-      const cached = localStorage.getItem('monthly_sheet_datasets_v8');
+      localStorage.removeItem('monthly_sheet_datasets_v8');
+      const cached = localStorage.getItem('monthly_sheet_datasets_v9');
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -377,7 +378,7 @@ export default function App() {
     if (result.monthlyData && result.monthlyData.length > 0) {
       setMonthlyDatasets(result.monthlyData);
       try {
-        localStorage.setItem('monthly_sheet_datasets_v8', JSON.stringify(result.monthlyData));
+        localStorage.setItem('monthly_sheet_datasets_v9', JSON.stringify(result.monthlyData));
       } catch {
         // ignore storage error
       }
@@ -404,8 +405,8 @@ export default function App() {
   }, [autoRefreshEnabled, sheetUrl, loadSheetData]);
 
   // Find dataset for active month or consolidated quarter/range (defaults to current real calendar month)
-  const currentCalendarMonth = Math.min(getCurrentVietnamMonth(), 10);
-  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 10 ? currentCalendarMonth : 10;
+  const currentCalendarMonth = Math.min(getCurrentVietnamMonth(), 11);
+  const defaultCurrentMonth = currentCalendarMonth >= 1 && currentCalendarMonth <= 11 ? currentCalendarMonth : 10;
   const isQuarter = isQuarterTab(activeTab);
   const isRange = isCustomRange(activeTab);
   const customMonths = useMemo(() => {
@@ -704,7 +705,7 @@ export default function App() {
               displayUnit={displayUnit}
               activeMonth={typeof activeTab === 'number' ? activeTab : defaultCurrentMonth}
               onSelectMonth={(m) => {
-                if (typeof m === 'number' && m >= 1 && m <= 10) {
+                if (typeof m === 'number' && m >= 1 && m <= 11) {
                   handleSelectMonthTab(m as MonthTab);
                 } else if (m === 'all') {
                   handleSelectMonthTab('overview');

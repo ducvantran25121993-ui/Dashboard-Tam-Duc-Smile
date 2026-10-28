@@ -36,6 +36,7 @@ export const MONTH_GIDS: Record<number, string> = {
   8: '232446189',
   9: '1189243661',
   10: '1397851424',
+  11: '2063800911',
 };
 
 // Helper to extract Spreadsheet ID from Google Sheet URL
@@ -111,6 +112,7 @@ export function parseMonthlySheet(csvText: string): MonthDataset[] {
     { month: 8, label: 'Tháng 8', regionCol: 58, svcCol: 59, cpSvcCol: 60, cpTongCol: -1, vatCol: 61, revCol: 62, pctCol: 63, svcDataCol: 64, regDataCol: 65 },
     { month: 9, label: 'Tháng 9', regionCol: 66, svcCol: 67, cpSvcCol: 68, cpTongCol: -1, vatCol: 69, revCol: 70, pctCol: 71, svcDataCol: 72, regDataCol: 73 },
     { month: 10, label: 'Tháng 10', regionCol: 74, svcCol: 75, cpSvcCol: 76, cpTongCol: -1, vatCol: 77, revCol: 78, pctCol: 79, svcDataCol: 80, regDataCol: 81 },
+    { month: 11, label: 'Tháng 11', regionCol: 82, svcCol: 83, cpSvcCol: 84, cpTongCol: -1, vatCol: 85, revCol: 86, pctCol: 87, svcDataCol: 88, regDataCol: 89 },
   ];
 
   const datasets: MonthDataset[] = [];

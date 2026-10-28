@@ -31,14 +31,14 @@ interface QuarterGroup {
   label: string;
   shortLabel: string;
   rangeLabel: string;
-  months: (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10)[];
+  months: (1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11)[];
 }
 
 const QUARTERS: QuarterGroup[] = [
   { id: 'q1', label: 'Quý 1', shortLabel: 'Q1', rangeLabel: 'T1 - T3', months: [1, 2, 3] },
   { id: 'q2', label: 'Quý 2', shortLabel: 'Q2', rangeLabel: 'T4 - T6', months: [4, 5, 6] },
   { id: 'q3', label: 'Quý 3', shortLabel: 'Q3', rangeLabel: 'T7 - T9', months: [7, 8, 9] },
-  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10', months: [10] },
+  { id: 'q4', label: 'Quý 4', shortLabel: 'Q4', rangeLabel: 'T10 - T11', months: [10, 11] },
 ];
 
 export const MonthNavigation: React.FC<MonthNavigationProps> = ({
@@ -407,7 +407,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         onChange={(e) => setRangeStart(Number(e.target.value))}
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((m) => (
                           <option key={`opt-range-start-${m}`} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
@@ -423,7 +423,7 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                         onChange={(e) => setRangeEnd(Number(e.target.value))}
                         className="w-full px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-blue-500 cursor-pointer"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => (
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((m) => (
                           <option key={`opt-range-end-${m}`} value={m}>
                             Tháng {m} {m === currentCalMonth ? '(Hiện tại)' : ''}
                           </option>
@@ -498,22 +498,22 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                       </span>
                     </button>
 
-                    {/* Toàn bộ 10 Tháng */}
+                    {/* Toàn bộ 11 Tháng */}
                     <button
-                      onClick={() => handleApplyPreset('range:1-10')}
+                      onClick={() => handleApplyPreset('range:1-11')}
                       className={`p-2 rounded-xl border text-xs font-semibold flex items-center justify-between cursor-pointer transition-all ${
-                        activeTab === 'range:1-10'
+                        activeTab === 'range:1-11'
                           ? 'bg-blue-600/30 text-white border-blue-400 ring-1 ring-blue-400'
                           : 'bg-slate-950/50 hover:bg-slate-800 text-slate-200 border-slate-800 hover:border-slate-700'
                       }`}
-                      title="Xem tổng hợp 10 tháng từ Tháng 1 đến Tháng 10"
+                      title="Xem tổng hợp 11 tháng từ Tháng 1 đến Tháng 11"
                     >
                       <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        <span>Cả 10 Tháng</span>
+                        <span>Cả 11 Tháng</span>
                       </div>
                       <span className="text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono font-bold">
-                        T1 - T10
+                        T1 - T11
                       </span>
                     </button>
                   </div>
@@ -534,24 +534,24 @@ export const MonthNavigation: React.FC<MonthNavigationProps> = ({
                       </button>
                       <span className="text-slate-600">•</span>
                       <button
-                        onClick={() => setSelectedMonths([7, 8, 9, 10])}
+                        onClick={() => setSelectedMonths([7, 8, 9, 10, 11])}
                         className="text-cyan-400 hover:underline cursor-pointer"
                       >
-                        T7-T10
+                        T7-T11
                       </button>
                       <span className="text-slate-600">•</span>
                       <button
-                        onClick={() => setSelectedMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])}
+                        onClick={() => setSelectedMonths([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])}
                         className="text-cyan-400 hover:underline cursor-pointer"
                       >
-                        Tất cả (10T)
+                        Tất cả (11T)
                       </button>
                     </div>
                   </div>
 
-                  {/* 10 Month Chips */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((m) => {
+                  {/* 11 Month Chips */}
+                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((m) => {
                       const isSelected = selectedMonths.includes(m);
                       const isCurrentMonth = m === currentCalMonth;
                       return (

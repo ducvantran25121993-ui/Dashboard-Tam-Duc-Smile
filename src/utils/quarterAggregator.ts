@@ -52,11 +52,11 @@ export const QUARTER_CONFIGS: Record<QuarterId, QuarterConfig> = {
   q4: {
     id: 'q4',
     label: 'Quý 4',
-    name: 'Quý 4 (T10)',
-    fullName: 'Báo Cáo Quý 4 (Tháng 10)',
+    name: 'Quý 4 (T10 - T11)',
+    fullName: 'Báo Cáo Quý 4 (Tháng 10 - Tháng 11)',
     shortLabel: 'Q4',
-    months: [10],
-    rangeLabel: 'Tháng 10',
+    months: [10, 11],
+    rangeLabel: 'Tháng 10 - Tháng 11',
     color: '#f59e0b',
     accentGradient: 'from-amber-500 to-orange-600',
   },
@@ -330,7 +330,8 @@ export function parseCustomRange(tab: unknown): number[] | null {
   if (tab === 'q1') return [1, 2, 3];
   if (tab === 'q2') return [4, 5, 6];
   if (tab === 'q3') return [7, 8, 9];
-  if (tab === 'overview') return [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  if (tab === 'q4') return [10, 11];
+  if (tab === 'overview') return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
   if (tab.startsWith('range:')) {
     const parts = tab.replace('range:', '').split('-');
@@ -340,7 +341,7 @@ export function parseCustomRange(tab: unknown): number[] | null {
       if (!isNaN(start) && !isNaN(end) && start <= end) {
         const result: number[] = [];
         for (let i = start; i <= end; i++) {
-          if (i >= 1 && i <= 9) result.push(i);
+          if (i >= 1 && i <= 11) result.push(i);
         }
         return result.length > 0 ? result : null;
       }
@@ -351,7 +352,7 @@ export function parseCustomRange(tab: unknown): number[] | null {
     const parts = tab.replace('custom:', '').split(',');
     const result = parts
       .map((p) => parseInt(p.trim(), 10))
-      .filter((n) => !isNaN(n) && n >= 1 && n <= 9);
+      .filter((n) => !isNaN(n) && n >= 1 && n <= 11);
     return result.length > 0 ? Array.from(new Set(result)).sort((a, b) => a - b) : null;
   }
 
