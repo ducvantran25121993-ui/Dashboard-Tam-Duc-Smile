@@ -318,8 +318,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {navItems
             .filter((item) => {
-              if (userRole === 'staff' && allowedStaffTabs && allowedStaffTabs.length > 0) {
-                return allowedStaffTabs.includes(item.id);
+              if (userRole === 'staff') {
+                if (item.id === 'vttech_crm') return false;
+                if (allowedStaffTabs && allowedStaffTabs.length > 0) {
+                  return allowedStaffTabs.includes(item.id);
+                }
+                return false;
               }
               return true;
             })

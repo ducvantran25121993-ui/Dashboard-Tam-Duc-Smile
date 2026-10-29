@@ -336,9 +336,10 @@ export default function App() {
 
   // If staff logs in and the active tab is not allowed, automatically switch to first available allowed tab
   useEffect(() => {
-    if (userRole === 'staff' && allowedStaffTabs.length > 0) {
-      if (!allowedStaffTabs.includes(activeSidebarTab)) {
-        setActiveSidebarTab(allowedStaffTabs[0]);
+    if (userRole === 'staff') {
+      if (!allowedStaffTabs.includes(activeSidebarTab) || activeSidebarTab === 'vttech_crm') {
+        const fallback = allowedStaffTabs.find((t) => t !== 'vttech_crm') || 'google_ads';
+        setActiveSidebarTab(fallback);
       }
     }
   }, [userRole, allowedStaffTabs, activeSidebarTab]);
@@ -667,7 +668,7 @@ export default function App() {
         {/* Main Content Container */}
         <main className="flex-1 max-w-[1650px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           {/* Permission Check for Staff */}
-          {userRole === 'staff' && !allowedStaffTabs.includes(activeSidebarTab) ? (
+          {userRole === 'staff' && (!allowedStaffTabs.includes(activeSidebarTab) || activeSidebarTab === 'vttech_crm') ? (
             <div className="p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center max-w-lg mx-auto my-12 space-y-4 shadow-2xl">
               <div className="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/10">
                 <AlertTriangle className="w-7 h-7" />

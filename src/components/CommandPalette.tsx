@@ -326,23 +326,30 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       });
     }
 
-    tabs.forEach((t) => {
-      items.push({
-        id: `tab_${t.id}`,
-        title: t.title,
-        subtitle: t.subtitle,
-        category: 'tab',
-        categoryLabel: 'Chức Năng',
-        icon: t.icon,
-        iconColor: t.iconColor,
-        keywords: [t.title, t.id, 'chuc nang', 'tab', 'menu', 'trang'],
-        action: () => {
-          saveRecent(t.title);
-          onSelectSidebarTab(t.id);
-          showToast(`🚀 Đã mở: ${t.title}`);
-        },
+    tabs
+      .filter((t) => {
+        if (userRole === 'staff') {
+          return t.id !== 'vttech_crm';
+        }
+        return true;
+      })
+      .forEach((t) => {
+        items.push({
+          id: `tab_${t.id}`,
+          title: t.title,
+          subtitle: t.subtitle,
+          category: 'tab',
+          categoryLabel: 'Chức Năng',
+          icon: t.icon,
+          iconColor: t.iconColor,
+          keywords: [t.title, t.id, 'chuc nang', 'tab', 'menu', 'trang'],
+          action: () => {
+            saveRecent(t.title);
+            onSelectSidebarTab(t.id);
+            showToast(`🚀 Đã mở: ${t.title}`);
+          },
+        });
       });
-    });
 
     // 5. QUICK ACTIONS
     items.push({

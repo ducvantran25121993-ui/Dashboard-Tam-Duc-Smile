@@ -13,6 +13,8 @@ export function ensureStaffPermissions(tabs: (SidebarTab | string)[]): SidebarTa
   // Guarantee 'budget_forecast' (Ngân Sách Dự Kiến) and 'landing_builder' (Tạo Landing Page AI) are accessible for staff
   set.add('budget_forecast');
   set.add('landing_builder');
+  // Explicitly hide VTTech CRM tab for staff
+  set.delete('vttech_crm');
   return Array.from(set);
 }
 

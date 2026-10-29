@@ -143,7 +143,6 @@ export const DEFAULT_STAFF_ALLOWED_TABS: SidebarTab[] = [
   'budget_forecast',
   'campaigns',
   'competitor',
-  'vttech_crm',
   'innovation',
   'landing_builder',
   'ai_agent',
